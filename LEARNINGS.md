@@ -2,50 +2,90 @@
 
 ## 2026-11-02 — Bounded title coverage needs a declared raster envelope (#637)
 
-Canvas metrics can miss fallback ink. The modern P1 policy therefore assumes
-that all nonzero main coverage of the complete shaped request lies within its
-signed actual bounds on both axes, expanded on every side by one candidate em
-plus one internal-raster pixel and rounded outward. That allowance is a support
-premise, not a measured maximum or arbitrary-font proof. Transparent borders
-cannot rule out disconnected ink farther away, and finite samples cannot
-certify arbitrary fallback fonts or native typography equivalence. Keep stable
-loaded text state and integer tile translations that preserve raster phase;
-unusable metrics, unsupported phase, known premise violations and host
-allocation/readback failures reject the operation with an error named
-`TitleCoverageUnavailableError`. Unavailable coverage is neither demonstrated
-nonfit nor TF5, and cannot justify a smaller style.
+Canvas metrics can miss fallback ink. The modern P1 policy assumes that all
+nonzero main coverage of the complete shaped request lies within signed actual
+bounds on both axes, expanded on every side by one candidate em plus one
+internal-raster pixel and rounded outward. That allowance is a support premise,
+not a measured maximum or arbitrary-font proof. Transparent borders cannot rule
+out disconnected ink farther away; finite samples cannot certify arbitrary
+fallback fonts or native typography equivalence.
 
-Signed bearings and ascent/descent locate coverage; padded raster and crop
-origins locate storage. Neither replaces the nominal ascent used by the recipe
-baseline, nor the procedural pen, baseline or geometry metrics. Carry crop
-origins through publication so correcting coverage preserves overhang and rows
-without moving the title or changing the existing clip/truncation policy.
-Recipe size reduction does not apply to procedural frames. See the
-[title-coverage contract](./docs/spec/engine/window-title-fit.md).
+P1 also assumes query equivalence for the chosen guarded placements: reversing
+the integer translation must recover every queried pixel's original native
+coverage and fractional pen/baseline phase. Finite paint windows contain guarded,
+owned queries and a projected metric anchor; this proves geometry and the scratch
+bound, not that native culling preserves coverage. Envelope containment, a guard,
+a retained anchor or transparent readback cannot establish that second premise.
+Known unusable placements are unavailable, never evidence of empty ink. Keep
+stable loaded text state and account for every possible exterior pixel exactly
+once; fit is conditional on both assumptions.
+
+Every consumed measurement must be finite and usable, including metrics-only
+advance acquisition, each prefix/ellipsis measurement and procedural geometry.
+Unusable metrics/coordinates, unsupported observation state, known premise
+violations, inability to construct safe finite placements and host
+allocation/readback/security failures reject the operation with
+`TitleCoverageUnavailableError`. Unavailable coverage is neither demonstrated
+nonfit nor TF5 and cannot justify a smaller style or silent ellipsis. Existing
+non-DOM and null-context fallbacks remain unchanged.
+
+Recipe fitting counts all nonzero-alpha main pixels of the complete request
+before prefix truncation, selecting the largest fitting eligible size without
+assuming monotonic fit. One resolved style governs advance, layout, truncation
+and publication. Signed bearings and ascent/descent locate coverage; padded
+raster/crop origins locate storage. Neither replaces the nominal recipe baseline
+nor the procedural pen, baseline or geometry metrics. Carry crop origins through
+publication to preserve overhang and rows without moving titles or changing
+clips, shadow order/offset or truncation. Recipe size reduction does not apply to
+procedural frames. See the [title-coverage contract](./docs/spec/engine/window-title-fit.md).
 
 A coverage canvas of at most 4096×32 pixels and same-size RGBA readback bound
 the two explicit RGBA planes to 1,048,576 bytes. Destination-sized publication
-and frame output are separate, as are input strings, opaque host shaping memory
-and garbage-collection behavior. Fixed scratch does not bound total memory or
-make work linear: drawing the complete request for each tile can be quadratic,
-though traversal is finite under P1's finite-host premise.
+and frame output are separate, as are input strings, opaque host shaping memory,
+garbage collection and cumulative readback traffic. Fixed scratch does not bound
+total memory or make work linear: drawing the complete request for each query
+can be quadratic, though traversal is finite under P1's finite-host premise.
 
-A predeclared same-host native Firefox source/built trial retained exactly 56
-baseline and 56 candidate public renders: 14 conditions, each with one warm-up
-and three measured renders, without errors, retries or performance cutoffs.
-All 14 candidate median totals were no higher than baseline in this finite
-sample; this proves neither speedup nor general absence of regression. For
-2048-repeat ordinary/fallback requests (about 16,000 characters), candidate
-medians were 5.411–7.530 seconds versus 6.991–13.402 seconds baseline.
-Utility shrink-case medians at 2048 repeats were 5.608/5.615 seconds versus
-13.865/9.019 seconds baseline, respectively for source/built.
+The final predeclared same-host native Firefox 157 source/built trial retained
+exactly 56 baseline and 56 guarded public renders: 14 fixed conditions, each
+with one warm-up and three measured renders, at DPR1 with the 1984 theme and
+240×120 input dimensions. No errors, retries, extra inputs or performance
+cutoffs were used. The baseline was `1b743537`; the final title-font blob was
+`564e6a362985af3228b341fb9cc6566f03c86169`. Within the final trial the checkout
+and source, built, font and harness inputs stayed unchanged. The earlier
+exterior-only trial remains historical; its timings do not describe the final
+guarded placements.
 
-Selected whole-request Canvas host-call medians for those utility cases rose
-to 208/239 ms from 7 ms. This measures selected host calls, excluding JavaScript
-scan/dispatch and garbage collection; it is neither whole JavaScript fit latency
-nor CPU cycles. More than 16,000 prefix measurements remain in the long cases,
-with seconds-scale existing truncation cost and potentially quadratic work.
-There is no arbitrary-input realtime promise.
+At 2048 repetitions (about 16,000 characters), total public-render medians were:
+
+| Mode / request | Baseline → guarded median (ms) |
+|---|---:|
+| Source / ordinary | 7,263 → 12,537 |
+| Source / fallback | 13,402 → 9,860 |
+| Source / utility shrink fallback | 13,865 → 17,623 |
+| Built / ordinary | 6,991 → 8,817 |
+| Built / fallback | 8,389 → 10,260 |
+| Built / utility shrink fallback | 9,019 → 10,219 |
+
+Source ordinary samples ranged from 7,033–8,963 ms baseline and 9,992–17,484 ms
+guarded; the slowest guarded utility sample was 22,109 ms. Shorter cases also
+varied. The PM and independent reviewer accepted these finite regressions for
+the correctness and bounded scratch-storage tradeoff; they establish neither
+speedup nor general absence of regression. Extreme titles retain multi-second
+synchronous rendering and can be slower.
+
+Selected complete-request Canvas host-call medians for the long utility case
+rose from 7 ms to 322/261 ms for source/built. This subset covers intercepted
+complete-request measure/draw and associated readback calls, excluding JavaScript
+scan/dispatch, prefix work and garbage collection; it is not whole-resolver
+latency or CPU cycles. Long utility samples used 154 complete-request draws and
+154 readbacks, with 16,637,382 cumulative readback pixels (about 66.55 MB of RGBA
+traffic), distinct from the 1,048,576-byte simultaneous explicit-plane bound.
+These traffic/count observations are not allocator or RSS measurements. More
+than 16,000 prefix measurements remain in long cases. Warm-browser caches and
+three timed samples per condition do not establish worst-case latency, arbitrary
+fallback support, a production input/work budget or constant opaque host memory;
+there is no arbitrary-input realtime promise.
 
 ## 2026-11-02 — Calibrate browser title references independently (#634)
 
