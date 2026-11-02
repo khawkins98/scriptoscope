@@ -236,7 +236,7 @@ export async function renderWindow(
       // title font is taller than the original's: when its ascent would start above the title
       // rect, the baseline moves down by exactly that overflow, so every glyph stays inside.
       const baseline = Math.max(t4p.y + t4p.h - TITLE_TEXT.TX8.baselineAbove, t4p.y + base.ascent);
-      const x0 = t4p.x, y0 = baseline - base.ascent;
+      const x0 = t4p.x;
       const clip = { x: t4p.x, y: t4p.y, w: t4p.w + TITLE_TEXT.TX4.widenRight, h: t4p.h };
       // TC1–TC5: samples belong to the selected template, before remapping or PNG
       // transport. Compare full RGB16, even when display conversion merges colours.
@@ -248,7 +248,7 @@ export async function renderWindow(
         const glyph = raster(dispTitle, hex);
         // Substitute-font policy: transparent coverage, alpha-over (control-text-colors
         // Runtime painting). Native TX6 TextMode srcOr is not a bitwise RGB operation here.
-        composed.buffer.drawOver(glyph.buffer, x0 + dx, y0 + dy, clip);
+        composed.buffer.drawOver(glyph.buffer, x0 + dx, baseline - glyph.ascent + dy, clip);
       };
       if (samples?.text && samples.shadow && samples.text.rgb16.some((v, i) => v !== samples.shadow!.rgb16[i])) {
         paint(samples.shadow, TITLE_TEXT.TX7.offsetX, TITLE_TEXT.TX7.offsetY);
