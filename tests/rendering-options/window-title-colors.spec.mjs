@@ -20,17 +20,17 @@ for (const mode of ['source', 'built']) test(`${mode}: raw RGB16 title equality 
         if (variant === 'distinct-display') shadow.displayRgb = [180, 70, 20];
         wt.titleSamples = { [state]: { text, shadow, background: text } };
         const hex = sample => '#' + sample.displayRgb.map(n => n.toString(16).padStart(2, '0')).join('');
-        const colours = [hex(text), hex(shadow)], calls = [], nativePaints = [];
+        const calls = [];
         let win;
         try {
           CanvasRenderingContext2D.prototype.fillText = function (s, ...args) {
-            if (colours.includes(this.fillStyle)) {
-              this.globalAlpha = 0.5; calls.push({ text: s, font: this.font, colour: this.fillStyle, args });
-            }
-            const result = fill.call(this, s, ...args);
-            if (colours.includes(this.fillStyle)) nativePaints.push({ args, width: this.canvas.width, height: this.canvas.height,
-              rgba: this.getImageData(0, 0, this.canvas.width, this.canvas.height).data });
-            return result;
+            // Record every actual colour, including wrong/unexpected colours.
+            // Logical pass validation below uses independent visible coverage,
+            // not a filter or one physical draw per logical paint pass.
+            this.globalAlpha = 0.5;
+            calls.push({ text: s, font: this.font, colour: this.fillStyle, args,
+              width: this.canvas.width, height: this.canvas.height });
+            return fill.call(this, s, ...args);
           };
           win = await api.renderWindow(theme, { title, width: 240, height: 120, windowType: key, state });
         } finally { CanvasRenderingContext2D.prototype.fillText = fill; }
@@ -46,22 +46,10 @@ for (const mode of ['source', 'built']) test(`${mode}: raw RGB16 title equality 
           fill.call(ctx, title, 32, 64);
           return ctx.getImageData(0, 0, 256, 128).data;
         });
-        // Diagnostic only: prove whether the separate reference agrees with
-        // every captured native pixel inside its existing scratch surface.
-        // Retain the pre-pen column separately; never clip it out of replay.
-        const nativePositiveDifferences = nativePaints.map((paint, i) => {
-          const ref = rasters[i]; if (!ref) return null;
-          let differences = 0;
-          for (let y = 0; y < paint.height; y++) for (let x = 0; x < paint.width; x++) {
-            const rx = 32 + x - paint.args[0], ry = 64 + y - paint.args[1];
-            for (let k = 0; k < 4; k++) if (paint.rgba[(y * paint.width + x) * 4 + k] !== (ref[(ry * 256 + rx) * 4 + k] ?? 0)) differences++;
-          }
-          return differences;
-        });
         const prePenColumn = rasters.map(rgba => Array.from({ length: 128 }, (_, y) => ({ y: y - 64, rgba: Array.from(rgba.slice((y * 256 + 31) * 4, (y * 256 + 31) * 4 + 4)) })).filter(p => p.rgba[3]));
         const replay = ({ reverse = false, unshifted = false, mainOnly = false, missing, opaque = false } = {}) => {
           const expected = new Uint8ClampedArray(tf.buffer.data);
-          let fractional = 0, overlap = 0; const touched = new Set();
+          let fractional = 0, overlap = 0; const touched = new Set(), contributors = new Map();
           const order = passes.map((_, i) => i); if (reverse) order.reverse();
           for (const i of order) {
             if ((mainOnly && i < passes.length - 1) || i === missing) continue;
@@ -73,6 +61,7 @@ for (const mode of ['source', 'built']) test(`${mode}: raw RGB16 title equality 
               if (alpha < 255) fractional++;
               const d = (dy * c.buffer.width + dx) * 4;
               if (touched.has(d)) overlap++; touched.add(d);
+              if (!contributors.has(d)) contributors.set(d, new Set()); contributors.get(d).add(i);
               for (let k = 0; k < 3; k++) expected[d + k] = Math.round((pixels[p + k] * alpha + expected[d + k] * (255 - alpha)) / 255);
               expected[d + 3] = Math.round(alpha + expected[d + 3] * (255 - alpha) / 255);
             }
@@ -81,9 +70,18 @@ for (const mode of ['source', 'built']) test(`${mode}: raw RGB16 title equality 
           for (let i = 0; i < expected.length; i++) if (expected[i] !== c.buffer.data[i]) {
             mismatches++; if (firstDifferences.length < 12) firstDifferences.push({ x: Math.floor(i / 4) % c.buffer.width, y: Math.floor(i / 4 / c.buffer.width), channel: i % 4, expected: expected[i], actual: c.buffer.data[i] });
           }
-          return { mismatches, fractional, overlap, firstDifferences };
+          // Explicit observable equivalent of the logical colour sequence:
+          // each pass has independently located exclusive visible pixels whose
+          // actual RGBA must match that pass's declared paint colour. Overlap
+          // obeys the fixed shadow-before-main replay and reverse-order negative.
+          const logicalPaints = passes.map(([sample], i) => ({ pass: i, wantedStyle: hex(sample), exclusivePixels: 0, colourMismatches: 0 }));
+          for (const [d, owners] of contributors) if (owners.size === 1) {
+            const paint = logicalPaints[[...owners][0]]; paint.exclusivePixels++;
+            if ([0, 1, 2, 3].some(k => expected[d + k] !== c.buffer.data[d + k])) paint.colourMismatches++;
+          }
+          return { mismatches, fractional, overlap, firstDifferences, logicalPaints };
         };
-        out.push({ state, channel, variant, calls, wantedStyles: passes.map(([sample]) => hex(sample)), nativePositiveDifferences, prePenColumn, style: style.reference.fontStyle, rect, baseline, ...replay(),
+        out.push({ state, channel, variant, calls, wantedStyles: passes.map(([sample]) => hex(sample)), prePenColumn, style: style.reference.fontStyle, rect, baseline, ...replay(),
           opaqueMutation: replay({ opaque: true }).mismatches, missingPaintMutations: passes.map((_, i) => replay({ missing: i }).mismatches),
           reverseMismatch: replay({ reverse: true }).mismatches, unshiftedMismatch: replay({ unshifted: true }).mismatches,
           missingShadowMismatch: replay({ mainOnly: true }).mismatches, accessibleName: win.getAttribute('aria-label') });
@@ -94,7 +92,17 @@ for (const mode of ['source', 'built']) test(`${mode}: raw RGB16 title equality 
   await attachObservations(info, 'window-title-colors', mode, { mode, rows });
   expect(rows).toHaveLength(10);
   for (const row of rows) {
+    // Native observation and publication tiles may add physical calls. Require
+    // the literal independently prescribed paint colours in their native order,
+    // consuming distinct calls for two logically distinct equal-colour passes.
+    let nextPaint = 0;
+    for (const call of row.calls) if (call.colour === row.wantedStyles[nextPaint]) nextPaint++;
+    expect.soft(nextPaint, `${row.variant}: actual literal paint colour sequence ${JSON.stringify(row.calls.map(c => c.colour))}`).toBe(row.wantedStyles.length);
     expect.soft(row.mismatches, `${row.state} ${row.variant}: independent colour/pen/baseline/clip replay`).toBe(0);
+    for (const paint of row.logicalPaints) {
+      expect.soft(paint.exclusivePixels, `${row.variant}: logical pass ${paint.pass} has observable colour`).toBeGreaterThan(0);
+      expect.soft(paint.colourMismatches, `${row.variant}: actual logical paint colour ${paint.wantedStyle}`).toBe(0);
+    }
     expect.soft(row.fractional, row.variant).toBeGreaterThan(0);
     expect.soft(row.opaqueMutation, row.variant).toBeGreaterThan(0);
     for (const differences of row.missingPaintMutations) expect.soft(differences, row.variant).toBeGreaterThan(0);
