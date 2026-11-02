@@ -91,13 +91,20 @@ scrollers retain their normal ownership, chaining and boundary behavior.
 Wheel input on a solid frame follows its normal native ancestor/page behavior.
 Page input outside the window remains page input.
 
+The existing themed outer scrollbar policy is preserved. Its wheel handling
+may consume input, call `preventDefault` and apply its defined scroll amount;
+the native-content and nested-scroller guarantees above apply where that
+existing control policy does not intercept the input. Native target children
+introduce no new control priority or change to that policy. The routing
+replacement itself adds no event cancellation or manual scrolling.
+
 Away from boundaries, an initial wheel input must move its intended scroll
 owner in the input direction while unintended owners remain unchanged.
 Continued input over a valid target must produce further intended movement.
 Native displacement may depend on the browser's wheel policy and viewport;
 this contract does not require an identical number of pixels per wheel delta
-across engines. It authorizes no event cancellation, fabricated scroll
-positions, user-agent selection or synthetic wheel forwarding.
+across engines. The routing replacement must not fabricate scroll positions,
+select behavior by user-agent text or forward synthetic wheel events.
 
 The inner clip continues to constrain all of its ordinary descendants to `S`,
 including fixed-position content or descendants whose containing block lies
