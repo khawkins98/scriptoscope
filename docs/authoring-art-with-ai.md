@@ -23,7 +23,7 @@ node /path/to/claude-pxl/bin/pxl.js ascii my-sprites.px.js checkbox_on
 
 Import through `decodePng` → `Raster.fromRgba`. Keep large illustrations as
 editable PNGs instead of translating them into hundreds of character-grid rows.
-Kingfisher's [`parts/sprites/`](../authoring/schemes/kingfisher/parts/sprites/)
+Scriptoscope Reference Native Theme's [`parts/sprites/`](../authoring/schemes/kingfisher/parts/sprites/)
 shows binary-alpha checks and paired state dimensions.
 
 ## 2. Text routes in `agy`

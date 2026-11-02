@@ -193,7 +193,8 @@ titled utility, movable modal/alert and popup can show titles.
 bottom-right resize overlay is live. Widget-presence branches, condensed titles,
 below-template budgets, per-window `cinf`, popups and side-floating forms have
 the limitations above. Native inactive title widgets answer as drag-region
-presses; the web keeps public widgets operable. See
+presses. Managed web windows consume the first pointer press on an inactive
+window to activate it; a later press operates its widget. See
 [widget input](./spec/engine/window-widgets.md) and the
 [interaction guide](./interaction.md) for that distinction.
 Use exact-build native captures rather than treating browser output as a golden

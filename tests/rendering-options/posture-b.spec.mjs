@@ -171,7 +171,7 @@ for (const mode of ['source', 'built']) {
     const kingfisher = './authoring/schemes/kingfisher';
     await page.locator(`#powers-first-party .scriptoscope-theme-picker-tile[data-slug="${kingfisher}"]`).click();
     await expect.poll(() => page.locator(`#powers [data-scriptoscope-window-host]:not([data-scriptoscope-theme="${kingfisher}"])`).count()).toBe(0);
-    await expect(page.locator('#powers-credit')).toContainText('Kingfisher');
+    await expect(page.locator('#powers-credit')).toContainText('Scriptoscope Reference Native');
   });
 }
 

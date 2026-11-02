@@ -1,4 +1,8 @@
-# Kingfisher
+# Scriptoscope Reference Native Theme
+
+The worked example for the theme-creation guide. Its native file name is
+`Scriptoscope Reference Native` (within the classic Mac 31-character limit);
+`kingfisher/` remains the source path.
 
 A kingfisher on a branch over a frosted window, with a single ripple in the
 water band below. The frame geometry and art direction are in

@@ -88,7 +88,7 @@ short. GitHub release only; no npm publication.
   scheme's review previews; `npm run author -- <dir> --sheet` and `--palette`
   write a contact sheet and a palette and contrast report. A dev-only page,
   `authoring-preview.html`, previews a scheme in the browser.
-- **Kingfisher reference scheme** in `authoring/schemes/` (#540), designed from
+- **Scriptoscope Reference Native Theme reference scheme** in `authoring/schemes/` (#540), designed from
   a concept image and covering window frames, themed control families, menus, the desktop
   pattern, a picker icon and the classic control-panel extras (about box,
   arrow cursor, WindowShade sounds). It loads in Scriptoscope and in the

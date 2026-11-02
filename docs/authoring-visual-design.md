@@ -117,7 +117,7 @@ when necessary to preserve the composition.
 Try extracting distinctive illustration pixels before reconstructing them.
 Preserve proportions, shading and character; record crop, sampling, masks,
 palette choices and repairs so another author can reproduce the extraction.
-Keep placement and repeats in code; Kingfisher's
+Keep placement and repeats in code; Scriptoscope Reference Native Theme's
 [editable illustrations](../authoring/schemes/kingfisher/README.md) demonstrate
 separating PNG art from frame geometry.
 

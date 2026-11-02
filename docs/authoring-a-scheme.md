@@ -54,7 +54,7 @@ classic validation claims forward as proof of your new build. New directories
 are discovered automatically by scheme checks; no registry edit is required.
 Open the explicit preview URL for your slug. Showcase integration is optional.
 
-Kingfisher is the worked reference for imported illustrations, frame recipes
+Scriptoscope Reference Native Theme is the worked reference for imported illustrations, frame recipes
 and control-family builders. Keep authored schemes outside the community corpus
 in `themes/`.
 
@@ -103,7 +103,7 @@ an edge is allowed, but fractional coordinates are not.
 
 Encoders pre-compensate for the loader's classic-Mac-to-modern display gamma.
 Use display sRGB in artwork; `{ gamma: false }` is for deliberately raw stored
-values. Kingfisher's `sys()` palette helper instead starts from a chosen
+values. Scriptoscope Reference Native Theme's `sys()` palette helper instead starts from a chosen
 stored system-palette entry and returns its display colour.
 
 Prefer system-palette entries for procedural controls and desktop patterns:
@@ -349,7 +349,7 @@ re-theme its palette. Use source comments for engine constraints. Inspect the
 result with the frame: a button should belong to the same material family,
 not merely share its accent colour.
 
-### 6.5 How Kingfisher is laid out
+### 6.5 Reference implementation layout
 
 [`scheme.mjs`](../authoring/schemes/kingfisher/scheme.mjs) builds the resource
 list and calls `parts/` family builders. Frames and imported PNGs are separate

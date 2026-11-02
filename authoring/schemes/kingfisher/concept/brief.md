@@ -1,4 +1,4 @@
-# Kingfisher — concept brief
+# Scriptoscope Reference Native Theme — concept brief
 
 ## 1. Art direction
 
@@ -9,7 +9,7 @@ reflections and depth rather than reducing the material to a flat grey panel.
 
 ## 2. Chosen target
 
-[`concept.jpg`](./concept.jpg), with its saved prompt in this folder, is the
+[`concept.jpg`](./concept.jpg), with the reusable prompt in [`brief-1.txt`](./brief-1.txt), is the
 composition reference. Preserve the bird's pose, orange breast, white cheek,
 strong beak and connection to the branch. The branch forms the top rim; water,
 a central ripple and a pebble corner give the window a lower silhouette.

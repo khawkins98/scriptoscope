@@ -1,4 +1,4 @@
-// Kingfisher — an original first-party Kaleidoscope scheme, authored in code.
+// Scriptoscope Reference Native Theme — an original first-party Kaleidoscope scheme, authored in code.
 //
 // Look (concept/concept.jpg): a kingfisher has landed on a frosted window.
 // A rounded frame with a navy outline and a white inner rim round lavender
@@ -149,7 +149,7 @@ export async function buildScheme() {
   const resources = [];
   const add = (type, id, data, name) => resources.push({ type, id, data, ...(name ? { name } : {}) });
 
-  add('vers', 1, encodeVers({ major: 0, minor: 2, short: '0.2', long: '0.2 Kingfisher (Scriptoscope authoring)' }));
+  add('vers', 1, encodeVers({ major: 0, minor: 2, short: '0.2', long: '0.2 Scriptoscope Reference Native Theme' }));
   add('Colr', 129, encodeColr());
 
   const faces = [

@@ -1,7 +1,7 @@
 # Authored schemes
 
 Start with the [authoring guide](../docs/authoring-a-scheme.md) and
-[brief template](./concept-brief-template.md). Kingfisher is the worked reference
+[brief template](./concept-brief-template.md). Scriptoscope Reference Native Theme is the worked reference
 implementation, separate from the community corpus in `themes/`; corpus
 rendering gates do not cover authored schemes. Scheme checks discover new
 directories automatically.
@@ -30,6 +30,6 @@ semi-transparent alpha. Copying an example's source does not transfer its review
 or VM proof. Update identity and credits, regenerate previews and validate your
 own final bytes.
 
-Kingfisher demonstrates imported illustrations, frame recipes and control-family
+Scriptoscope Reference Native Theme demonstrates imported illustrations, frame recipes and control-family
 builders. `preview-layouts/` holds HTML fragments for `?layout=`, including the
 narrow/wide stress layout.

@@ -21,7 +21,7 @@ export function build(add) {
   const family = encodeIconFamily(-16455, { large: schemeIcon(32), small: schemeIcon(16), dither4: false });
   const resources = [
     ...aboutBox({
-      name: 'Kingfisher',
+      name: 'Scriptoscope Reference Native',
       description: 'A kingfisher lands on frosted glass: lavender, navy and teal water.',
       year: 2026,
       icon: rasterFromIconFamily(family), iconGamma: false,
