@@ -1687,6 +1687,7 @@ export class WindowManager<Theme extends ThemeInput = LoadedTheme> {
     const parent = entry.layers?.hit ?? win;
     const kept = overlays.get(key);
     if (kept?.parentNode === parent) return kept as HTMLElementTagNameMap[K];
+    if (kept) this.dropOverlay(entry, key); // Release targets owned by a replaced overlay.
     const el = document.createElement(tag);
     const later = WindowManager.OVERLAYS.slice(WindowManager.OVERLAYS.indexOf(key) + 1)
       .map(k => overlays.get(k)).find(o => o?.parentNode === parent);

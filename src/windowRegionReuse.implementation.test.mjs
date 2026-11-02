@@ -89,14 +89,26 @@ test('region reuse survives owned wrappers and activation, but invalidates on ch
         const beforeTheme = entry.geometry;
         await manager.retheme(other);
         const invalidatedTheme = entry.geometry !== beforeTheme && entry.previousRegionCache === undefined;
+        const targetCount = entry.targets.size;
+        const overlayKey = [...entry.overlays.keys()].find(key => entry.targets.has(entry.overlays.get(key)));
+        let boundedOverlayRepair = !!overlayKey;
+        const foreign = document.createElement('div'); document.body.append(foreign);
+        for (let i = 0; i < 4 && overlayKey; i++) {
+          const old = entry.overlays.get(overlayKey), oldTargets = entry.targets.get(old).nodes;
+          if (i % 2) foreign.append(old); else old.remove();
+          await manager.render(entry);
+          boundedOverlayRepair &&= !entry.targets.has(old) && entry.targets.size === targetCount &&
+            oldTargets.every(node => !node.parentElement) && !old.parentElement;
+        }
+        foreign.remove();
         return { retainedTargets, repairedTargets, reconciledTargets, reusedActive, reusedInactive, freshWrapper,
           invalidatedPixels, invalidatedAlpha, invalidatedSize, invalidatedScale,
-          clearedFailure, retriedFailure, invalidatedTheme };
+          clearedFailure, retriedFailure, invalidatedTheme, boundedOverlayRepair };
       } finally { manager.dispose(); theme.dispose(); other.dispose(); }
     }, `/@fs${fileURLToPath(new URL('./index.ts', import.meta.url))}`);
     assert.deepEqual(checks, { retainedTargets: true, repairedTargets: true, reconciledTargets: true,
       reusedActive: true, reusedInactive: true, freshWrapper: true,
       invalidatedPixels: true, invalidatedAlpha: true, invalidatedSize: true, invalidatedScale: true, clearedFailure: true,
-      retriedFailure: true, invalidatedTheme: true });
+      retriedFailure: true, invalidatedTheme: true, boundedOverlayRepair: true });
   } finally { await browser.close(); }
 });

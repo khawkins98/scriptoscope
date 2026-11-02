@@ -108,7 +108,9 @@ SCRIPTOSCOPE_PERF_URL=http://127.0.0.1:5173 node --test src/windowRegionReuse.im
 ```
 
 Regressions cover exact matches, recycling, duplicates, reordering, external
-removal/reparenting, mutated inputs, RGB/alpha changes, scaling and failure recovery. The two-state region
+removal/reparenting (including overlay-parent cleanup), mutated inputs, RGB/alpha
+changes, scaling and failure recovery. Held tab decodes also check that the latest
+selection wins, superseded errors are discarded, and current errors still propagate. The two-state region
 cache retains one additional source snapshot/path per window.
 
 Follow-up validation passed: theme extraction, production demo build, full gates,

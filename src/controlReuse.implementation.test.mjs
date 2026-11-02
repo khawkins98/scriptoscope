@@ -5,10 +5,11 @@ import { chromium } from '@playwright/test';
 import { fileURLToPath } from 'node:url';
 
 const base = process.env.SCRIPTOSCOPE_PERF_URL;
-test('control canvases persist and idle port reuse still observes fresh geometry', { skip: !base }, async () => {
+test('control canvases persist and idle port reuse still observes fresh geometry', { skip: !base, timeout: 30000 }, async () => {
   const browser = await chromium.launch();
   try {
     const page = await browser.newPage();
+    const pageErrors = []; page.on('pageerror', error => pageErrors.push(error.message));
     await page.route('**/control-reuse-test', route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><body></body>' }));
     await page.goto(`${base}/control-reuse-test`);
     const checks = await page.evaluate(async source => {
@@ -28,6 +29,35 @@ test('control canvases persist and idle port reuse still observes fresh geometry
       const canvases = faces.map(face => face.querySelector('canvas'));
       for (const index of [1, 0, 1]) { faces[index].dispatchEvent(new PointerEvent('pointerdown', { bubbles: true })); await frames(); }
       const tabsRetained = faces.length === 2 && faces.every((face, i) => face.querySelector('canvas') === canvases[i]);
+      // Hold an older selection's decode while a newer selection commits.
+      let latestSelection = true;
+      for (const [rejectOld, superseded] of [[false, true], [true, true], [true, false]]) {
+        const moduleUrl = performance.getEntriesByType('resource').find(entry => new URL(entry.name).pathname.endsWith('/ownedTheme.ts')).name;
+        const { themeView } = await import(moduleUrl);
+        const originals = [];
+        let release, started, holdNext = true;
+        const held = new Promise(resolve => { release = resolve; });
+        const entered = new Promise(resolve => { started = resolve; });
+        for (let view = themeView(theme); view; view = view.base) {
+          const original = view.asset; originals.push([view, original]);
+          view.asset = function(ref) {
+            const asset = original.call(this, ref);
+            return { ...asset, async pixels() {
+              if (holdNext) { holdNext = false; started(); await held; if (rejectOld) throw new Error(superseded ? 'Superseded tab decode' : 'Current tab decode'); }
+              return asset.pixels();
+            } };
+          };
+        }
+        try {
+          faces[1].dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+          await entered;
+          if (superseded) faces[0].dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+          await frames(); release(); await frames();
+        } finally { release(); for (const [view, original] of originals) view.asset = original; }
+        if (superseded) latestSelection &&= faces[0].getAttribute('aria-selected') === 'true' &&
+          faces[1].getAttribute('aria-selected') === 'false' &&
+          !tabs.querySelector('[data-scriptoscope-panel="a"]').hidden && tabs.querySelector('[data-scriptoscope-panel="b"]').hidden;
+      }
       await api.restoreTabs(tabs); theme.dispose(); document.body.replaceChildren();
 
       const host = document.createElement('div'), viewport = document.createElement('div'), control = document.createElement('canvas');
@@ -64,9 +94,10 @@ test('control canvases persist and idle port reuse still observes fresh geometry
       const removed = changes.at(-1).reason === 'port-removed';
       const finalCount = changes.length; binding.refresh(); await frames();
       binding.dispose(); host.remove();
-      return { sliderRetained, tabsRetained, idle, moved, transformed, hidden, removed,
+      return { sliderRetained, tabsRetained, latestSelection, idle, moved, transformed, hidden, removed,
         transitions: transitions.every(Boolean), disposed: changes.length === finalCount };
     }, `/@fs${fileURLToPath(new URL('./index.ts', import.meta.url))}`);
     for (const [name, passed] of Object.entries(checks)) assert.equal(passed, true, name);
+    assert.deepEqual(pageErrors, ['Current tab decode'], 'only current tab failures may escape');
   } finally { await browser.close(); }
 });
