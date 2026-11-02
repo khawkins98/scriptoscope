@@ -28,9 +28,26 @@ the two explicit RGBA planes to 1,048,576 bytes. Destination-sized publication
 and frame output are separate, as are input strings, opaque host shaping memory
 and garbage-collection behavior. Fixed scratch does not bound total memory or
 make work linear: drawing the complete request for each tile can be quadratic,
-though traversal is finite under P1's finite-host premise. There is no hard
-realtime guarantee. Independent native acceptance and CPU review disposition
-remain pending for this candidate; unit/type checks do not establish them.
+though traversal is finite under P1's finite-host premise.
+
+A predeclared same-host native Firefox source/built trial retained exactly 56
+baseline and 56 candidate public renders: 14 conditions, each with one warm-up
+and three measured renders, without errors, retries or performance cutoffs.
+All 14 candidate median totals were no higher than baseline in this finite
+sample; this proves neither speedup nor general absence of regression. For
+2048-repeat ordinary/fallback requests (about 16,000 characters), candidate
+medians were 5.411–7.530 seconds versus 6.991–13.402 seconds baseline.
+Utility shrink-case medians at 2048 repeats were 5.608/5.615 seconds versus
+13.865/9.019 seconds baseline, respectively for source/built.
+
+Selected whole-request Canvas host-call medians for those utility cases rose
+to 208/239 ms from 7 ms. This measures selected host calls, excluding JavaScript
+scan/dispatch and garbage collection; it is neither whole JavaScript fit latency
+nor CPU cycles. More than 16,000 prefix measurements remain in the long cases,
+with seconds-scale existing truncation cost and potentially quadratic work.
+There is no arbitrary-input realtime promise. PM accepts this finite added cost
+for #637 conditional on final review and CI; independent reviewer cost
+disposition and the two remaining native browser-engine outcomes are pending.
 
 ## 2026-11-02 — Calibrate browser title references independently (#634)
 
