@@ -162,7 +162,7 @@ for (const mode of MODES) {
     expect(await page.evaluate(() => window.__fpt.hosts.N.host.style.pointerEvents), 'handoff leaves the host pointer-transparent (HP27, HP33)').toBe('none');
   });
 
-  test(`${mode}: HPT14 the grow overlay: excluded frame pixels pass, its part inside C resizes`, async ({ page, servers }) => {
+  test(`${mode}: HPT14 no-art grow overlay: excluded pixels pass, content stays content, frame resizes`, async ({ page, servers }) => {
     await boot(page, servers, mode);
     // Synthetic (T9-style): dolphin with its bottom-right corner cell mask-clear, so the
     // overlay's part outside C lies over excluded frame pixels.
@@ -174,32 +174,40 @@ for (const mode of MODES) {
       const o = await f.oracle('G'), g = f.geom('G');
       const b = f.hosts.G.host.shadowRoot.querySelector('button.scriptoscope-growbox').getBoundingClientRect();
       const toChrome = (X, Y) => [Math.floor((X - g.left) / g.k), Math.floor((Y - g.top) / g.k)];
-      let out = null, inside = null;
+      let out = null, inside = null, frame = null;
       for (let Y = Math.ceil(b.top) + 1; Y < b.bottom - 1; Y++) for (let X = Math.ceil(b.left) + 1; X < b.right - 1; X++) {
         const [x, y] = toChrome(X, Y);
         const inC = x >= o.C.left + 1 && x < o.C.right - 1 && y >= o.C.top + 1 && y < o.C.bottom - 1;
         if (!out && x >= o.C.right && y >= o.C.bottom && f.rules.uniform(o.region, o.W, o.H, x, y, f.rules.OUT, 1)) out = [x, y];
         if (!inside && inC && x > o.C.right - 12 && y > o.C.bottom - 12) inside = [x, y];
+        const root = f.hosts.G.host.shadowRoot;
+        if (!frame && !inC && (x >= o.C.right || y >= o.C.bottom)
+          && root.elementFromPoint(X, Y)?.closest('button.scriptoscope-growbox')
+          && document.elementFromPoint(X, Y) === f.hosts.G.host) frame = [x, y];
       }
-      return { out, inside, rect: b.toJSON(), outVp: out && f.vp('G', out), inVp: inside && f.vp('G', inside), W: g.W, H: g.H };
+      return { out, inside, frame, rect: b.toJSON(), outVp: out && f.vp('G', out), inVp: inside && f.vp('G', inside), frameVp: frame && f.vp('G', frame), W: g.W, H: g.H };
     });
     expect(r.out, 'the overlay overlaps decoded excluded pixels').toBeTruthy();
-    expect(r.inside, 'the overlay has a part inside C').toBeTruthy();
+    expect(r.inside, 'the bounding box includes content').toBeTruthy();
+    expect(r.frame, 'the frame strip has a resize target').toBeTruthy();
     await events(page);
     await page.mouse.move(r.outVp.x, r.outVp.y); await page.mouse.down(); await page.mouse.move(r.outVp.x + 30, r.outVp.y + 20, { steps: 4 }); await page.mouse.up();
     await settle(page, 300);
     expect((await events(page)).filter(e => e.at === 'sentinel').map(e => e.type), 'press over excluded pixels reaches the page').toContain('pointerdown');
     expect(await page.evaluate(() => { const g = window.__fpt.geom('G'); return [g.W, g.H]; }), 'no resize').toEqual([r.W, r.H]);
-    // The pass-through press is an outside press, so it deactivated G (HP39, #620). By
-    // #614 IP14 the first grow-box press on the now inactive G only activates it; the
-    // next press inside C resizes.
+    // The pass-through press deactivated G (HP39, #620). Content presses
+    // reactivate it but never resize: #640 clips the no-art target to the frame.
     expect((await state(page, 'G')).active, 'the outside press deactivated G').toBe(false);
     const growInside = async () => { await page.mouse.move(r.inVp.x, r.inVp.y); await page.mouse.down(); await page.mouse.move(r.inVp.x + 30, r.inVp.y + 20, { steps: 4 }); await page.mouse.up(); await settle(page, 300); };
     await growInside();
     expect((await state(page, 'G')).active, 'press inside C activates G').toBe(true);
     expect(await page.evaluate(() => { const g = window.__fpt.geom('G'); return [g.W, g.H]; }), 'first press on inactive G: no resize').toEqual([r.W, r.H]);
     await growInside();
-    expect(await page.evaluate(() => { const g = window.__fpt.geom('G'); return [g.W, g.H]; }), 'press inside C resizes').toEqual([r.W + 30, r.H + 20]);
+    expect(await page.evaluate(() => { const g = window.__fpt.geom('G'); return [g.W, g.H]; }), 'active content corner does not resize').toEqual([r.W, r.H]);
+    await page.mouse.move(r.frameVp.x, r.frameVp.y); await page.mouse.down();
+    await page.mouse.move(r.frameVp.x + 30, r.frameVp.y + 20, { steps: 4 }); await page.mouse.up();
+    await settle(page, 300);
+    expect(await page.evaluate(() => { const g = window.__fpt.geom('G'); return [g.W, g.H]; }), 'frame strip resizes').toEqual([r.W + 30, r.H + 20]);
   });
 
   test(`${mode}: HPT25 no S build on drag, hover, resize ghost, raise, reflow or mode-only switches; one on release`, async ({ page, servers }) => {
