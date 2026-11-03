@@ -90,11 +90,16 @@ only; no npm publication.
 - **Collapsed `wnd#` windows draw only their title-bar sides** ([#617](https://github.com/khawkins98/scriptoscope/issues/617)). Kaleidoscope 2.3.1 draws a collapsed window from the two sides along its title axis: top and bottom for top-titled windows, left and right for the side-titled `side-floating-utility-window` and `collapsed-side-utility`. The runtime drew all four sides at content height 0, which left stray frame pixels (16 px on animals' collapsed titled utility, 3 px on its collapsed no-title utility). Side-titled windows now also collapse to zero content width, keeping their height, as the original does, where they used to collapse to zero height. The frame region now comes straight from the layout that drew the frame, so drawing and hit area agree. `renderWindow()` gains a `collapsed` option (pass the expanded content size); `WindowManager` sets it.
 - Pressing a title-bar widget on a collapsed `wnd#` window now uses the second row of the scheme's pressed-widget strip when the strip has one, as Kaleidoscope does (window-widgets WD9/HT7); that row's hit areas apply too. The previous gap kept the window's collapsed flag clear. This affects the animals collapsed utility windows and windows-31's collapsed document window ([#617](https://github.com/khawkins98/scriptoscope/issues/617)).
 
+### Known limitations
+
+- On Linux WebKit (WebKitGTK), title-fit query equivalence (P1 in [window-title-fit](./docs/spec/engine/window-title-fit.md)) does not hold. WebKitGTK picks its canvas backend from the canvas size, so the 4096×32 fit tile and the clip-sized publication canvas can differ by one colour step or a faint edge pixel. This isn't visibly noticeable. The three affected browser checks are expected failures on Linux WebKit only, and a fixed observation and publication surface is planned ([#646](https://github.com/khawkins98/scriptoscope/issues/646)).
+
 ### Contributor workflow
 
 - `npm run check:schemes` (part of `npm run gates`) validates every authored scheme under `authoring/schemes/`: it builds cleanly, passes `checkScheme` and matches the committed `scheme.rsrc` (#540).
 - `tools/performance/` and `npm run bench:render` add an allocation and render benchmark, with a README on running and reading it (#643).
 - The serial release interaction suite has the time it needs to finish (#639), and the portable full-title fit calibration was repaired (#638).
+- The release gate's WebKit jobs caught two regressions that had landed without them: title scratch canvases no longer use `willReadFrequently`, which changes the WebKit canvas backend (#643), and HPT14 clears its text selection so WebKit's native text drag can't swallow the release (#640). Both are fixed in #645.
 
 ### Runtime size (0.8.0 → 0.9.0)
 
