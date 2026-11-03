@@ -759,6 +759,7 @@ Beyond the bundled corpus, the demo has a **drop-zone**: drag a Kaleidoscope the
 
 ## Documents
 
+- **[npm distribution proposal](./docs/npm-distribution-plan.md)** — draft package boundaries, architecture recommendations and publication plan; current releases remain GitHub-only.
 - **[Interaction reference](./docs/interaction.md)** — what users can do with a window and its controls (activation, focus, moving, resizing, title widgets, scroll bars, controls, modals), every `scriptoscope:*` event, keyboard equivalents, and touch and browser differences.
 - **[Measured simplification](./docs/measured-simplification.md)** — our approach to reducing runtime complexity and execution cost through consolidation, prepared inputs and differential validation; includes a reusable optimization prompt.
 
