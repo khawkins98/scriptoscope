@@ -3,6 +3,8 @@ import { test, expect, openHarness, attachObservations } from './fixtures.mjs';
 // TC4/TC5 replay from an independently placed raster: no assumption that a
 // runtime scratch raster starts at the pen or that its row zero is baseline.
 for (const mode of ['source', 'built']) test(`${mode}: raw RGB16 title equality and shadow/foreground alpha-over`, async ({ page, servers }, info) => {
+  // #646: WebKitGTK picks its canvas backend by surface size, falsifying P1 query equivalence.
+  test.fail(info.project.name.startsWith('webkit') && process.platform === 'linux', '#646 WebKitGTK P1 falsification');
   await openHarness(page, servers, mode);
   const rows = await page.evaluate(async mode => {
     const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');

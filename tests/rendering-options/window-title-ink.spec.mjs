@@ -119,6 +119,8 @@ for (const mode of ['source', 'built']) {
 // queries from the adopted contract. This is finite native-premise falsification,
 // not a proof for arbitrary fonts or an import of candidate geometry code.
 for (const mode of ['source', 'built']) test(`${mode}: P1-G guarded queries preserve owned exterior coverage and phase`, async ({ page, servers }, info) => {
+  // #646: WebKitGTK picks its canvas backend by surface size, falsifying P1 query equivalence.
+  test.fail(info.project.name.startsWith('webkit') && process.platform === 'linux', '#646 WebKitGTK P1 falsification');
   await openHarness(page, servers, mode);
   const result = await page.evaluate(() => {
     const axis = (u, v, l, r) => {
@@ -263,6 +265,8 @@ for (const mode of ['source', 'built']) test(`${mode}: P1-G guarded queries pres
 // TC4/TC5 replay from an independently placed raster: no assumption that a
 // runtime scratch raster starts at the pen or that its row zero is baseline.
 for (const mode of ['source', 'built']) test(`${mode}: coverage padding preserves title colour pass placement`, async ({ page, servers }, info) => {
+  // #646: WebKitGTK picks its canvas backend by surface size, falsifying P1 query equivalence.
+  test.fail(info.project.name.startsWith('webkit') && process.platform === 'linux', '#646 WebKitGTK P1 falsification');
   await openHarness(page, servers, mode);
   const rows = await page.evaluate(async mode => {
     const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');

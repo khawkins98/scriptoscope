@@ -116,6 +116,20 @@ falsify the chosen-placement assumption but cannot prove completeness for
 arbitrary fonts, fallback sequences or titles. A known unusable placement is
 unavailable, not evidence of empty coverage.
 
+**Known falsification: WebKitGTK (Linux WebKit), [#646](https://github.com/khawkins98/scriptoscope/issues/646).**
+WebKitGTK chooses a Canvas 2D backend from the canvas's current size: in the
+pinned Playwright image 256×128, 1024×32 and 4096×32 canvases rasterise
+identical text differently from 35×18, 128×128 or 4096×8 canvases (±1 RGB and
+occasional faint alpha). Query equivalence therefore does not hold there across
+surface sizes. This includes the runtime itself: fit observation uses the
+4096×32 tile while publication uses a clip-sized canvas, so the fit decision
+and the painted pixels can differ in faint edge coverage. The violation is not
+cheaply detectable and is not reported as `TitleCoverageUnavailableError`. The
+affected browser checks are marked as expected failures on Linux WebKit only.
+The planned fix declares one fixed observation and publication surface (#646).
+`willReadFrequently` also changes the WebKit backend, so title surfaces must not
+use it.
+
 The measured request and every observation/publication pass must share stable
 font resolution and text state. A result cached across a font-state change
 is invalid. An unsupported transform/phase or known premise violation cannot
