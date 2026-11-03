@@ -2,8 +2,8 @@
 
 ## Status and scope
 
-PM modern compatibility policy, 2026-11-02. This self-contained title handoff
-includes the required TF1–TF6 and F11 rules; the full legacy widget and
+PM modern compatibility policy, revised 2026-11-03 for #646. This self-contained
+title handoff includes the required TF1–TF6 and F11 rules; the full legacy widget and
 procedural-frame documents are not required implementation reading. It does
 not establish original font, QuickDraw raster or cross-platform pixel equivalence.
 
@@ -77,6 +77,15 @@ fallback stack, with the existing family order, face and spacing. It assumes
 finite host operations and finite main raster support for the complete shaped
 request, including every resolved fallback and sequence.
 
+The **native main raster** is the complete shaped request on a plain Canvas 2D
+surface of exactly **4096×32 internal-raster pixels**, with no context hints
+(in particular, no `willReadFrequently`). Set these dimensions before obtaining
+the context and never resize the surface after that. Observation and publication
+within one title request reuse this surface, clearing it before every draw.
+Surface dimensions are part of the raster definition; surface-size independence
+is not assumed. References must use these same declared dimensions and context
+options, independently of runtime constants.
+
 Observation uses the library's native internal raster resolution, alphabetic
 baseline, identity raster scale and unchanged fractional pen/baseline phase.
 CSS presentation scaling and device pixel ratio do not change that internal
@@ -106,8 +115,10 @@ No runtime claim is made that unseen violations of P1 can always be detected.
 
 P1 also assumes **query equivalence for the chosen placements**: after reversing
 the integer translation, each queried pixel has the same native main raster
-coverage as the complete request at its original pen, baseline and fractional
-phase. This includes every nonzero alpha value. Envelope containment alone is
+coverage as the complete request on the declared surface at an independently
+chosen placement with the same fractional pen and baseline phase. Wide requests
+are observed through translated draws of the whole string, not a larger canvas.
+This includes every nonzero alpha value. Envelope containment alone is
 insufficient: a clipped complete-request draw can be unusable for a query even
 when the query lies inside the envelope. Neither a geometric guard, a retained
 metric anchor nor transparent readback proves query equivalence. This is no
@@ -116,19 +127,16 @@ falsify the chosen-placement assumption but cannot prove completeness for
 arbitrary fonts, fallback sequences or titles. A known unusable placement is
 unavailable, not evidence of empty coverage.
 
-**Known falsification: WebKitGTK (Linux WebKit), [#646](https://github.com/khawkins98/scriptoscope/issues/646).**
-WebKitGTK chooses a Canvas 2D backend from the canvas's current size: in the
-pinned Playwright image 256×128, 1024×32 and 4096×32 canvases rasterise
-identical text differently from 35×18, 128×128 or 4096×8 canvases (±1 RGB and
-occasional faint alpha). Query equivalence therefore does not hold there across
-surface sizes. This includes the runtime itself: fit observation uses the
-4096×32 tile while publication uses a clip-sized canvas, so the fit decision
-and the painted pixels can differ in faint edge coverage. The violation is not
-cheaply detectable and is not reported as `TitleCoverageUnavailableError`. The
-affected browser checks are marked as expected failures on Linux WebKit only.
-The planned fix declares one fixed observation and publication surface (#646).
-`willReadFrequently` also changes the WebKit backend, so title surfaces must not
-use it.
+**Surface-size independence was falsified on WebKitGTK (Linux WebKit),
+[#646](https://github.com/khawkins98/scriptoscope/issues/646).** In the pinned
+Playwright image, 256×128, 1024×32 and 4096×32 canvases rasterise identical text
+differently from 35×18, 128×128 or 4096×8 canvases (±1 RGB and occasional faint
+alpha). Previously the runtime resized observation tiles and used clip-sized
+publication surfaces, so fit and paint could disagree. The fixed-surface rule
+removes that assumption. `willReadFrequently` also changes the WebKit backend
+(including on macOS), so title surfaces must not use it. Chosen-placement query
+equivalence on the declared surface remains a supported-renderer premise;
+finite checks can falsify it, not prove it for arbitrary text.
 
 The measured request and every observation/publication pass must share stable
 font resolution and text state. A result cached across a font-state change
@@ -138,8 +146,8 @@ bound and does not require resolving font identities that Canvas does not expose
 
 ## Bounded observation and finite completion
 
-Coverage observation scratch is bounded by one canvas of at most 4096 by 32
-internal-raster pixels and one equally bounded RGBA readback. Reuse storage;
+Observation and publication scratch is one fixed 4096 by 32 internal-raster
+canvas and one RGBA readback of at most that size. Reuse storage;
 do not retain a list of tile rasters, an envelope-sized pixel array or a
 full-untruncated-title bitmap. The two explicit RGBA planes total at most
 1,048,576 bytes, apart from fixed browser overhead. This is independent of
@@ -153,7 +161,7 @@ fitting do not substitute for complete-request observation.
 
 ### Finite guarded paint windows and owned queries
 
-Distinguish the **paint window**, into which the complete request is drawn,
+Distinguish the **paint window**, a guarded rectangle within the fixed surface,
 from the **query rectangle**, whose pixels contribute to the coverage verdict.
 They need not coincide. Paint windows may overlap on both axes; a query must
 be contained in its paint window, and the chosen placement must satisfy P1's
@@ -180,6 +188,9 @@ The product of the two paint intervals contains the whole query with a
 one-pixel guard on every side and contains the reported-metric anchor
 `(a_x,a_y)` strictly inside. Draw with the original absolute pen and baseline
 translated by the integer paint-window origin, preserving fractional phase.
+The paint window is mapped to the top left of the fixed surface; its smaller
+extent never resizes or clips that surface. Additional surface pixels are not
+owned by the query and do not contribute to readback.
 Clear the reused observation scratch before each complete-request draw.
 Do not replace the pen or baseline with the anchor or a raster/crop origin.
 
@@ -282,11 +293,20 @@ must be metrics-only operations. They must not allocate full requested-title
 bitmaps merely to obtain advance, ascent or font metrics. Coverage needed for
 recipe style selection uses the bounded observation above.
 
-Window-title paint scratch/readbacks must be bounded by the actual destination
-clip/output and fixed observation scratch, rather than by the full untruncated
-advance. Final window/frame storage may follow the requested window dimensions;
-that inherently sized output is separate from coverage scratch. Preserve each
-consumer's own baseline, font policy, geometry, colours and clipping.
+Publication intersects the displayed request's P1 envelope with the actual
+integer destination clip/output bounds. Pixels outside that envelope are empty
+conditional on P1. Partition that intersection into disjoint queries of at most
+4094×30 pixels and use the same per-axis projected metric anchor construction
+above, retaining the original pen, baseline and fractional phase. Draw the
+complete displayed prefix/marker for every tile on the declared fixed surface,
+read only its query, and composite it once at its absolute destination through
+the unchanged consumer clip. This handles publication wider than 4094 pixels
+and taller than 30 pixels without a larger or resized scratch. Complete every
+shadow pass before the main pass; overlapping storage guards must not blend a
+destination pixel twice. Reuse the request's observation surface for both passes.
+Final window/frame storage may follow the requested window dimensions; that
+inherently sized output is separate from title scratch. Preserve each consumer's
+own baseline, font policy, geometry, colours and clipping.
 
 Published glyph coverage must not lose rows or overhang that were accounted for
 during fit solely because an intermediate raster used narrower measured bounds.

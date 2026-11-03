@@ -3,7 +3,7 @@
 import '../tests/helpers/registerTs.mjs';
 import assert from 'node:assert/strict';
 import { afterEach, beforeEach, test } from 'node:test';
-const { resolveTitleStyle, measureTitle, paintTitle, truncateTitle } = await import('./titleFont.ts');
+const { createTitleRequest, resolveTitleStyle, measureTitle, paintTitle, truncateTitle } = await import('./titleFont.ts');
 const { PixelBuffer } = await import('./pixelBuffer.ts');
 const { composeProceduralFrameChrome } = await import('./proceduralFrameChrome.ts');
 
@@ -146,10 +146,10 @@ test('publication keeps overhang and faint rows beyond reported ink while preser
     { x: 3, y: 2, w: 10, h: 14 }), true);
   assert.equal(buffer.getPixel(5, 2)[3], 1);
   assert.equal(buffer.getPixel(11, 13)[3], 255);
-  assert.equal(draws[0].x, 4.25);
-  assert.equal(draws[0].y, 9.5);
-  assert.deepEqual([draws[0].width, draws[0].height], [10, 14]);
-  assert.equal(measures.length, 0);
+  assert.equal(draws[0].x, 5.25);
+  assert.equal(draws[0].y, 10.5);
+  assert.deepEqual([draws[0].width, draws[0].height], [4096, 32]);
+  assert.equal(measures.length, 1);
   fail = 'readback';
   const unchanged = buffer.data.slice();
   assert.throws(() => paintTitle(buffer, 'failed', 13, '#000000', 7, 11,
@@ -165,9 +165,9 @@ test('procedural titles retain requested size, UTF-16 truncation policy and metr
   const result = await composeProceduralFrameChrome(theme, 'document-window', 'active', 100, 50, { title });
   assert.ok(result.fullWidth >= 100);
   assert.ok(measures.some(m => m.text === title));
-  assert.ok(draws.every(p => p.width <= result.fullWidth && p.height <= result.fullHeight));
+  assert.ok(draws.every(p => p.width === 4096 && p.height === 32));
   assert.ok(draws.every(p => p.text.length < title.length && p.text.endsWith('…') && p.font.startsWith('12px ')));
-  assert.ok(canvases.every(c => c.width === 0 || c.width <= result.fullWidth));
+  assert.ok(canvases.every(c => c.width === 0 || c.width === 4096));
   draws.length = 0; measures.length = 0;
   globalThis.document.fonts.check = () => true;
   await composeProceduralFrameChrome(theme, 'document-window', 'active', 100, 50, { title: 'Document' });
@@ -185,15 +185,17 @@ test('title canvas storage stays within its role bound throughout initialization
     fonts: { check: () => false },
     createElement(name) {
       assert.equal(name, 'canvas');
-      let width = 300, height = 150;
+      let width = 300, height = 150, acquired = false;
       const states = [];
       const canvas = {
         get width() { return width; },
-        set width(value) { width = value; states.push([width, height]); },
+        set width(value) { assert.equal(acquired, false, 'never resize after context acquisition'); width = value; states.push([width, height]); },
         get height() { return height; },
-        set height(value) { height = value; states.push([width, height]); },
-        getContext(kind) {
+        set height(value) { assert.equal(acquired, false, 'never resize after context acquisition'); height = value; states.push([width, height]); },
+        getContext(kind, options) {
+          acquired = true;
           assert.equal(kind, '2d');
+          assert.equal(options, undefined, 'plain context without backend hints');
           return {
             canvas,
             measureText: () => ({ width: 20000, actualBoundingBoxLeft: 2,
@@ -210,16 +212,14 @@ test('title canvas storage stays within its role bound throughout initialization
       return canvas;
     },
   };
-  const bounded = (entry, maxWidth, maxHeight, partial = false) => {
+  const bounded = (entry, maxWidth, maxHeight) => {
     assert.ok(entry.states.length > 0);
     for (const [width, height] of entry.states) {
       assert.ok(width === 0 || height === 0 || (width <= maxWidth && height <= maxHeight),
         `intermediate ${width}x${height} exceeds ${maxWidth}x${maxHeight}`);
     }
-    if (!partial) {
-      assert.equal(entry.canvas.width, maxWidth);
-      assert.equal(entry.canvas.height, maxHeight);
-    }
+    assert.equal(entry.canvas.width, maxWidth);
+    assert.equal(entry.canvas.height, maxHeight);
   };
   try {
     assert.equal(measureTitle('complete request', 12).advance, 20000);
@@ -227,16 +227,16 @@ test('title canvas storage stays within its role bound throughout initialization
 
     assert.equal(resolveTitleStyle('complete request', 12, () => ({ w: 80, h: 10 })).omitInk, false);
     bounded(storage.shift(), 0, 0);
-    bounded(storage.shift(), 4096, 32, true);
+    bounded(storage.shift(), 4096, 32);
 
     for (const [width, height] of [[6000, 8], [8, 5], [8, 200]]) {
       let publications = 0;
       const target = { width, height, drawOver() { publications++; } };
       assert.equal(paintTitle(target, 'complete request', 12, '#123456', 0, 8,
         { x: 0, y: 0, w: width, h: height }), true);
-      assert.equal(publications, 1);
+      assert.equal(publications, Math.ceil(width / 4094));
       bounded(storage.shift(), 0, 0);
-      bounded(storage.shift(), width, height);
+      bounded(storage.shift(), 4096, 32);
     }
     assert.equal(storage.length, 0);
   } finally {
@@ -347,8 +347,7 @@ test('guarded queries retain exact projected metric anchors on both axes and own
       const originY = Math.min(first, Math.floor(anchorY)) - 1;
       assert.deepEqual([paint.x, paint.y], [x - originX, 68.5 - originY]);
       assert.deepEqual([read.sx, read.sy, read.w, read.h], [left - originX, first - originY, right - left, last - first]);
-      assert.deepEqual([paint.width, paint.height], [Math.max(right, Math.ceil(anchorX)) + 1 - originX,
-        Math.max(last, Math.ceil(anchorY)) + 1 - originY]);
+      assert.deepEqual([paint.width, paint.height], [4096, 32]);
       assert.ok(anchorX > originX && anchorX < originX + paint.width);
       assert.ok(anchorY > originY && anchorY < originY + paint.height);
       assert.ok(read.sx >= 1 && read.sy >= 1 && read.sx + read.w < paint.width && read.sy + read.h < paint.height);
@@ -374,4 +373,26 @@ test('partial corner owns faint alpha while interior rows never disprove fit', (
   assert.ok(measures.length > 1);
   points = () => [[8200, -7, 1], [0, 0, 1]];
   assert.equal(resolveTitleStyle('inside', 13, slot).style.size, 13);
+});
+
+test('publication tiles wide and tall clips once per pixel and reuses the request raster', () => {
+  const request = createTitleRequest();
+  report = () => ({ width: 9000, actualBoundingBoxLeft: 0, actualBoundingBoxRight: 9000,
+    actualBoundingBoxAscent: 7, actualBoundingBoxDescent: 63 });
+  const clip = { x: 0, y: 0, w: 9000, h: 70 };
+  // Transparent observation supplies the reusable raster at the preferred style.
+  resolveTitleStyle('whole request', 13, () => clip, { request });
+  const raster = request.raster;
+  draws.length = 0; reads.length = 0;
+  points = () => [[0, -7, 128], [4093, 22, 128], [4094, 23, 128], [8188, 53, 128], [8999, 62, 128]];
+  const buffer = PixelBuffer.alloc(9000, 70);
+  paintTitle(buffer, 'whole request', 13, '#123456', 0, 7, clip, { request });
+  assert.equal(request.raster, raster);
+  assert.equal(canvases.filter(c => c.width > 0).length, 1);
+  assert.equal(draws.length, 9);
+  assert.ok(draws.every(p => p.width === 4096 && p.height === 32 && p.text === 'whole request'));
+  assert.equal(reads.reduce((sum, r) => sum + r.w * r.h, 0), 9000 * 70);
+  for (const [x, y] of [[0, 0], [4093, 29], [4094, 30], [8188, 60], [8999, 69]]) {
+    assert.equal(buffer.getPixel(x, y)[3], 128, `${x},${y} is composited exactly once`);
+  }
 });

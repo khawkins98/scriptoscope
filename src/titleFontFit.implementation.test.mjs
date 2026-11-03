@@ -45,16 +45,16 @@ beforeEach(() => {
         setAttribute(key, value) { this.attributes[key] = value; },
         append(...children) { this.children.push(...children); },
         appendChild(child) { this.children.push(child); },
-        getContext() { let ink, observation = false; return {
+        getContext() { let ink; return {
           font: '', letterSpacing: '',
           measureText(text) {
             const size = Number(this.font.match(/([\d.]+)px/)[1]);
             measurements.push({ text, font: this.font, spacing: this.letterSpacing });
             return { width: text.length * size, actualBoundingBoxLeft: 0, actualBoundingBoxRight: text.length * size, ...metrics(size) };
           },
-          clearRect() { ink = undefined; observation = true; },
+          clearRect() { ink = undefined; },
           fillText(text, x, y) {
-            if (!observation) paints.push({ text, font: this.font, spacing: this.letterSpacing });
+            paints.push({ text, font: this.font, spacing: this.letterSpacing });
             const size = Number(this.font.match(/([\d.]+)px/)[1]);
             const m = metrics(size);
             ink = { left: x, right: x + text.length * size,
@@ -101,7 +101,7 @@ test('descending integer candidates use full-title advances and retain family, b
   assert.equal(result.style.bold, true);
   assert.equal(result.style.spacing, '0px');
   assert.ok(measurements.every(call => call.text === 'Full gy'));
-  measurements.length = 0;
+  measurements.length = 0; paints.length = 0;
   const measure = text => measureTitle(text, 13, { style: result.style }).advance;
   assert.equal(measure('Full gy'), 77);
   const shortened = truncateTitle('Full gy', 35, measure);
@@ -135,6 +135,7 @@ test('renderer resolves once from the full title before truncation and both pain
   const { view } = fixture();
   const win = await renderWindow(view, { windowType: 'titled-utility-window', title: 'Full gy', width: 45 });
   assert.equal(win.attributes['aria-label'], 'Full gy');
+  paints = paints.filter(call => call.text.endsWith('…'));
   assert.equal(paints.length, 2);
   assert.ok(paints.every(call => call.font.startsWith('bold 11px ') && call.spacing === '0px'));
   assert.ok(paints.every(call => call.text.endsWith('…')));
@@ -147,7 +148,7 @@ test('impossible slots suppress main and shadow while retaining preferred geomet
   const win = await renderWindow(view, { windowType: 'titled-utility-window', title, width: 240 });
   const expected = composeWindowChrome(cicn, wt, 240, 120, { altWidgets: true, titleWidthPx: title.length * 16, titleLength: title.length });
   const actual = win._scriptoscopeComposed;
-  assert.equal(paints.length, 0);
+  assert.ok(paints.every(call => call.text === title));
   assert.equal(win.attributes['aria-label'], title);
   assert.deepEqual(actual.titleRect, expected.titleRect);
   assert.deepEqual(actual.titleRegion, expected.titleRegion);

@@ -119,10 +119,9 @@ for (const mode of ['source', 'built']) {
 // queries from the adopted contract. This is finite native-premise falsification,
 // not a proof for arbitrary fonts or an import of candidate geometry code.
 for (const mode of ['source', 'built']) test(`${mode}: P1-G guarded queries preserve owned exterior coverage and phase`, async ({ page, servers }, info) => {
-  // #646: WebKitGTK picks its canvas backend by surface size, falsifying P1 query equivalence.
-  test.fail(info.project.name.startsWith('webkit') && process.platform === 'linux', '#646 WebKitGTK P1 falsification');
   await openHarness(page, servers, mode);
-  const result = await page.evaluate(() => {
+  const result = await page.evaluate(async () => {
+    const R = await import('/tests/rendering-options/window-title-rules.mjs');
     const axis = (u, v, l, r) => {
       const anchor = Math.max(l, Math.min(r, (u + v) / 2));
       return { lo: Math.min(u, Math.floor(anchor)) - 1, hi: Math.max(v, Math.ceil(anchor)) + 1, anchor };
@@ -176,7 +175,8 @@ for (const mode of ['source', 'built']) test(`${mode}: P1-G guarded queries pres
     cases.push({ title: titles[0], size: 15.5, face: 'normal', phaseX: .5, phaseY: 0, kind: 'fractional-size' }, { title: titles[0], size: 10.25, face: 'bold', phaseX: 0, phaseY: .5, kind: 'fractional-size' });
     const rows = [];
     for (const input of cases) {
-      const full = document.createElement('canvas'); full.width = 8192; full.height = 128;
+      const full = document.createElement('canvas'); full.width = R.TITLE_SURFACE_WIDTH; full.height = R.TITLE_SURFACE_HEIGHT;
+      const referenceWidth = 8192, referenceHeight = 128;
       const c = full.getContext('2d'), penX = 64 + input.phaseX, baseline = 64 + input.phaseY;
       const font = `${input.face} ${input.size}px "Charcoal 12", Charcoal, "Helvetica Neue", Arial, sans-serif`;
       c.font = font; c.textBaseline = 'alphabetic'; c.textAlign = 'left'; c.letterSpacing = '0px';
@@ -184,21 +184,28 @@ for (const mode of ['source', 'built']) test(`${mode}: P1-G guarded queries pres
       const clipHeight = input.face === 'bold' ? 12 : 18, clipTop = 64 - Math.max(clipHeight - 4, nominal);
       const construction = plan({ l: penX - m.actualBoundingBoxLeft, r: penX + m.actualBoundingBoxRight, t: baseline - m.actualBoundingBoxAscent, b: baseline + m.actualBoundingBoxDescent }, input.size, { t: clipTop, b: clipTop + clipHeight });
       const E = construction.envelope;
-      if (E.l < 1 || E.r >= full.width || E.t < 1 || E.b >= full.height) throw new Error('Independent guarded oracle exceeds fixed unclipped reference');
-      c.fillText(input.title, penX, baseline);
-      const image = c.getImageData(0, 0, full.width, full.height).data;
-      let referenceInk = 0, outsideEnvelope = 0, border = 0;
-      for (let y = 0; y < full.height; y++) for (let x = 0; x < full.width; x++) if (image[(y * full.width + x) * 4 + 3]) {
-        referenceInk++; if (x < E.l || x >= E.r || y < E.t || y >= E.b) outsideEnvelope++;
-        if (!x || !y || x === full.width - 1 || y === full.height - 1) border++;
+      if (E.l < 1 || E.r >= referenceWidth || E.t < 1 || E.b >= referenceHeight) throw new Error('Independent guarded oracle exceeds fixed unclipped reference');
+      // Independent reference placement: baseline near the centre of the
+      // declared surface, with horizontal strips on a different grid from E.
+      const image = new Uint8ClampedArray(referenceWidth * referenceHeight * 4);
+      for (let left = 0; left < referenceWidth; left += 4094) {
+        const w = Math.min(4094, referenceWidth - left);
+        c.clearRect(0, 0, full.width, full.height);
+        c.fillText(input.title, penX - left + 1, 20 + input.phaseY);
+        const strip = c.getImageData(1, 0, w, 32).data;
+        for (let y = 0; y < 32; y++) image.set(strip.subarray(y * w * 4, (y + 1) * w * 4), ((y + 44) * referenceWidth + left) * 4);
       }
-      const tile = document.createElement('canvas'); tile.height = 32; tile.width = 4096;
+      let referenceInk = 0, outsideEnvelope = 0, border = 0;
+      for (let y = 0; y < referenceHeight; y++) for (let x = 0; x < referenceWidth; x++) if (image[(y * referenceWidth + x) * 4 + 3]) {
+        referenceInk++; if (x < E.l || x >= E.r || y < E.t || y >= E.b) outsideEnvelope++;
+        if (!x || !y || x === referenceWidth - 1 || y === referenceHeight - 1) border++;
+      }
+      const tile = document.createElement('canvas'); tile.height = R.TITLE_SURFACE_HEIGHT; tile.width = R.TITLE_SURFACE_WIDTH;
       let exteriorMismatch = 0, allQueryMismatch = 0, insetMutationMismatch = 0, referenceExteriorInk = 0, observedExteriorInk = 0, queriedExteriorArea = 0;
       const paints = [];
       for (const placement of construction.queries) {
         if (!placement.exteriorArea) continue;
         const { q, p } = placement, qw = q.r - q.l, qh = q.b - q.t;
-        tile.height = placement.height; tile.width = placement.width;
         const ctx = tile.getContext('2d'); ctx.font = font; ctx.textBaseline = 'alphabetic'; ctx.textAlign = 'left'; ctx.letterSpacing = '0px';
         ctx.clearRect(0, 0, tile.width, tile.height);
         ctx.fillText(input.title, penX - p.l, baseline - p.t);
@@ -208,7 +215,7 @@ for (const mode of ['source', 'built']) test(`${mode}: P1-G guarded queries pres
         // rows contribute to the fit comparison, never paint-window guard ink.
         let rgba = ctx.getImageData(q.l - p.l, q.t - p.t, qw, qh).data;
         for (let y = 0; y < qh; y++) for (let x = 0; x < qw; x++) {
-          const ax = q.l + x, ay = q.t + y, expected = image[(ay * full.width + ax) * 4 + 3], actual = rgba[(y * qw + x) * 4 + 3];
+          const ax = q.l + x, ay = q.t + y, expected = image[(ay * referenceWidth + ax) * 4 + 3], actual = rgba[(y * qw + x) * 4 + 3];
           if (expected !== actual) allQueryMismatch++;
           if (ay >= construction.clip.t && ay < construction.clip.b) continue;
           queriedExteriorArea++; if (expected) referenceExteriorInk++; if (actual) observedExteriorInk++;
@@ -218,7 +225,7 @@ for (const mode of ['source', 'built']) test(`${mode}: P1-G guarded queries pres
         const wrongInset = ctx.getImageData(0, 0, qw, qh).data;
         for (let y = 0; y < qh; y++) for (let x = 0; x < qw; x++) {
           const ay = q.t + y; if (ay >= construction.clip.t && ay < construction.clip.b) continue;
-          if (wrongInset[(y * qw + x) * 4 + 3] !== image[(ay * full.width + q.l + x) * 4 + 3]) insetMutationMismatch++;
+          if (wrongInset[(y * qw + x) * 4 + 3] !== image[(ay * referenceWidth + q.l + x) * 4 + 3]) insetMutationMismatch++;
         }
       }
       rows.push({ ...input, font: c.font, penX, baseline, referenceInk, border, outsideEnvelope, construction, paints,
@@ -265,8 +272,6 @@ for (const mode of ['source', 'built']) test(`${mode}: P1-G guarded queries pres
 // TC4/TC5 replay from an independently placed raster: no assumption that a
 // runtime scratch raster starts at the pen or that its row zero is baseline.
 for (const mode of ['source', 'built']) test(`${mode}: coverage padding preserves title colour pass placement`, async ({ page, servers }, info) => {
-  // #646: WebKitGTK picks its canvas backend by surface size, falsifying P1 query equivalence.
-  test.fail(info.project.name.startsWith('webkit') && process.platform === 'linux', '#646 WebKitGTK P1 falsification');
   await openHarness(page, servers, mode);
   const rows = await page.evaluate(async mode => {
     const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
@@ -304,10 +309,10 @@ for (const mode of ['source', 'built']) test(`${mode}: coverage padding preserve
         const baseline = Math.max(rect.y + rect.h - 4, rect.y + style.reference.ascent);
         const passes = variant === 'equal-raw' ? [[text, 0]] : [[shadow, 1], [text, 0]];
         const rasters = passes.map(([sample]) => {
-          const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 128;
+          const canvas = document.createElement('canvas'); canvas.width = R.TITLE_SURFACE_WIDTH; canvas.height = R.TITLE_SURFACE_HEIGHT;
           const ctx = canvas.getContext('2d'); ctx.font = style.reference.font; ctx.fillStyle = hex(sample); ctx.globalAlpha = 0.5;
-          fill.call(ctx, title, 32, 64);
-          return ctx.getImageData(0, 0, 256, 128).data;
+          fill.call(ctx, title, 32, 20);
+          return ctx.getImageData(0, 0, 256, 32).data;
         });
         // Diagnostic only: prove whether the separate reference agrees with
         // every captured native pixel inside its existing scratch surface.
@@ -316,12 +321,12 @@ for (const mode of ['source', 'built']) test(`${mode}: coverage padding preserve
           const ref = rasters[i]; if (!ref) return null;
           let differences = 0;
           for (let y = 0; y < paint.height; y++) for (let x = 0; x < paint.width; x++) {
-            const rx = 32 + x - paint.args[0], ry = 64 + y - paint.args[1];
+            const rx = 32 + x - paint.args[0], ry = 20 + y - paint.args[1];
             for (let k = 0; k < 4; k++) if (paint.rgba[(y * paint.width + x) * 4 + k] !== (ref[(ry * 256 + rx) * 4 + k] ?? 0)) differences++;
           }
           return differences;
         });
-        const prePenColumn = rasters.map(rgba => Array.from({ length: 128 }, (_, y) => ({ y: y - 64, rgba: Array.from(rgba.slice((y * 256 + 31) * 4, (y * 256 + 31) * 4 + 4)) })).filter(p => p.rgba[3]));
+        const prePenColumn = rasters.map(rgba => Array.from({ length: 32 }, (_, y) => ({ y: y - 20, rgba: Array.from(rgba.slice((y * 256 + 31) * 4, (y * 256 + 31) * 4 + 4)) })).filter(p => p.rgba[3]));
         const replay = ({ reverse = false, unshifted = false, mainOnly = false } = {}) => {
           const expected = new Uint8ClampedArray(tf.buffer.data);
           let fractional = 0, overlap = 0; const touched = new Set();
@@ -329,9 +334,9 @@ for (const mode of ['source', 'built']) test(`${mode}: coverage padding preserve
           for (const i of order) {
             if (mainOnly && i < passes.length - 1) continue;
             const pixels = rasters[i], offset = unshifted ? 0 : passes[i][1];
-            for (let y = 0; y < 128; y++) for (let x = 0; x < 256; x++) {
+            for (let y = 0; y < 32; y++) for (let x = 0; x < 256; x++) {
               const p = (y * 256 + x) * 4, alpha = pixels[p + 3];
-              const dx = rect.x + x - 32 + offset, dy = baseline + y - 64 + offset;
+              const dx = rect.x + x - 32 + offset, dy = baseline + y - 20 + offset;
               if (!alpha || dx < rect.x || dx >= rect.x + rect.w + 2 || dy < rect.y || dy >= rect.y + rect.h) continue;
               if (alpha < 255) fractional++;
               const d = (dy * c.buffer.width + dx) * 4;
