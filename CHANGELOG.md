@@ -7,8 +7,53 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-11-03
+
+> **Behaviour change: clicks pass through transparent frame pixels, and a
+> press on the page deactivates the active window**
+> ([#597](https://github.com/khawkins98/scriptoscope/issues/597)). Managed
+> windows now default to `region` hit mode, as in Kaleidoscope 2.3.1: a press
+> between a scheme's merlons or studs reaches the page behind, and a press on
+> page content deactivates the active window. To keep the previous behaviour,
+> set `data-scriptoscope-hit="box"` on a window or pass
+> `new WindowManager({ hit: 'box' })`. Separately, `parseWindowAttrs` no
+> longer defaults `state` to `'active'` when `data-scriptoscope-state` is not
+> declared ([#614](https://github.com/khawkins98/scriptoscope/issues/614)).
+
+Minor release on 0.8.0. It adds scheme authoring: `tools/theme-author/` and
+its workflow build new Kaleidoscope schemes from code that load both here and
+in the original Kaleidoscope 2.3.1 (#540). Window input moves closer to the
+classic Window Manager: frame pass-through, first-click activation of inactive
+windows, collapsed windows drawn from their title-axis sides, and native wheel
+targets inside region windows. Window titles fit their slot using the complete
+title's ink, and window and control rendering allocates less. GitHub release
+only; no npm publication.
+
 ### Added
 
+- **Scheme authoring** (#540). `tools/theme-author/` writes new Kaleidoscope
+  schemes from code as real resource forks: encoders for `cicn`, `wnd#`,
+  `cinf`, `ppat`, `clut`, icon families, `STR#`, `DLOG`/`DITL`, `crsr`, `snd `,
+  `Colr` and `vers`, each round-tripping the whole corpus; `frameLayout()` and
+  `windowLayout()` for frame recipes; drawing helpers (smooth shapes, ordered
+  dithering, `fitPalette`); and `checkScheme`, which catches mistakes that load
+  but render wrong. `npm run author` builds a scheme, reloads it through the
+  browser's converter, runs the checks and writes both `scheme.rsrc` and a
+  MacBinary `scheme.bin` (type `Colr`, creator `Acid`) for classic Mac OS.
+- **Authoring workflow tools** (#540): `npm run paint-over` shrinks a crop of a
+  concept image to 1× and snaps it to a scheme's palette; `npm run sim8`
+  simulates an 8 bpp classic screen; `npm run capture:authoring` captures a
+  scheme's review previews; `npm run author -- <dir> --sheet` and `--palette`
+  write a contact sheet and a palette and contrast report. A dev-only page,
+  `authoring-preview.html`, previews a scheme in the browser.
+- **Scriptoscope Reference Native Theme reference scheme** in `authoring/schemes/` (#540), based on the demo site’s branding and a compact concept image and covering window frames, themed control families, menus, the desktop
+  pattern, a picker icon and the classic control-panel extras (about box,
+  arrow cursor, WindowShade sounds). It loads in Scriptoscope and in the
+  original Kaleidoscope 2.3.1 on System 7.5.5. It is not part of the
+  bundled corpus.
+- Authoring guides: `docs/authoring-a-scheme.md` (start here), with
+  `docs/authoring-exotic-frames.md`, `docs/authoring-visual-design.md` and
+  `docs/authoring-art-with-ai.md` as references (#540).
 - A standalone [native wheel-target routing contract](./docs/spec/engine/window-wheel-targets.md) defines region-bounded native targets, original-control pointer coordinates, trusted scroll ownership and existing clipping/lifetime guarantees ([#631](https://github.com/khawkins98/scriptoscope/issues/631)).
 - `WindowManager.dispose()` releases its windows, pending work and document listeners without removing caller-owned hosts or releasing themes. Calls are idempotent, and the manager can be reused ([#621](https://github.com/khawkins98/scriptoscope/issues/621)).
 - `data-scriptoscope-hit="region|box"`, a `hit` option on `WindowManager.add` and `WindowManager.applyState`, a page-wide default through `new WindowManager({ hit })` and `WindowManager.setDefaultHit(mode)`, and `active`, `hit` and `hitEffective` fields on `WindowManager.describe(host)`. Every window host reflects the mode in force as `data-scriptoscope-hit-effective`. A `region` category on `setDebug` logs each frame-region build ([#597](https://github.com/khawkins98/scriptoscope/issues/597)).
@@ -26,8 +71,13 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 - Zooming or collapsing an inactive window (by keyboard, assistive technology or `element.click()`) activates and raises it first, for the built-in actions and for `onZoom`/`onCollapse` handlers alike. A zoom no longer raises a window's stacking order without activating it, and zooming the active window leaves its `z` unchanged ([#614](https://github.com/khawkins98/scriptoscope/issues/614)).
 - `state: 'active'` on `WindowManager.add`, and `data-scriptoscope-state="active"`, now make that window active when it is added. Previously only the first window of a manager could start active. If several windows ask, the last one added wins (imperative callers that passed `state: 'active'` to several windows used to get the first). A window with no state request still starts active only if it is the first of its manager. `parseWindowAttrs` now omits `state` when `data-scriptoscope-state` is not declared, instead of defaulting it to `'active'`; `ParsedWindow.state` is optional in the TypeScript type accordingly ([#614](https://github.com/khawkins98/scriptoscope/issues/614)).
 
+- Window and control rendering allocates less: window region preparations, native hit targets and owned control canvases are reused, and title and idle-tracking allocations are reduced. Public pixel snapshots are unchanged; overlapping tab selections are guarded ([#643](https://github.com/khawkins98/scriptoscope/pull/643)).
+
 ### Fixed
 
+- A window with a single scroll bar and no grow-box artwork no longer leaves a gap at the end of that scroll bar: the bar now reaches the content edge, and the invisible resize surface stays on the frame strips ([#640](https://github.com/khawkins98/scriptoscope/issues/640)).
+- Movable-modal, movable-alert, popup and collapsed titled-utility windows
+  show their title text again (#540).
 - Window-title coverage accounts for every nonzero-alpha main glyph pixel under the modern P1 finite-envelope **and guarded-placement query-equivalence** assumptions ([#637](https://github.com/khawkins98/scriptoscope/issues/637)). Recipe fitting observes the complete request before truncation, keeps the largest fitting eligible style, and uses it consistently for advance, layout, prefix/ellipsis measurement and painting; signed bearings, baselines, clips and procedural policies are preserved. Guarded paint windows and owned queries bound coverage scratch to one 4096×32 canvas plus same-size RGBA readback, at most 1,048,576 bytes across two explicit RGBA planes. Destination output, input strings, opaque host memory, garbage collection and cumulative traffic are separate; finite, potentially quadratic work has no hard realtime or total-memory guarantee. Every consumed measurement, including metrics-only prefix/marker and procedural metrics, must be usable. Unusable metrics/coordinates, unsupported state, known envelope/placement violations or host allocation/readback/security failure raise `TitleCoverageUnavailableError`, never silent ellipsis, TF5 or a smaller style over unresolved coverage. Existing non-DOM/null-context fallbacks remain unchanged. These conditional supported-renderer assumptions do not certify arbitrary fonts, native culling or original typography; see the [contract](./docs/spec/engine/window-title-fit.md). Four independently approved page-3 regression PNGs retain seven restored negative-bearing shadow pixels; their [review record](./tests/rendering-options/goldens/REVIEW.md#reviewed-substitute-title-bearing-delta--637-2026-11-02) preserves acquisition and proof limits.
 - Browser title-fit tests distinguish portable calibration from ordinary title coverage, retaining strict style, glyph-row, truncation, clip and plate checks ([#634](https://github.com/khawkins98/scriptoscope/issues/634)). That calibration repair exposed the separate fallback-ink clipping and full-request raster allocation limitations; the #637 change above supersedes those limitations under P1, without changing the original findings or certifying arbitrary fonts.
 - Window titles reduce a too-tall substitute font within the same required face and preferred family, using one resolved style for advance, layout and painting. Titles that already fit retain their preferred style. This keeps bold utility text inside the authored title slot without widening its clip; a slot that fits no positive integer size retains its full accessibility title while omitting title ink ([#624](https://github.com/khawkins98/scriptoscope/issues/624)).
@@ -43,6 +93,27 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 - The grow-box resize outline is visible again beyond the window's old size; it was being clipped by the content area.
 - **Collapsed `wnd#` windows draw only their title-bar sides** ([#617](https://github.com/khawkins98/scriptoscope/issues/617)). Kaleidoscope 2.3.1 draws a collapsed window from the two sides along its title axis: top and bottom for top-titled windows, left and right for the side-titled `side-floating-utility-window` and `collapsed-side-utility`. The runtime drew all four sides at content height 0, which left stray frame pixels (16 px on animals' collapsed titled utility, 3 px on its collapsed no-title utility). Side-titled windows now also collapse to zero content width, keeping their height, as the original does, where they used to collapse to zero height. The frame region now comes straight from the layout that drew the frame, so drawing and hit area agree. `renderWindow()` gains a `collapsed` option (pass the expanded content size); `WindowManager` sets it.
 - Pressing a title-bar widget on a collapsed `wnd#` window now uses the second row of the scheme's pressed-widget strip when the strip has one, as Kaleidoscope does (window-widgets WD9/HT7); that row's hit areas apply too. The previous gap kept the window's collapsed flag clear. This affects the animals collapsed utility windows and windows-31's collapsed document window ([#617](https://github.com/khawkins98/scriptoscope/issues/617)).
+
+### Contributor workflow
+
+- `npm run check:schemes` (part of `npm run gates`) validates every authored scheme under `authoring/schemes/`: it builds cleanly, passes `checkScheme` and matches the committed `scheme.rsrc` (#540).
+- `tools/performance/` adds an allocation and render benchmark, with a README on running and reading it (#643).
+- The serial release interaction suite has the time it needs to finish (#639), and the portable full-title fit calibration was repaired (#638).
+
+### Runtime size (0.8.0 → 0.9.0)
+
+`npm run loc:src -- HEAD --base v0.8.0`:
+
+| non-test source | 0.8.0 | 0.9.0 | delta |
+|---|---:|---:|---:|
+| logic | 16654 | 17660 | +1006 |
+| cited engine tables | 2380 | 2380 | 0 |
+| total | 19034 | 20040 | +1006 |
+
+Most of the growth is window-manager input in `src/interactive.ts` (frame
+pass-through, inactive-window first clicks, native wheel targets, region reuse)
+and complete-request title fitting in `src/titleFont.ts`; `src/hitRegion.ts`
+is new. The authoring tools live in `tools/theme-author/` and are not counted.
 
 ## [0.8.0] — 2026-11-01
 
@@ -77,29 +148,6 @@ short. GitHub release only; no npm publication.
 
 ### Added
 
-- **Scheme authoring** (#540). `tools/theme-author/` writes new Kaleidoscope
-  schemes from code as real resource forks: encoders for `cicn`, `wnd#`,
-  `cinf`, `ppat`, `clut`, icon families, `STR#`, `DLOG`/`DITL`, `crsr`, `snd `,
-  `Colr` and `vers`, each round-tripping the whole corpus; `frameLayout()` and
-  `windowLayout()` for frame recipes; drawing helpers (smooth shapes, ordered
-  dithering, `fitPalette`); and `checkScheme`, which catches mistakes that load
-  but render wrong. `npm run author` builds a scheme, reloads it through the
-  browser's converter, runs the checks and writes both `scheme.rsrc` and a
-  MacBinary `scheme.bin` (type `Colr`, creator `Acid`) for classic Mac OS.
-- **Authoring workflow tools** (#540): `npm run paint-over` shrinks a crop of a
-  concept image to 1× and snaps it to a scheme's palette; `npm run sim8`
-  simulates an 8 bpp classic screen; `npm run capture:authoring` captures a
-  scheme's review previews; `npm run author -- <dir> --sheet` and `--palette`
-  write a contact sheet and a palette and contrast report. A dev-only page,
-  `authoring-preview.html`, previews a scheme in the browser.
-- **Scriptoscope Reference Native Theme reference scheme** in `authoring/schemes/` (#540), based on the demo site’s branding and a compact concept image and covering window frames, themed control families, menus, the desktop
-  pattern, a picker icon and the classic control-panel extras (about box,
-  arrow cursor, WindowShade sounds). It loads in Scriptoscope and in the
-  original Kaleidoscope 2.3.1 on System 7.5.5. It is not part of the
-  bundled corpus.
-- Authoring guides: `docs/authoring-a-scheme.md` (start here), with
-  `docs/authoring-exotic-frames.md`, `docs/authoring-visual-design.md` and
-  `docs/authoring-art-with-ai.md` as references (#540).
 - `WindowManager.setOuterSize(host, { width?, height? })`, an `outerSize` option on `WindowManager.add`, and `WindowManager.chromeExtent(host)`, for imperative callers that size windows by their outer box. `setContentSize` keeps its content-size meaning.
 
 ### Changed
@@ -109,8 +157,6 @@ short. GitHub release only; no npm publication.
 
 ### Fixed
 
-- Movable-modal, movable-alert, popup and collapsed titled-utility windows
-  show their title text again (#540).
 - **Dialog and alert bodies use the scheme's dialog colour instead of white.** In real Kaleidoscope 2.3.1, an alert and a themed dialog get their content colour from the scheme's `actb`/`dctb` -14336 (entry 0), or from Kaleidoscope's own copies (`#DDDE`/`#DDDD` grey) when the scheme ships none; document windows stay white. Scriptoscope now fills the `dialog`, `movable-modal`, `alert` and `movable-alert` bodies the same way, and the built-in frame's 3 px gap around a dialog matches the body. For example, apple-platinum-2 and every scheme without the tables get the light grey (`#E3E3E3` under the default display policy), 1984 its dark blue. The body's default text colour is entry 2 of the same table (black, or white on 1984), so for these window types it replaces a `color` set on the host. Override them with `--scriptoscope-dialog-background` and `--scriptoscope-dialog-text`. Slotted content still paints over the fill. Source: Kaleidoscope's PACH 130 GetResource patch (docs/spec/engine/procedural-frame.md §3.6). Found while testing authored schemes in real Kaleidoscope ([#540](https://github.com/khawkins98/scriptoscope/issues/540)).
 - The demo's `mountExplicitPage` (`demo/explicit-host.mjs`) now adds
   `.scriptoscope-ready`, removes `data-scriptoscope-loading`, lifts the root's
