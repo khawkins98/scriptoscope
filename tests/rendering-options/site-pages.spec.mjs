@@ -281,11 +281,15 @@ for (const transform of ['rotate(10deg)', 'skewX(15deg)']) {
     // Resize: the grow box ends up under the released pointer. The tilt can
     // push it below the fold, so bring it into view first.
     await host.evaluate(el => el.shadowRoot.querySelector('.scriptoscope-growbox').scrollIntoView({ block: 'center' }));
-    const corner = await growBox();
-    await drag(corner, -60, 40);
+    // Without grow-box art the resize surface is the frame L only (#640): the
+    // box centre sits on the content corner's edge, so press the opaque frame
+    // corner instead.
+    const size = await host.evaluate(el => { const w = el.shadowRoot.querySelector('.scriptoscope-window'); return { w: w.offsetWidth, h: w.offsetHeight }; });
+    const box = await growBox();
+    await drag(await pointAt(size.w - 4, size.h - 4), -60, 40);
     await expect.poll(async () => {
       const c = await growBox();
-      return Math.abs(c.x - corner.x + 60) <= 1.5 && Math.abs(c.y - corner.y - 40) <= 1.5;
+      return Math.abs(c.x - box.x + 60) <= 1.5 && Math.abs(c.y - box.y - 40) <= 1.5;
     }).toBe(true);
   });
 }
