@@ -123,3 +123,35 @@ rendering-matrix, pinned golden and cross-engine release checks remain for CI.
 and warmups. Nested/overlapping timings and Promise microtask delay mean stage
 medians must not be summed or interpreted as synchronous self time. Disable this
 instrumentation for before/after comparisons.
+
+## Fixed title surface (#646), 2026-11-03
+
+Apple M5, macOS, Chromium 156.0.8078.4, compared with `bf93341e` (including
+#643). The standard `npm run bench:render` selection ran first, followed by the
+same harness with the title replaced by `'Palette '.repeat(32) + 'Ç'` to exercise
+truncation. Each case retained five warmups and 40 measured samples. Before and
+after runs were sequential, after local tests finished; other machine activity
+was uncontrolled. All 16 sampled active/inactive pixel hashes matched.
+
+Medians in milliseconds, before → after:
+
+| Title | Theme | Content width | Render | Focus commit |
+| --- | --- | ---: | ---: | ---: |
+| Standard | Dolphin SOM | 480 | 1.7 → 1.4 | 8.3 → 6.7 |
+| Standard | Dolphin SOM | 1280 | 3.9 → 3.5 | 15.4 → 16.0 |
+| Standard | Platinum 8 | 480 | 1.0 → 1.0 | 4.3 → 2.7 |
+| Standard | Platinum 8 | 1280 | 2.0 → 1.5 | 4.8 → 4.6 |
+| Long | Dolphin SOM | 480 | 2.9 → 2.2 | 8.6 → 6.9 |
+| Long | Dolphin SOM | 1280 | 4.3 → 4.1 | 16.0 → 17.5 |
+| Long | Platinum 8 | 480 | 0.9 → 1.2 | 6.1 → 6.7 |
+| Long | Platinum 8 | 1280 | 1.9 → 1.9 | 5.9 → 6.1 |
+
+This single pair shows mixed timing, not a universal speedup or a CI threshold.
+Browser resource checks and implementation tests separately require one reused
+4096×32 plain title canvas for fitting and both colour passes, no resize after
+context acquisition, and bounded subrectangle readbacks. Wider/taller publication
+uses disjoint tiles, with synthetic alpha checks at both horizontal and vertical
+seams. The canvas plus current RGBA readback retain the existing 1,048,576-byte
+bound; small clips now use the declared full surface rather than a smaller
+backend-dependent allocation. This intentionally trades that small-clip backing
+size for consistent native coverage. Raw timing samples remain local artifacts.

@@ -79,13 +79,13 @@ test('PM1 title measurement and drawing share the bold face', () => {
   const fonts = [];
   globalThis.document = { createElement: () => ({ getContext: () => ({
     set font(value) { fonts.push(value); },
-    measureText: () => ({ width: 8, actualBoundingBoxAscent: 7, actualBoundingBoxDescent: 2 }),
-    fillText() {}, getImageData: (_x, _y, w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }),
+    measureText: () => ({ width: 8, actualBoundingBoxLeft: 0, actualBoundingBoxRight: 8, actualBoundingBoxAscent: 7, actualBoundingBoxDescent: 2 }),
+    clearRect() {}, fillText() {}, getImageData: (_x, _y, w, h) => ({ data: new Uint8ClampedArray(w * h * 4) }),
   }) }) };
   try {
     measureTitle('Tool', 12, { bold: true });
     paintTitle(PixelBuffer.alloc(9, 9), 'Tool', 12, '#000000', 0, 7, { x: 0, y: 0, w: 9, h: 9 }, { bold: true });
-    assert.equal(fonts.length, 2);
+    assert.equal(fonts.length, 3);
     assert.ok(fonts.every(font => font.startsWith('bold ')));
     fonts.length = 0;
     measureTitle('Document', 12);

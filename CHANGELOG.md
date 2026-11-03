@@ -7,6 +7,13 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+### Fixed
+
+- Title fitting and painting now share a fixed 4096×32 plain Canvas 2D surface,
+  including tiled publication of wide titles. This removes the WebKitGTK
+  surface-size mismatch between fit observation and painted coverage (#646).
+  The three affected Linux WebKit checks are strict again.
+
 ## [0.9.0] — 2026-11-03
 
 > **Behaviour change: clicks pass through transparent frame pixels, and a

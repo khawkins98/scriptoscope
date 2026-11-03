@@ -3,8 +3,6 @@ import { test, expect, openHarness, attachObservations } from './fixtures.mjs';
 // TC4/TC5 replay from an independently placed raster: no assumption that a
 // runtime scratch raster starts at the pen or that its row zero is baseline.
 for (const mode of ['source', 'built']) test(`${mode}: raw RGB16 title equality and shadow/foreground alpha-over`, async ({ page, servers }, info) => {
-  // #646: WebKitGTK picks its canvas backend by surface size, falsifying P1 query equivalence.
-  test.fail(info.project.name.startsWith('webkit') && process.platform === 'linux', '#646 WebKitGTK P1 falsification');
   await openHarness(page, servers, mode);
   const rows = await page.evaluate(async mode => {
     const api = await import(mode === 'built' ? '/dist/scriptoscope.js' : '/src/index.ts');
@@ -43,12 +41,12 @@ for (const mode of ['source', 'built']) test(`${mode}: raw RGB16 title equality 
         const baseline = Math.max(rect.y + rect.h - 4, rect.y + style.reference.ascent);
         const passes = variant === 'equal-raw' ? [[text, 0]] : [[shadow, 1], [text, 0]];
         const rasters = passes.map(([sample]) => {
-          const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 128;
+          const canvas = document.createElement('canvas'); canvas.width = R.TITLE_SURFACE_WIDTH; canvas.height = R.TITLE_SURFACE_HEIGHT;
           const ctx = canvas.getContext('2d'); ctx.font = style.reference.font; ctx.fillStyle = hex(sample); ctx.globalAlpha = 0.5;
-          fill.call(ctx, title, 32, 64);
-          return ctx.getImageData(0, 0, 256, 128).data;
+          fill.call(ctx, title, 32, 20);
+          return ctx.getImageData(0, 0, 256, 32).data;
         });
-        const prePenColumn = rasters.map(rgba => Array.from({ length: 128 }, (_, y) => ({ y: y - 64, rgba: Array.from(rgba.slice((y * 256 + 31) * 4, (y * 256 + 31) * 4 + 4)) })).filter(p => p.rgba[3]));
+        const prePenColumn = rasters.map(rgba => Array.from({ length: 32 }, (_, y) => ({ y: y - 20, rgba: Array.from(rgba.slice((y * 256 + 31) * 4, (y * 256 + 31) * 4 + 4)) })).filter(p => p.rgba[3]));
         const replay = ({ reverse = false, unshifted = false, mainOnly = false, missing, opaque = false } = {}) => {
           const expected = new Uint8ClampedArray(tf.buffer.data);
           let fractional = 0, overlap = 0; const touched = new Set(), contributors = new Map();
@@ -56,9 +54,9 @@ for (const mode of ['source', 'built']) test(`${mode}: raw RGB16 title equality 
           for (const i of order) {
             if ((mainOnly && i < passes.length - 1) || i === missing) continue;
             const pixels = rasters[i], offset = unshifted ? 0 : passes[i][1];
-            for (let y = 0; y < 128; y++) for (let x = 0; x < 256; x++) {
+            for (let y = 0; y < 32; y++) for (let x = 0; x < 256; x++) {
               const p = (y * 256 + x) * 4, coverage = pixels[p + 3], alpha = opaque && coverage ? 255 : coverage;
-              const dx = rect.x + x - 32 + offset, dy = baseline + y - 64 + offset;
+              const dx = rect.x + x - 32 + offset, dy = baseline + y - 20 + offset;
               if (!alpha || dx < rect.x || dx >= rect.x + rect.w + 2 || dy < rect.y || dy >= rect.y + rect.h) continue;
               if (alpha < 255) fractional++;
               const d = (dy * c.buffer.width + dx) * 4;
@@ -115,5 +113,29 @@ for (const mode of ['source', 'built']) test(`${mode}: raw RGB16 title equality 
       expect.soft(row.unshiftedMismatch, row.variant).toBeGreaterThan(0);
     }
     if (row.variant === 'distinct-display') expect.soft(row.reverseMismatch, row.variant).toBeGreaterThan(0);
+  }
+});
+
+// #646 calibration retains the native counterexample. Keeping this separate
+// from the fixed-surface replay detects a silent return to mixed surface sizes.
+test('declared title surface distinguishes the WebKitGTK mixed-size raster', async ({ page, servers }, info) => {
+  await openHarness(page, servers, 'source');
+  const row = await page.evaluate(async () => {
+    const R = await import('/tests/rendering-options/window-title-rules.mjs');
+    const raster = (width, height) => {
+      const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.font = '16px "Charcoal 12", Charcoal, "Helvetica Neue", Arial, sans-serif';
+      ctx.globalAlpha = .5; ctx.fillStyle = '#2050a0'; ctx.fillText('Hdgy', 0, 14);
+      return ctx.getImageData(0, 0, 35, 18).data;
+    };
+    const declared = raster(R.TITLE_SURFACE_WIDTH, R.TITLE_SURFACE_HEIGHT), small = raster(35, 18);
+    return { differingChannels: declared.reduce((sum, byte, i) => sum + Number(byte !== small[i]), 0),
+      declared: [R.TITLE_SURFACE_WIDTH, R.TITLE_SURFACE_HEIGHT], small: [35, 18] };
+  });
+  await attachObservations(info, 'window-title-colors', 'mixed-surface-calibration', { mode: 'source', row });
+  expect(row.declared).toEqual([4096, 32]);
+  if (info.project.name.startsWith('webkit') && process.platform === 'linux') {
+    expect(row.differingChannels, '#646 finite native surface-size counterexample remains discriminating').toBeGreaterThan(0);
   }
 });

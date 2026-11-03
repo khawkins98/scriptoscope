@@ -73,7 +73,7 @@ for (const mode of ['source', 'built']) {
       expect.soft(long.draw).toEqual(modest.draw);
       expect.soft(long.clip).toEqual(modest.clip);
       expect.soft(long.plate).toEqual(modest.plate);
-      // A modest request may need only a partial tile. Adopted bounds are
+      // A modest request may read only a partial tile. Adopted bounds are
       // asserted by allocation role below, never by equality to this control.
     }
   });
@@ -200,18 +200,13 @@ for (const mode of ['source', 'built']) test(`${mode}: shared recipe and procedu
     const firstFullMeasure = row.events.findIndex(e => e.kind === 'measure' && e.full);
     const firstDraw = row.events.findIndex(e => e.kind === 'draw');
     expect.soft(firstFullMeasure, `${label}: full advance precedes painting`).toBeLessThan(firstDraw);
+    expect.soft(new Set(draws.map(draw => draw.id)).size, `${label}: one surface shared by observation and publication`).toBe(1);
     for (const draw of draws) {
-      if (observationIds.has(draw.id)) {
-        expect.soft(draw.width, `${label}: coverage scratch width`).toBeLessThanOrEqual(4096);
-        expect.soft(draw.height, `${label}: coverage scratch height`).toBeLessThanOrEqual(32);
-        expect.soft(draw.args.length, `${label}: no maxWidth compression`).toBe(2);
-      } else {
-        expect.soft(draw.width, `${label}: publication follows destination output width`).toBeLessThanOrEqual(row.output.width);
-        expect.soft(draw.height, `${label}: publication follows destination output height`).toBeLessThanOrEqual(row.output.height);
-      }
-      expect.soft(draw.width * draw.height, `${label}: bounded publication storage`).toBeLessThanOrEqual(Math.max(4096 * 32, row.output.width * row.output.height));
+      expect.soft(draw.width, `${label}: declared title surface width`).toBe(4096);
+      expect.soft(draw.height, `${label}: declared title surface height`).toBe(32);
+      expect.soft(draw.args.length, `${label}: no maxWidth compression`).toBe(2);
     }
-    for (const request of row.requests.filter(request => observationIds.has(request.id))) {
+    for (const request of row.requests.filter(request => draws.some(draw => draw.id === request.id))) {
       // A zero-area reset dimension carries no pixel backing; retain it in
       // receipts, but apply the storage shape bound only to nonzero planes.
       if (request.width === 0 || request.height === 0) continue;

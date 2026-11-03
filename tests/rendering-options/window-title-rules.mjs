@@ -75,34 +75,40 @@ export function topTitleHeight(windowType) {
   return bottom - top;
 }
 
-/** Independent browser raster, vertically unbounded. TX4 clips negative left
- * bearings at the pen; retain that horizontal clip when comparing whole-title
- * widths, but never clip reference glyph rows. */
+// Spec constants, deliberately independent of runtime implementation constants.
+export const TITLE_SURFACE_WIDTH = 4096, TITLE_SURFACE_HEIGHT = 32;
+
+/** Independently placed complete-request raster on the declared surface.
+ * A wider reference is assembled from disjoint strips; text is never split. */
 export function titleReference(text, { face, size }) {
   if (!['normal', 'bold'].includes(face) || size < 1) throw new Error('Invalid title reference style');
   const cacheKey = JSON.stringify([text, face, size]);
   if (glyphCache.has(cacheKey)) return glyphCache.get(cacheKey);
   const canvas = document.createElement('canvas');
+  canvas.width = TITLE_SURFACE_WIDTH; canvas.height = TITLE_SURFACE_HEIGHT;
+  const ctx = canvas.getContext('2d');
   const font = `${face} ${size}px ${TITLE_STACK}`;
-  const measure = canvas.getContext('2d');
-  measure.font = font;
-  const metrics = measure.measureText(text);
-  const padding = 8;
-  canvas.width = Math.ceil(Math.max(metrics.width, metrics.actualBoundingBoxRight) + Math.max(0, metrics.actualBoundingBoxLeft)) + padding * 2;
-  canvas.height = Math.ceil(metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) + padding * 2;
-  const ctx = canvas.getContext('2d'), ascent = Math.ceil(metrics.actualBoundingBoxAscent);
-  ctx.font = font;
-  const penX = padding + Math.ceil(Math.max(0, metrics.actualBoundingBoxLeft));
-  ctx.fillText(text, penX, padding + ascent);
-  const rgba = ctx.getImageData(0, 0, canvas.width, canvas.height).data, ink = [];
-  for (let y = 0; y < canvas.height; y++) for (let x = 0; x < canvas.width; x++) {
-    if (rgba[(y * canvas.width + x) * 4 + 3]) ink.push([x, y]);
+  ctx.font = font; ctx.letterSpacing = '0px';
+  const metrics = ctx.measureText(text), ascent = Math.ceil(metrics.actualBoundingBoxAscent);
+  const penX = 8 + Math.ceil(Math.max(0, metrics.actualBoundingBoxLeft));
+  const width = Math.ceil(Math.max(metrics.width, metrics.actualBoundingBoxRight)) + penX + 8;
+  const baseline = 1 + ascent, ink = [];
+  let border = false;
+  if (baseline + metrics.actualBoundingBoxDescent >= TITLE_SURFACE_HEIGHT - 1) throw new Error('Reference exceeds declared surface height');
+  for (let left = 0; left < width; left += 4094) {
+    const w = Math.min(4094, width - left);
+    ctx.clearRect(0, 0, TITLE_SURFACE_WIDTH, TITLE_SURFACE_HEIGHT);
+    ctx.fillText(text, penX - left + 1, baseline);
+    const rgba = ctx.getImageData(1, 0, w, TITLE_SURFACE_HEIGHT).data;
+    for (let y = 0; y < TITLE_SURFACE_HEIGHT; y++) for (let x = 0; x < w; x++) {
+      if (!rgba[(y * w + x) * 4 + 3]) continue;
+      ink.push([left + x, y]);
+      if (!y || y === TITLE_SURFACE_HEIGHT - 1 || left + x === 0 || left + x === width - 1) border = true;
+    }
   }
-  const rawBox = bbox(ink);
-  const relative = points => bbox(points.map(([x, y]) => [x - penX, y - padding - ascent]));
+  const relative = points => bbox(points.map(([x, y]) => [x - penX, y - baseline]));
   const result = { font: ctx.font, fontStyle: { face, size, family: TITLE_FAMILY }, face, size, ascent, advance: Math.ceil(metrics.width),
-    fullBox: relative(ink), box: relative(ink.filter(([x]) => x >= penX)),
-    unclipped: !!rawBox && rawBox.l > 0 && rawBox.t > 0 && rawBox.r < canvas.width && rawBox.b < canvas.height };
+    fullBox: relative(ink), box: relative(ink.filter(([x]) => x >= penX)), unclipped: ink.length > 0 && !border };
   glyphCache.set(cacheKey, result);
   return result;
 }

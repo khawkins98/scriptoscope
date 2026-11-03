@@ -22,9 +22,10 @@ export interface TitleFontStyle {
 }
 interface TitleRequest {
   context?: CanvasRenderingContext2D;
+  raster?: ReturnType<typeof scratch>;
   last?: { text: string; style: TitleFontStyle; metrics: TextMetrics };
 }
-/** One render owns this lazy probe; keep no font or prefix cache across requests. */
+/** One render owns its lazy probe and fixed raster; cache no font state across requests. */
 export const createTitleRequest = (): TitleRequest => ({});
 type TitleFontOptions = { exactPx?: boolean; bold?: boolean; style?: TitleFontStyle | undefined; request?: TitleRequest };
 
@@ -162,18 +163,16 @@ function paintInterval(first: number, last: number, metricFirst: number, metricL
   return { origin, size };
 }
 
-function scratch(width: number, height: number, style: TitleFontStyle) {
+function scratch() {
   const canvas = document.createElement('canvas');
   // Drop the default backing store before widening; every resize stays bounded.
   canvas.height = 0;
-  canvas.width = width; canvas.height = height;
-  if (canvas.width !== width || canvas.height !== height) unavailable('scratch allocation');
-  // Use the host's default canvas backend, not `willReadFrequently`. In WebKit
-  // that hint switches to a different text rasteriser, so coverage queried here
-  // would no longer match the glyphs a plain host canvas draws (P1-G).
+  canvas.width = TILE_WIDTH; canvas.height = TILE_HEIGHT;
+  if (canvas.width !== TILE_WIDTH || canvas.height !== TILE_HEIGHT) unavailable('scratch allocation');
+  // Surface dimensions and context hints are raster state (#646). Set the
+  // declared dimensions before acquiring the plain context and never resize it.
   const ctx = canvas.getContext('2d');
   if (!ctx) unavailable('scratch context');
-  setStyle(ctx, style);
   ctx.textBaseline = 'alphabetic';
   return { canvas, ctx };
 }
@@ -186,7 +185,7 @@ export function resolveTitleStyle(text: string, px: number,
   const probe = measurementContext(opts.request);
   if (!probe || !text) return { style: preferred, omitInk: false };
   // A single fixed raster is reused across every tile and candidate.
-  let tile: ReturnType<typeof scratch> | undefined;
+  let tile = opts.request?.raster;
   const fits = (style: TitleFontStyle): boolean => {
     const tm = textMetrics(probe, text, style, opts.request);
     const clip = clipForAdvance(advance(tm.width));
@@ -198,7 +197,8 @@ export function resolveTitleStyle(text: string, px: number,
     const baseline = coordinate(Math.max(bottom - TITLE_TEXT.TX8.baselineAbove, top + ascent));
     const bounds = envelope(tm, style, x, baseline);
     if (bounds.top >= top && bounds.bottom <= bottom) return true;
-    tile ??= scratch(TILE_WIDTH, TILE_HEIGHT, style);
+    tile ??= scratch();
+    if (opts.request) opts.request.raster = tile;
     // The disjoint envelope partition owns every absolute exterior pixel once.
     // P1 query equivalence remains a supported-placement premise, not a culling proof.
     for (let rowIndex = 0; rowIndex < bounds.rows; rowIndex++) {
@@ -211,16 +211,11 @@ export function resolveTitleStyle(text: string, px: number,
         const right = coordinate(left + Math.min(QUERY_WIDTH, bounds.right - left));
         const horizontal = paintInterval(left, right, bounds.metricLeft, bounds.metricRight, TILE_WIDTH);
         const pen = translated(x, horizontal.origin), baselineRow = translated(baseline, vertical.origin);
-        // Resize the same canvas, dropping its backing height before changing width.
-        // No intermediate store exceeds the fixed bound, even at a partial corner.
-        if (tile.canvas.width !== horizontal.size || tile.canvas.height !== vertical.size) {
-          tile.canvas.height = 0;
-          tile.canvas.width = horizontal.size; tile.canvas.height = vertical.size;
-          if (tile.canvas.width !== horizontal.size || tile.canvas.height !== vertical.size) unavailable('scratch allocation');
-        }
         setStyle(tile.ctx, style);
         tile.ctx.textBaseline = 'alphabetic';
-        tile.ctx.clearRect(0, 0, horizontal.size, vertical.size);
+        tile.ctx.clearRect(0, 0, TILE_WIDTH, TILE_HEIGHT);
+        tile.ctx.fillStyle = '#000000';
+        tile.ctx.globalAlpha = 1;
         tile.ctx.fillText(text, pen, baselineRow);
         const w = right - left, h = last - first;
         const image = tile.ctx.getImageData(left - horizontal.origin, first - vertical.origin, w, h);
@@ -261,7 +256,7 @@ export function measureTitle(text: string, px: number, opts: TitleFontOptions = 
   });
 }
 
-/** Paint at the public pen/baseline through scratch bounded by the destination. */
+/** Paint complete requests through the same fixed surface, publishing disjoint queries. */
 export function paintTitle(target: PixelBuffer, text: string, px: number, hex: string,
   x: number, baseline: number, clip: TitleClip, opts: TitleFontOptions = {}): boolean {
   if (typeof document === 'undefined' || !text) return false;
@@ -274,12 +269,31 @@ export function paintTitle(target: PixelBuffer, text: string, px: number, hex: s
     const bottom = coordinate(Math.min(target.height, Math.ceil(clip.y + clip.h)));
     if (right <= left || bottom <= top) return true;
     const style = opts.style ?? preferredStyle(px, opts);
-    const { ctx } = scratch(right - left, bottom - top, style);
-    ctx.fillStyle = hex;
-    ctx.fillText(text, translated(x, left), translated(baseline, top));
-    const img = ctx.getImageData(0, 0, right - left, bottom - top);
-    if (img.data.length !== (right - left) * (bottom - top) * 4) unavailable('incomplete publication readback');
-    target.drawOver(new PixelBuffer(right - left, bottom - top, img.data), left, top, clip);
+    const tm = textMetrics(probe, text, style, opts.request);
+    const bounds = envelope(tm, style, coordinate(x), coordinate(baseline));
+    const startX = Math.max(left, bounds.left), endX = Math.min(right, bounds.right);
+    const startY = Math.max(top, bounds.top), endY = Math.min(bottom, bounds.bottom);
+    if (startX >= endX || startY >= endY) return true;
+    const tile = opts.request?.raster ?? scratch();
+    if (opts.request) opts.request.raster = tile;
+    const { ctx } = tile;
+    for (let first = startY; first < endY; first += QUERY_HEIGHT) {
+      const last = Math.min(first + QUERY_HEIGHT, endY);
+      const vertical = paintInterval(first, last, bounds.metricTop, bounds.metricBottom, TILE_HEIGHT);
+      for (let column = startX; column < endX; column += QUERY_WIDTH) {
+        const end = Math.min(column + QUERY_WIDTH, endX);
+        const horizontal = paintInterval(column, end, bounds.metricLeft, bounds.metricRight, TILE_WIDTH);
+        setStyle(ctx, style);
+        ctx.clearRect(0, 0, TILE_WIDTH, TILE_HEIGHT);
+        ctx.fillStyle = hex;
+        ctx.globalAlpha = 1;
+        ctx.fillText(text, translated(x, horizontal.origin), translated(baseline, vertical.origin));
+        const w = end - column, h = last - first;
+        const img = ctx.getImageData(column - horizontal.origin, first - vertical.origin, w, h);
+        if (img.data.length !== w * h * 4) unavailable('incomplete publication readback');
+        target.drawOver(new PixelBuffer(w, h, img.data), column, first, clip);
+      }
+    }
     return true;
   } catch (error) {
     if (error instanceof Error && error.name === 'TitleCoverageUnavailableError') throw error;
