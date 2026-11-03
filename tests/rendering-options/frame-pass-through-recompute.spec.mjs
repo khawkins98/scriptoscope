@@ -198,7 +198,10 @@ for (const mode of MODES) {
     // The pass-through press deactivated G (HP39, #620). Content presses
     // reactivate it but never resize: #640 clips the no-art target to the frame.
     expect((await state(page, 'G')).active, 'the outside press deactivated G').toBe(false);
-    const growInside = async () => { await page.mouse.move(r.inVp.x, r.inVp.y); await page.mouse.down(); await page.mouse.move(r.inVp.x + 30, r.inVp.y + 20, { steps: 4 }); await page.mouse.up(); await settle(page, 300); };
+    // Content-corner presses are content (#640): a drag there selects text, and a second
+    // drag over that selection starts a native text drag, which WebKit lets swallow the
+    // pointerup. Clear the selection so each press tests resizing, not drag-and-drop.
+    const growInside = async () => { await page.evaluate(() => getSelection()?.removeAllRanges()); await page.mouse.move(r.inVp.x, r.inVp.y); await page.mouse.down(); await page.mouse.move(r.inVp.x + 30, r.inVp.y + 20, { steps: 4 }); await page.mouse.up(); await settle(page, 300); };
     await growInside();
     expect((await state(page, 'G')).active, 'press inside C activates G').toBe(true);
     expect(await page.evaluate(() => { const g = window.__fpt.geom('G'); return [g.W, g.H]; }), 'first press on inactive G: no resize').toEqual([r.W, r.H]);

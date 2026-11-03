@@ -168,9 +168,10 @@ function scratch(width: number, height: number, style: TitleFontStyle) {
   canvas.height = 0;
   canvas.width = width; canvas.height = height;
   if (canvas.width !== width || canvas.height !== height) unavailable('scratch allocation');
-  // These offscreen surfaces are read back for coverage and publication on every
-  // use. Keep their pixels CPU-accessible instead of synchronizing GPU readback.
-  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  // Use the host's default canvas backend, not `willReadFrequently`. In WebKit
+  // that hint switches to a different text rasteriser, so coverage queried here
+  // would no longer match the glyphs a plain host canvas draws (P1-G).
+  const ctx = canvas.getContext('2d');
   if (!ctx) unavailable('scratch context');
   setStyle(ctx, style);
   ctx.textBaseline = 'alphabetic';
