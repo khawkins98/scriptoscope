@@ -251,7 +251,7 @@ When a window's content overflows its declared size, the runtime replaces the br
 When there are no themed bars:
 
 - Window types matching `utility`, `palette`, `floating`, `modal` or `dialog` never scroll; their content is clipped.
-- Auto-fitted windows grow to their content instead, until a [user resize](#after-a-resize) or a px `max-width`/`max-height` cap stops them.
+- Auto-fitted windows grow to their content instead, until a [user resize](#after-a-resize) or a px `max-width`/`max-height` cap stops them. A cap also bounds the size the window starts at: when the captured source box is larger than the host's cap (a `content-box` source adds its padding and border to its `max-height`), the window is fitted inside the cap before `promote` resolves, so its chrome never hangs out of its host while waiting for the first auto-fit frame.
 - Collapsed windows.
 
 Imperative note: the scroll container is the `extra.contentEl` you pass to `add` (or the content box if you pass none). Give it `height: 100%` and `overflow: auto`, as the declarative slot has, or vertical overflow isn't detected.

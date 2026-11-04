@@ -1,5 +1,26 @@
 # Learnings
 
+## 2026-11-04 — Release-gate flakes: rAF latency, wheel animation, inert boot
+
+Three intermittent release-gate failures, none caused by the code under test
+changing:
+
+- **A rAF is not "the next frame" in WebKit.** In the pinned Linux container
+  WebKit sometimes ran no `requestAnimationFrame` callback for over a second
+  after boot, with the page visible (requested 17, run 8 at measurement time).
+  Anything a contract needs settled must not wait on a rAF-scheduled pass. The
+  declarative growth observer applied px `max-*` caps only from such a pass, so a
+  content-box source whose `max-height` excludes padding and border (showcase
+  heavy cards: 280 + 24 + 2 = 306) kept a 306 px canvas in its 280 px host. The
+  caps now apply before `promote` resolves (`fitInitialCaps`).
+- **WebKit animates one wheel notch over several frames** (117, 119, 120 px).
+  Reading scroll positions as soon as the target first moves races the tail;
+  snapshot at rest instead.
+- **The example host makes its root inert until `.scriptoscope-ready`.** On the
+  example pages the root is `<body>`, so a Playwright click that passed its
+  actionability check just before boot set `inert` was dropped without a retry.
+  Click page links after ready.
+
 ## 2026-11-02 — Bounded title coverage needs a declared raster envelope (#637)
 
 Canvas metrics can miss fallback ink. The modern P1 policy assumes that all

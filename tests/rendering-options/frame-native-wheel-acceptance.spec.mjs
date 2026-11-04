@@ -19,12 +19,32 @@ async function setup(page, servers, mode) {
 }
 const positions = page => page.evaluate(() => ({ sentinel: window.__fpt.sentinel.scrollTop,
   content: window.__nw.content.scrollTop, nested: window.__nw.nested.scrollTop, page: scrollY }));
+// WebKit animates one wheel notch over several frames (a CI trace read the
+// nested scroller at 117, 119, then 120 px). Reading positions as soon as the
+// target first moves left the animation's tail to land after the next wheel's
+// `before` snapshot, which then saw the previous target move by 1 px. Both
+// snapshots are therefore taken at rest: no position changed for 150 ms of
+// animation frames. This only waits; it does not relax any comparison.
+const restingPositions = page => page.evaluate(() => new Promise((resolve, reject) => {
+  const read = () => JSON.stringify({ sentinel: window.__fpt.sentinel.scrollTop,
+    content: window.__nw.content.scrollTop, nested: window.__nw.nested.scrollTop, page: scrollY });
+  const start = performance.now();
+  let last = read(), since = start;
+  const tick = now => {
+    const current = read();
+    if (current !== last) { last = current; since = now; }
+    if (now - since >= 150) resolve(JSON.parse(current));
+    else if (now - start > 5000) reject(new Error(`scroll positions never came to rest: ${current}`));
+    else requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}));
 async function wheel(page, point, target) {
-  const before = await positions(page);
+  const before = await restingPositions(page);
   await page.mouse.move(point.x, point.y);
   await page.mouse.wheel(0, 120);
   await expect.poll(async () => (await positions(page))[target]).toBeGreaterThan(before[target]);
-  const after = await positions(page);
+  const after = await restingPositions(page);
   for (const key of Object.keys(before)) if (key !== target) expect(after[key], `${target} wheel leaves ${key} fixed`).toBe(before[key]);
   return { before, after };
 }
