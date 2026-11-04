@@ -26,8 +26,10 @@ permissions:
 # former 40-minute limit. Each project is split into EXTENDED_SHARDS jobs by
 # Playwright's test-count sharding, which keeps a file's tests that share a
 # worker in one shard. The chromium-dpr1 extended matrix.spec.mjs (18 themes,
-# about 40 min in total) is one such group, so the shard holding it took about
-# 53 min in run 41182899675. Hence the 90-minute per-job limit. The parity job
+# about 40 min in total) was one such group, so the shard holding it took about
+# 53 min in run 41182899675, hence the 90-minute per-job limit. Since #653 the
+# matrix runs in parallel describe mode, so its per-theme tests spread across
+# shards; the limit is kept until runs show the new balance. The parity job
 # proves that the union of the shards ran exactly the unsharded inventory for
 # the selected browsers.
 env:
