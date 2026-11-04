@@ -24,7 +24,7 @@ Do not mix the old deployment with the new example helper.
 
 To try the library in a separate npm consumer, run `npm run build`, then
 `npm pack --ignore-scripts` in this checkout and install the resulting tarball
-by local path. Its filename is `scriptoscope-<version>.tgz` (for example `scriptoscope-0.9.0.tgz`). This does not publish a package.
+by local path. Its filename is `khawkins98-scriptoscope-<version>.tgz` (for example `khawkins98-scriptoscope-0.10.0.tgz`). This does not publish a package.
 
 | Import | Intended use |
 |---|---|
