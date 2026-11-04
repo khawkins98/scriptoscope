@@ -1,0 +1,188 @@
+name: Publish npm release
+# The (latest) title is checked by the Pages readiness helper after successful completion.
+run-name: npm ${{ inputs.tag }} (${{ inputs.publish && inputs.promote_latest && 'latest' || inputs.publish && 'next' || 'prepare' }})
+
+# Nothing publishes on a merge/tag push. Dispatch with --ref matching the tag.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing version tag with a green exact-commit release gate
+        required: true
+        type: string
+      publish:
+        description: Publish the tested candidate to npm under next (false prepares/tests only)
+        type: boolean
+        default: false
+      promote_latest:
+        description: After registry verification, promote to latest and request Pages deployment
+        type: boolean
+        default: false
+
+permissions: {}
+concurrency:
+  group: npm-release
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    if: github.repository == 'khawkins98/scriptoscope'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      sha: ${{ steps.tag.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Verify tag belongs to main and has a green release gate
+        id: tag
+        uses: actions/github-script@v8
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          PUBLISH: ${{ inputs.publish }}
+          PROMOTE: ${{ inputs.promote_latest }}
+        with:
+          script: |
+            if (process.env.PROMOTE === 'true' && process.env.PUBLISH !== 'true') throw Error('Promotion requires publish=true');
+            const { pathToFileURL } = await import('node:url');
+            const { resolveReleaseTag } = await import(pathToFileURL(`${process.env.GITHUB_WORKSPACE}/scripts/npm-release.mjs`));
+            const release = await resolveReleaseTag(github, context.repo, process.env.RELEASE_TAG, process.env.GITHUB_SHA);
+            core.setOutput('sha', release.sha);
+            await core.summary.addRaw(`Release commit: ${release.sha}\n\nGate: ${release.gate.html_url}`).write();
+
+  candidate:
+    needs: validate
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
+      options: --ipc=host
+    permissions:
+      contents: read
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.validate.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm install --global npm@12.2.1
+      - run: npm ci
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - run: npm run build
+      - name: Pack once and record artifact identity
+        id: pack
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_SHA: ${{ needs.validate.outputs.sha }}
+        run: node scripts/npm-release.mjs pack
+      - name: Test this exact candidate
+        env:
+          CANDIDATE: ${{ steps.pack.outputs.tarball }}
+          SCRIPTOSCOPE_PACKAGE_EVIDENCE: test-results/npm-release/candidate
+        run: npm run test:package:tarball -- "$CANDIDATE"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm-candidate-${{ github.run_id }}
+          path: .tmp/npm-release/
+          include-hidden-files: true
+          if-no-files-found: error
+          compression-level: 0
+          overwrite: true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: npm-candidate-evidence-${{ github.run_id }}
+          overwrite: true
+          path: test-results/npm-release/
+          if-no-files-found: ignore
+
+  publish:
+    if: inputs.publish
+    needs: [validate, candidate]
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
+      options: --ipc=host
+    environment: npm
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    timeout-minutes: 30
+    env:
+      RELEASE_SHA: ${{ needs.validate.outputs.sha }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.validate.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      # Supports both OIDC publishing and OIDC dist-tag promotion.
+      - run: npm install --global npm@12.2.1
+      - run: npm ci
+      - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - uses: actions/download-artifact@v4
+        with:
+          name: npm-candidate-${{ github.run_id }}
+          path: .tmp/npm-release
+      - name: Recheck tag and exact-commit gate before publication
+        uses: actions/github-script@v8
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        with:
+          script: |
+            const { pathToFileURL } = await import('node:url');
+            const { resolveReleaseTag } = await import(pathToFileURL(`${process.env.GITHUB_WORKSPACE}/scripts/npm-release.mjs`));
+            const release = await resolveReleaseTag(github, context.repo, process.env.RELEASE_TAG, process.env.GITHUB_SHA);
+            if (release.sha !== process.env.RELEASE_SHA) throw Error('Release tag moved after candidate preparation');
+      - name: Verify downloaded candidate digest
+        id: artifact
+        run: node scripts/npm-release.mjs verify
+      - name: Check for an identical already-published version
+        id: registry
+        run: node scripts/npm-release.mjs exists
+      - name: Publish the tested tarball under next
+        if: steps.registry.outputs.exists != 'true'
+        env:
+          CANDIDATE: ${{ steps.artifact.outputs.tarball }}
+        run: npm publish "$CANDIDATE" --ignore-scripts --registry=https://registry.npmjs.org --access public --tag next
+      - name: Verify registry integrity and test the downloaded npm artifact
+        run: node scripts/npm-release.mjs registry-smoke
+      - name: Promote verified version to latest
+        if: inputs.promote_latest
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: npm dist-tag add "@khawkins98/scriptoscope@${RELEASE_TAG#v}" latest --registry=https://registry.npmjs.org
+      - name: Verify ordinary npm installation selects this version
+        if: inputs.promote_latest
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          consumer="$(mktemp -d)"
+          trap 'rm -rf "$consumer"' EXIT
+          npm install --prefix "$consumer" --ignore-scripts --no-audit --no-fund --registry=https://registry.npmjs.org @khawkins98/scriptoscope
+          cd "$consumer"
+          EXPECTED_VERSION="${RELEASE_TAG#v}" node --input-type=module -e '
+            import assert from "node:assert/strict";
+            import { VERSION } from "@khawkins98/scriptoscope";
+            assert.equal(VERSION, process.env.EXPECTED_VERSION);
+          '
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: npm-registry-evidence-${{ github.run_id }}
+          overwrite: true
+          path: test-results/npm-release/
+          if-no-files-found: ignore

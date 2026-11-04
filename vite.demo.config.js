@@ -15,11 +15,11 @@ export default defineConfig({
   // bookmarks pointing at the prior naming keep building.
   base: process.env.SCRIPTOSCOPE_BASE_PATH ?? process.env.AARON_UI_BASE_PATH ?? '/scriptoscope/',
   publicDir: false,
-  // Same `scriptoscope` alias as the dev config — keeps the prod bundle
+  // Same `@khawkins98/scriptoscope` alias as the dev config — keeps the prod bundle
   // using the same import path the landing models for consumers.
   resolve: {
     alias: {
-      scriptoscope: resolve(import.meta.dirname, 'src/index.ts'),
+      '@khawkins98/scriptoscope': resolve(import.meta.dirname, 'src/index.ts'),
     },
   },
   build: {

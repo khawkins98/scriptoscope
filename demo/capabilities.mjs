@@ -5,7 +5,7 @@ import {
   composeSlider, composeScrollbar, composeDisclosure, composeProgressFrame,
   composeHeaderSurface, composeListHeader, platinumListHeader,
   platinumMenuBar, platinumMenu, platinumPopupMenu, rasterizeText, themeImageUrl,
-} from 'scriptoscope';
+} from '@khawkins98/scriptoscope';
 import themes from './themes-manifest.json';
 
 const $ = id => document.getElementById(id);

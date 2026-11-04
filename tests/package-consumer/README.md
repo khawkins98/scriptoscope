@@ -5,9 +5,9 @@ installed. CI runs this in the same immutable Linux image as rendering contracts
 This verifies packaging and native browser integration, not historical pixels,
 all public APIs, every bundler/browser, or readiness to publish to npm.
 
-The runner builds a clean library, packs it, installs only the tarball into a
-unique temporary consumer, resolves root/declarative/CSS/package.json exports,
-and compiles both public declaration entrypoints with strict Bundler resolution
+The npm script builds a clean library; the runner packs it, installs only the tarball into a
+unique temporary consumer, resolves root/renderer/declarative/CSS/package.json exports,
+and compiles the public declaration entrypoints with strict Bundler and NodeNext resolution
 and `skipLibCheck: false`. A missing relative declaration must fail here even
 when repository typechecking passes. Every compiled type file must belong to the
 installed consumer or TypeScript's own standard libraries. The build copies the
@@ -15,11 +15,37 @@ authoritative browser loader declaration into `dist/tools/`, rebasing its
 source-type reference to the emitted declarations rather than maintaining a
 second public interface.
 
+To test an existing candidate without rebuilding or repacking it, run
+`npm run test:package:tarball -- /absolute/path/to/scriptoscope.tgz`. The runner
+copies that artifact into its temporary workspace, records its SHA-256/integrity,
+and follows its own lazy-import graph for negative cases. A local `dist/` is not
+used in this mode. This can verify the same tarball later supplied to a publisher.
+
+Every installed file must match the runtime/docs/example allowlist. Bundled
+notices must include the full munbox license, and local links in the packed
+README and consumer guide must resolve inside the installed package. The explicit
+`package.json` files patterns exclude `dist/demo`, `dist/pages-loader`, downloaded
+example themes and local example dependencies even if those exist before packing.
+For local packing, the runner also inserts temporary markers in generated output
+directories and requires identical packed files/integrity, then removes the markers.
+
+The runner also copies the exact shipped `examples/npm` source from the installed
+package into a separate consumer, checks its types in both modes and builds it at
+`/nested/`. Compiler-only environment declarations supply the build tool's base-URL
+type without letting checkout dependencies satisfy the installed declaration graph.
+The browser loads a first-party `scheme.rsrc`, checks the native checkbox, clicks
+the example's restore button and verifies the original input, edited checked state
+and connected source DOM. Its theme is copied as external input from the checkout
+for offline CI; the example's pinned download is a separate setup step, not a CI
+network dependency. Archive/metadata SHA-256 pins require those offline inputs
+to match the documented download. Update the example revision and pins together
+when deliberately changing the sample.
+
 Vite builds the fixture with an explicit isolated configuration and no aliases.
 Every filesystem module must belong to that consumer; tool-generated virtual
 modules are separate. The installed consumer is removed before the browser starts.
 An independent static-only server then serves the completed production files
-under `/consumer/`. Only the original Windows95 and Platinum 8 archives and their
+under `/consumer/`. The original Windows95 and Platinum 8 archives and their
 metadata are copied as external theme input; repository derivatives are not served.
 
 The browser checks actual lazy archive decoding, stylesheet application, a
@@ -37,9 +63,11 @@ resolution and bundling respectively, naming the omitted file. The decoder chunk
 is found by following `dist/scriptoscope.js`'s static imports, because the entry
 can be a re-export facade over shared chunks. The normal
 consumer keeps the decoder live by loading a StuffIt archive.
-A third candidate points the packed declaration at an existing repository type
+A further candidate points the packed declaration at an existing repository type
 file. It must fail the type-file boundary even though those types compile,
-proving that checkout files cannot silently satisfy a broken tarball.
+proving that checkout files cannot silently satisfy a broken tarball. A sixth
+candidate omits `THIRD_PARTY_NOTICES` and must fail the contents check. macOS
+AppleDouble metadata is disabled when creating these defective test archives.
 
 Compact `result.json` evidence and failure screenshots live under
 `test-results/rendering-evidence/package-consumer/`. Set

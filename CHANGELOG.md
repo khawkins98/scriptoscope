@@ -7,12 +7,34 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+## [0.10.0] — 2026-11-04
+
+### Added
+
+- Public ESM npm distribution as `@khawkins98/scriptoscope`, with root,
+  renderer, declarative and stylesheet exports. The included consumer example
+  demonstrates first-party theme setup, owned theme typing and native DOM teardown.
+- Separate hosted-HTML and npm integration paths, with clear setup tradeoffs.
+- Manually dispatched, exact-commit-gated publication and registry verification;
+  Pages deployment waits for a successful verified npm promotion.
+
 ### Fixed
 
+- Package contents exclude demo build output regardless of build history. The
+  tarball includes decoder notices, a consumer guide and a runnable example with
+  self-hosted theme setup and explicit teardown.
 - Title fitting and painting now share a fixed 4096×32 plain Canvas 2D surface,
   including tiled publication of wide titles. This removes the WebKitGTK
   surface-size mismatch between fit observation and painted coverage (#646).
   The three affected Linux WebKit checks are strict again.
+
+Runtime size versus v0.9.0 (`npm run loc:src -- HEAD --base v0.9.0`):
+
+| src/ lines (non-test .ts) | v0.9.0 | 0.10.0 | delta |
+|---|---:|---:|---:|
+| logic (all src except engine tables) | 17661 | 17675 | +14 |
+| engine tables (cited data) | 2380 | 2380 | 0 |
+| total | 20041 | 20055 | +14 |
 
 ## [0.9.0] — 2026-11-03
 

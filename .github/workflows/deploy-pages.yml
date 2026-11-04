@@ -5,9 +5,13 @@ on:
     branches: [main]
   # Allow manual trigger from the Actions tab.
   workflow_dispatch:
+  workflow_run:
+    workflows: [Publish npm release]
+    types: [completed]
 
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 
@@ -18,22 +22,41 @@ concurrency:
 
 jobs:
   build:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      ready: ${{ steps.registry.outputs.ready }}
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
           cache: 'npm'
+      - name: Hold docs until npm latest has a successful registry smoke
+        id: registry
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { readFile } = await import('node:fs/promises');
+            const { pathToFileURL } = await import('node:url');
+            const manifest = JSON.parse(await readFile('package.json', 'utf8'));
+            const { pagesReady } = await import(pathToFileURL(`${process.env.GITHUB_WORKSPACE}/scripts/npm-release.mjs`));
+            const ready = await pagesReady(github, context.repo, manifest);
+            core.setOutput('ready', String(ready));
+            if (!ready) await core.summary.addRaw(`Pages held: ${manifest.name}@${manifest.version} needs npm latest and a successful verified promotion run.`).write();
       - run: npm ci
+        if: steps.registry.outputs.ready == 'true'
       - run: npm run build:demo
+        if: steps.registry.outputs.ready == 'true'
       - uses: actions/upload-pages-artifact@v5
+        if: steps.registry.outputs.ready == 'true'
         with:
           path: dist/demo
 
   deploy:
     needs: build
+    if: needs.build.outputs.ready == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

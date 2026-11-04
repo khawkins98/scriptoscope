@@ -102,7 +102,7 @@ function instrument(mode) {
         source = replaceOne(source, 'import { createOwnedThemeResolver,', 'import { createThemeResolver,');
         source = replaceOne(source, 'const resolver = createOwnedThemeResolver(', 'const resolver = createThemeResolver(');
       }
-      source = `import * as runtime from 'scriptoscope';\n` + source;
+      source = `import * as runtime from '@khawkins98/scriptoscope';\n` + source;
       if (diagnostic) {
         source = replaceOne(source, '    await resolver.preloadFonts();', "    await window.__recordPhase('fonts', () => resolver.preloadFonts());");
         source = replaceOne(source, `const window = await ScriptoscopeWindow.promote(panel.el, {
@@ -258,7 +258,7 @@ if (frozenBuild) report.methodology = report.methodology.replace('Current eager 
 if (diagnostic) report.methodology += ' Diagnostic run adds phase wrappers and long-task/resource observers. Phase durations overlap and must not be summed; retheme includes load. Retained trace arrays and resource buffers make its heap figures incomparable with normal-mode results. Long tasks cover the main thread only. This run is recorded separately.';
 try {
   for (const mode of ['eager', 'owned']) {
-    const server = await createServer({ configFile: resolve(root, 'vite.config.js'), root: resolve(root, 'demo'), plugins: [instrument(mode)], server: { host: '127.0.0.1', port: 0, open: false, hmr: false, fs: { allow: [root, ...(eagerEntry ? [dirname(eagerEntry)] : [])] } }, resolve: { alias: { scriptoscope: mode === 'eager' && eagerEntry ? eagerEntry : resolve(root, 'dist/scriptoscope.js') } } });
+    const server = await createServer({ configFile: resolve(root, 'vite.config.js'), root: resolve(root, 'demo'), plugins: [instrument(mode)], server: { host: '127.0.0.1', port: 0, open: false, hmr: false, fs: { allow: [root, ...(eagerEntry ? [dirname(eagerEntry)] : [])] } }, resolve: { alias: { '@khawkins98/scriptoscope': mode === 'eager' && eagerEntry ? eagerEntry : resolve(root, 'dist/scriptoscope.js') } } });
     await server.listen(); servers.set(mode, server);
     const response = await fetch(server.resolvedUrls.local[0], { signal: AbortSignal.timeout(10_000) });
     const html = await response.text();

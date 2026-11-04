@@ -4,7 +4,7 @@ A Mac OS Appearance-style window manager + theme engine for the web.
 
 *This is the original product charter (~2026-05-16). Its framework-agnostic, declarative Kaleidoscope-compatibility vision remains; its CSS theme model, API sketches, phases and May v2/v3 reset names are historical. They are not the October `v2` integration branch (retired 2026-10-30) or package release numbers. The current orientation below supersedes those implementation and delivery pointers without rewriting the charter.*
 
-> **Current milestone (2026-10-23): incremental decode-first v2.** The package version is **0.9.0**. Families migrate through per-family releases (since 2026-10-30 all work lands on `main` through focused PRs; the former `v2` integration branch is retired, [DECISIONS #1](./docs/v2/DECISIONS.md)); “every family on the engine, no legacy drawer” is the **1.0** milestone, not a claim about 0.9.0 ([DECISIONS #8](./docs/v2/DECISIONS.md)). Follow-up work and review state are tracked in [issue #459](https://github.com/khawkins98/scriptoscope/issues/459). Runtime implementers read the [implementer brief](./docs/spec/engine/IMPLEMENTER-BRIEF.md) **first**, then only assigned safe family specs and allowed files; ambiguities become spec questions. Spec writers/verifiers and integration owners use [DECISIONS](./docs/v2/DECISIONS.md) for integration policy and the [amended PLAN](./docs/v2/PLAN.md) for architecture (its §2 branch rules are superseded).
+> **Current milestone (2026-10-23): incremental decode-first v2.** The package version is **0.10.0**. Families migrate through per-family releases (since 2026-10-30 all work lands on `main` through focused PRs; the former `v2` integration branch is retired, [DECISIONS #1](./docs/v2/DECISIONS.md)); “every family on the engine, no legacy drawer” is the **1.0** milestone, not a claim about 0.9.0 ([DECISIONS #8](./docs/v2/DECISIONS.md)). Follow-up work and review state are tracked in [issue #459](https://github.com/khawkins98/scriptoscope/issues/459). Runtime implementers read the [implementer brief](./docs/spec/engine/IMPLEMENTER-BRIEF.md) **first**, then only assigned safe family specs and allowed files; ambiguities become spec questions. Spec writers/verifiers and integration owners use [DECISIONS](./docs/v2/DECISIONS.md) for integration policy and the [amended PLAN](./docs/v2/PLAN.md) for architecture (its §2 branch rules are superseded).
 
 The current implementation uses DOM content with canvas chrome. `src/engine/`
 holds `qd/` primitives, resource chains/adapters, state, decision tables, family
@@ -88,7 +88,7 @@ The primary integration path is markup-only. The library scans the DOM (on `DOMC
 **Imperative API stays available** for dynamic / programmatic cases:
 
 ```ts
-import { AaronWindow, loadTheme } from 'scriptoscope';
+import { AaronWindow, loadTheme } from '@khawkins98/scriptoscope';
 
 await loadTheme('https://example.com/themes/beos-r503/');
 const win = new AaronWindow({
@@ -229,7 +229,7 @@ Two integration paths, declarative first per the North Star:
 **Imperative (for dynamic / programmatic cases):**
 
 ```ts
-import { loadTheme, AaronWindow } from 'scriptoscope';
+import { loadTheme, AaronWindow } from '@khawkins98/scriptoscope';
 
 await loadTheme('https://example.com/themes/beos-r503/');
 const win = new AaronWindow({ title: 'Window', html: '...' });
@@ -284,7 +284,7 @@ These were suggestions when written. **Superseded orientation (2026-10-23):** th
 ## Success criteria
 
 1. cv-mac swaps WinBox for Scriptoscope in a single PR with zero behavioral regression at merge.
-2. A third party can `npm install scriptoscope` (or `<script src>`) and have draggable, Kaleidoscope-themed windows on a page in <50 LOC.
+2. A third party can `npm install @khawkins98/scriptoscope` (or `<script src>`) and have draggable, Kaleidoscope-themed windows on a page in <50 LOC.
 3. At least two Kaleidoscope schemes load and switch live without page reload (one extracted bundle plus one additional loaded from an external URL).
 4. Visual spot-check against the source scheme: under a loaded scheme, a panel of 5–10 controls renders pixel-faithfully enough that someone comparing against Kaleidoscope's own scheme preview would recognise it as the same scheme.
 5. Bundle ≤30 KB gzipped for the WM core + theme runtime (excluding the bundled-default scheme's PNG assets, which are accounted separately).

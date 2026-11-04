@@ -87,16 +87,16 @@ export default defineConfig(({ command }) => {
         open: '/',
         fs: { allow: ['..'] }, // allow imports from src/, themes/, etc.
       },
-      // Make `import x from 'scriptoscope'` resolve to the in-tree source.
+      // Make `import x from '@khawkins98/scriptoscope'` resolve to the in-tree source.
       // The landing should be a faithful CONSUMER example — using the same
       // bare specifier the install snippet (and any third-party consumer)
       // would type. Without this alias, the landing's `from '../src/...'`
       // teaches a relative-path pattern nobody outside this repo can write.
       resolve: {
         alias: {
-          'scriptoscope/declarative': resolve(import.meta.dirname, 'src/declarative/index.ts'),
-          'scriptoscope/renderer': resolve(import.meta.dirname, 'src/renderer.ts'),
-          scriptoscope: resolve(import.meta.dirname, 'src/index.ts'),
+          '@khawkins98/scriptoscope/declarative': resolve(import.meta.dirname, 'src/declarative/index.ts'),
+          '@khawkins98/scriptoscope/renderer': resolve(import.meta.dirname, 'src/renderer.ts'),
+          '@khawkins98/scriptoscope': resolve(import.meta.dirname, 'src/index.ts'),
         },
       },
     };

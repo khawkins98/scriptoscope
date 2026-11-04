@@ -1,6 +1,6 @@
 {
-  "name": "scriptoscope",
-  "version": "0.9.0",
+  "name": "@khawkins98/scriptoscope",
+  "version": "0.10.0",
   "private": false,
   "description": "A Kaleidoscope-compatible window manager and theme engine for the web. Renders classic Mac OS schemes from their original binary resources (cicn/wnd#/cinf/ppat/Colr).",
   "license": "MIT",
@@ -53,7 +53,19 @@
     "./dist/scriptoscope.css"
   ],
   "files": [
-    "dist",
+    "dist/*.js",
+    "dist/*.js.map",
+    "dist/scriptoscope.css",
+    "dist/types",
+    "dist/tools/theme-loader/*.d.ts",
+    "docs/npm-consumer.md",
+    "examples/npm/index.html",
+    "examples/npm/main.ts",
+    "examples/npm/package.json",
+    "examples/npm/tsconfig.json",
+    "examples/npm/vite.config.js",
+    "examples/npm/fetch-theme.mjs",
+    "THIRD_PARTY_NOTICES",
     "README.md",
     "LICENSE",
     "CHANGELOG.md"
@@ -95,6 +107,7 @@
     "test:requirements": "node tests/rendering-requirements/run.mjs",
     "test:availability:sources": "node tests/control-availability/validate-source.mjs",
     "test:package": "npm run build && node tests/package-consumer/run.mjs",
+    "test:package:tarball": "node tests/package-consumer/run.mjs --tarball",
     "test:references": "node tests/reference-captures/run.mjs",
     "test:source-inputs": "node tests/source-inputs/validate.mjs",
     "test:acceptance:bindings": "node --experimental-strip-types tests/acceptance-bindings/generate.mjs",
@@ -114,5 +127,8 @@
     "@types/node": "^24.0.0",
     "typescript": "^5.6.0",
     "vite": "^7.3.7"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

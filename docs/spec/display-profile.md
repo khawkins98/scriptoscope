@@ -9,7 +9,7 @@ Color Manager implementation or an original-fidelity certificate.
 ## Public use and ownership
 
 ```ts
-import { prepareDisplayProfile, loadTheme } from 'scriptoscope';
+import { prepareDisplayProfile, loadTheme } from '@khawkins98/scriptoscope';
 // The example page host (demo/explicit-host.mjs); not a package export.
 import { mountExplicitPage } from './explicit-host.mjs';
 

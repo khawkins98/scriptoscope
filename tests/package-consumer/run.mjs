@@ -19,9 +19,12 @@ const workspace = await realpath(await mkdtemp(join(tmpdir(), 'scriptoscope-pack
 const require = createRequire(import.meta.url);
 const compilerLib = await realpath(dirname(require.resolve('typescript')));
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+assert(process.argv.length === 2 || (process.argv.length === 4 && process.argv[2] === '--tarball'),
+  'Usage: node tests/package-consumer/run.mjs [--tarball /path/to/package.tgz]');
+const suppliedTarball = process.argv[3] ? resolve(process.argv[3]) : undefined;
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const inside = (parent, path) => { const part = relative(parent, path); return part === '' || (!part.startsWith(`..${sep}`) && part !== '..' && !isAbsolute(part)); };
-const command = (program, args, cwd) => execFileSync(program, args, { cwd, encoding: 'utf8', timeout: 60_000, stdio: ['ignore', 'pipe', 'pipe'] });
+const command = (program, args, cwd, env = process.env) => execFileSync(program, args, { cwd, env, encoding: 'utf8', timeout: 60_000, stdio: ['ignore', 'pipe', 'pipe'] });
 let browser, server;
 const record = { schema: 1, evidence: 'packed-consumer-execution', ...gitIdentity(root), complete: false, historicalFidelity: 'not assessed',
   toolchain: { node: process.version, typescript: require('typescript').version, vite: require('vite/package.json').version }, negativeCases: [] };
@@ -36,19 +39,43 @@ async function siteFiles(directory, base = directory) {
   return files;
 }
 
-async function prepareConsumer(tarball, name) {
+async function checkContents(installed) {
+  const files = await siteFiles(installed);
+  const allowed = /^(?:package\.json|README\.md|CHANGELOG\.md|LICENSE|THIRD_PARTY_NOTICES|docs\/npm-consumer\.md|examples\/npm\/(?:index\.html|main\.ts|package\.json|tsconfig\.json|vite\.config\.js|fetch-theme\.mjs)|dist\/[^/]+\.js(?:\.map)?|dist\/scriptoscope\.css|dist\/types\/.+\.d\.ts|dist\/tools\/theme-loader\/[^/]+\.d\.ts)$/;
+  for (const { path } of files) assert(allowed.test(path), `Unexpected packed file: ${path}`);
+  const notices = await readFile(join(installed, 'THIRD_PARTY_NOTICES'), 'utf8');
+  const munboxLicense = await readFile(join(root, 'tools/sit-wasm/munbox/LICENSE'), 'utf8');
+  assert(notices.includes(munboxLicense.trim()), 'THIRD_PARTY_NOTICES must contain the full bundled munbox license');
+  for (const path of ['README.md', 'docs/npm-consumer.md']) {
+    const markdown = await readFile(join(installed, path), 'utf8');
+    for (const [, href] of markdown.matchAll(/\]\(([^)\s]+)\)/g)) {
+      if (/^[a-z]+:/i.test(href) || href.startsWith('#')) continue;
+      const target = resolve(installed, dirname(path), href.split('#')[0]);
+      assert(inside(installed, target), `Packed documentation link escapes package: ${path}: ${href}`);
+      assert((await stat(target)).isFile() || (await stat(target)).isDirectory(), `Broken packed documentation link: ${path}: ${href}`);
+    }
+  }
+  for (const path of ['index.html', 'main.ts', 'package.json', 'tsconfig.json', 'vite.config.js', 'fetch-theme.mjs']) {
+    assert((await stat(join(installed, 'examples/npm', path))).isFile(), `Missing shipped example: ${path}`);
+  }
+  return files;
+}
+
+async function prepareConsumer(tarball, name, example = false) {
   const consumer = join(workspace, name);
   await mkdir(consumer);
   await writeFile(join(consumer, 'package.json'), JSON.stringify({ name: `consumer-${name}`, private: true, type: 'module' }));
   command(npm, ['install', '--ignore-scripts', '--no-audit', '--no-fund', '--offline', tarball], consumer);
-  const installed = await realpath(join(consumer, 'node_modules/scriptoscope'));
+  const installed = await realpath(join(consumer, 'node_modules/@khawkins98/scriptoscope'));
   assert(inside(consumer, installed), 'The installed package must not be a repository symlink');
-  await cp(new URL('./fixture/', import.meta.url), consumer, { recursive: true });
+  await cp(example ? join(installed, 'examples/npm') : new URL('./fixture/', import.meta.url), consumer, {
+    recursive: true, filter: source => !example || !source.endsWith('/package.json'),
+  });
   // Use the installed package's import-condition exports, not Node require's
   // different condition set, and verify actual files rather than resolution alone.
   let phase = 'exports';
   try {
-    const specifiers = ['scriptoscope', 'scriptoscope/renderer', 'scriptoscope/declarative', 'scriptoscope/scriptoscope.css', 'scriptoscope/package.json'];
+    const specifiers = ['@khawkins98/scriptoscope', '@khawkins98/scriptoscope/renderer', '@khawkins98/scriptoscope/declarative', '@khawkins98/scriptoscope/scriptoscope.css', '@khawkins98/scriptoscope/package.json'];
     const paths = JSON.parse(command(process.execPath, ['--input-type=module', '-e',
       `console.log(JSON.stringify(${JSON.stringify(specifiers)}.map(id => import.meta.resolve(id))))`], consumer));
     for (const [index, url] of paths.entries()) {
@@ -58,41 +85,46 @@ async function prepareConsumer(tarball, name) {
     }
     command(process.execPath, ['--input-type=module', '-e', `
       import assert from 'node:assert/strict';
-      import * as root from 'scriptoscope';
-      import * as renderer from 'scriptoscope/renderer';
-      import * as declarative from 'scriptoscope/declarative';
+      import * as root from '@khawkins98/scriptoscope';
+      import * as renderer from '@khawkins98/scriptoscope/renderer';
+      import * as declarative from '@khawkins98/scriptoscope/declarative';
       assert.deepEqual(Object.keys(root).sort(), ${JSON.stringify(rootExports)});
       assert.deepEqual(Object.keys(renderer).sort(), ${JSON.stringify(rendererExports)});
       assert.deepEqual(Object.keys(declarative).sort(), ${JSON.stringify(declarativeExports)});
       for (const key of ${JSON.stringify(sharedHostExports)}) assert.equal(declarative[key], root[key], key);
       for (const entry of [root, declarative]) for (const name of ['mountDeclarative', 'mountOwnedDeclarative']) assert.equal(name in entry, false);
       for (const [key, value] of Object.entries(renderer)) assert.equal(value, root[key], key);
-      assert.equal(await import('scriptoscope/renderer'), renderer);
+      assert.equal(await import('@khawkins98/scriptoscope/renderer'), renderer);
     `], consumer);
+    phase = 'contents';
+    const files = await checkContents(installed);
     phase = 'types';
     // Deliberately do not skip library checking: repository compilation can hide
     // declaration references to files omitted from npm's files whitelist.
     await writeFile(join(consumer, 'env.d.ts'), 'interface ImportMeta { readonly env: { readonly BASE_URL: string } }\n');
-    await writeFile(join(consumer, 'tsconfig.json'), JSON.stringify({ compilerOptions: {
-      target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', lib: ['ES2022', 'DOM', 'DOM.Iterable'],
-      strict: true, skipLibCheck: false, noEmit: true, types: [],
-    }, files: ['main.ts', 'env.d.ts'] }));
-    const typeFiles = command(process.execPath, [require.resolve('typescript/bin/tsc'), '-p', join(consumer, 'tsconfig.json'), '--listFiles', '--pretty', 'false'], consumer).trim().split('\n').map(file => file.trim());
+    const typeFiles = [];
+    for (const mode of ['Bundler', 'NodeNext']) {
+      await writeFile(join(consumer, 'tsconfig.json'), JSON.stringify({ compilerOptions: {
+        target: 'ES2022', module: mode === 'NodeNext' ? 'NodeNext' : 'ESNext', moduleResolution: mode, lib: ['ES2022', 'DOM', 'DOM.Iterable'],
+        strict: true, skipLibCheck: false, noEmit: true, types: [],
+      }, files: ['main.ts', 'env.d.ts'] }));
+      typeFiles.push(...command(process.execPath, [require.resolve('typescript/bin/tsc'), '-p', join(consumer, 'tsconfig.json'), '--listFiles', '--pretty', 'false'], consumer).trim().split('\n').map(file => file.trim()));
+    }
     for (const file of typeFiles) {
       const path = await realpath(file.trim());
       const standardLib = inside(compilerLib, path) && /^lib\..+\.d\.ts$/.test(relative(compilerLib, path));
       assert(inside(consumer, path) || standardLib, `Declaration import escaped the installed consumer: ${path}`);
     }
-    return { consumer, installed, typeFiles: typeFiles.map(file => inside(compilerLib, file) ? `typescript/lib/${relative(compilerLib, file)}` : relative(consumer, file)),
+    return { consumer, installed, files, typeFiles: [...new Set(typeFiles)].map(file => inside(compilerLib, file) ? `typescript/lib/${relative(compilerLib, file)}` : relative(consumer, file)),
       exports: specifiers.map((specifier, index) => ({ specifier, path: relative(installed, fileURLToPath(paths[index])) })) };
   } catch (error) { error.phase = phase; throw error; }
 }
 
-async function bundleConsumer(prepared, outDir) {
+async function bundleConsumer(prepared, outDir, base = '/consumer/') {
   const modules = [];
   try {
     const result = await build({ configFile: false, envFile: false, root: prepared.consumer, publicDir: false,
-      base: '/consumer/', logLevel: 'silent',
+      base, logLevel: 'silent',
       plugins: [{ name: 'packed-only-module-graph', generateBundle() {
         for (const id of this.getModuleIds()) {
           if (id.startsWith('\0')) continue; // Vite/Rollup generated modules.
@@ -101,7 +133,7 @@ async function bundleConsumer(prepared, outDir) {
           modules.push(relative(prepared.consumer, path));
         }
       } }],
-      build: { outDir, emptyOutDir: true, sourcemap: false, minify: true },
+      build: { outDir, emptyOutDir: true, sourcemap: false, minify: true, target: 'es2022' },
     });
     const chunks = (Array.isArray(result) ? result : [result]).flatMap(item => item.output).filter(item => item.type === 'chunk');
     const dynamicImports = [...new Set(chunks.flatMap(chunk => chunk.dynamicImports))];
@@ -119,7 +151,8 @@ async function negativeTarball(original, file, expectedPhase, name, mutate, fail
   if (mutate) await writeFile(changed, mutate(await readFile(changed, 'utf8')));
   else await rm(changed);
   const tarball = join(workspace, `${name}.tgz`);
-  command('tar', ['-czf', tarball, '-C', unpack, 'package'], workspace);
+  // macOS tar otherwise adds AppleDouble metadata files to the defective copy.
+  command('tar', ['-czf', tarball, '-C', unpack, 'package'], workspace, { ...process.env, COPYFILE_DISABLE: '1' });
   let failure;
   try {
     const prepared = await prepareConsumer(tarball, name);
@@ -128,24 +161,62 @@ async function negativeTarball(original, file, expectedPhase, name, mutate, fail
   assert(failure, `The defective packed ${file} unexpectedly passed`);
   assert.equal(failure.phase, expectedPhase, `The negative must fail at ${expectedPhase}, not an unrelated phase`);
   const message = `${failure.message}\n${failure.stdout ?? ''}\n${failure.stderr ?? ''}`;
-  assert(message.includes(failureNeedle), 'The failure must identify the specific package defect');
+  assert(message.includes(failureNeedle), `The failure must identify ${failureNeedle}: ${message}`);
   record.negativeCases.push({ file, defect: mutate ? 'external-declaration-import' : 'missing-file', expectedPhase, rejected: true, message });
   console.log(`Rejected defective packed ${file} at ${expectedPhase}.`);
 }
 
 try {
   await mkdir(output, { recursive: true });
-  // test:package builds immediately before this. No dirty dist/demo or source
-  // checkout files may accidentally enlarge or satisfy the package under test.
-  const [packed] = JSON.parse(command(npm, ['pack', '--json', '--ignore-scripts', '--pack-destination', workspace], root));
-  const tarball = join(workspace, packed.filename);
-  record.package = { name: packed.name, version: packed.version, sha256: sha(await readFile(tarball)), integrity: packed.integrity, files: packed.files };
+  // The publisher can supply the exact candidate instead of rebuilding/repacking.
+  let tarball;
+  if (suppliedTarball) {
+    tarball = join(workspace, 'candidate.tgz');
+    await copyFile(suppliedTarball, tarball);
+  } else {
+    const [packed] = JSON.parse(command(npm, ['pack', '--json', '--ignore-scripts', '--pack-destination', workspace], root));
+    tarball = join(workspace, packed.filename);
+    // Simulate stale demo/loader output and a consumer's downloaded sample.
+    // Packing must be unaffected; clean CI alone would not catch a broad files list.
+    const probeName = `package-boundary-${workspace.split(sep).at(-1)}.txt`;
+    const probes = ['dist/demo', 'dist/pages-loader', 'examples/npm/public/themes'].map(path => join(root, path, probeName));
+    try {
+      for (const path of probes) { await mkdir(dirname(path), { recursive: true }); await writeFile(path, 'not package content\n', { flag: 'wx' }); }
+      const [withGeneratedAssets] = JSON.parse(command(npm, ['pack', '--dry-run', '--json', '--ignore-scripts'], root));
+      assert.deepEqual(withGeneratedAssets.files, packed.files, 'Generated demo/loader/theme assets leaked into the package');
+      assert.equal(withGeneratedAssets.integrity, packed.integrity, 'Generated output changed the tarball bytes');
+      record.packHistoryIsolation = { excluded: probes.map(path => relative(root, path)), identicalIntegrity: true };
+    } finally { for (const path of probes) await rm(path, { force: true }); }
+  }
   const prepared = await prepareConsumer(tarball, 'positive');
+  const packed = JSON.parse(await readFile(join(prepared.installed, 'package.json'), 'utf8'));
+  const packageBytes = await readFile(tarball);
+  record.package = { name: packed.name, version: packed.version, sha256: sha(packageBytes),
+    integrity: `sha512-${createHash('sha512').update(packageBytes).digest('base64')}`, files: prepared.files, supplied: !!suppliedTarball };
   record.exports = prepared.exports;
   record.typeFiles = prepared.typeFiles;
   const site = join(workspace, 'site');
   const publicRoot = join(site, 'consumer');
   record.bundle = await bundleConsumer(prepared, publicRoot);
+  const example = await prepareConsumer(tarball, 'documented-example', true);
+  const exampleRoot = join(site, 'nested');
+  record.example = { bundle: await bundleConsumer(example, exampleRoot, '/nested/'), typeFiles: example.typeFiles };
+  const exampleTheme = join(exampleRoot, 'themes/scriptoscope');
+  await mkdir(exampleTheme, { recursive: true });
+  // Offline CI must exercise the same bytes as the documented pinned download,
+  // not a newer authored theme that could conceal an example compatibility failure.
+  const samplePins = {
+    'scheme.rsrc': '7a56bf429f21f26dc63ce19c7bf1ac19787dcd317a2f1398e7b58b033fc89eb7',
+    'meta.json': '6d9c83d0a7a55e5a3ef89a0c945fb49a60853636b9dc760614b6a92c79fd8c80',
+  };
+  for (const [file, digest] of Object.entries(samplePins)) {
+    const source = join(root, 'authoring/schemes/scriptoscope', file);
+    assert.equal(sha(await readFile(source)), digest, `Sample ${file} differs from the pinned download; update the example revision and fixture pins together`);
+    await copyFile(source, join(exampleTheme, file));
+  }
+  record.example.themeInputs = samplePins;
+  record.example.siteFiles = await siteFiles(exampleRoot);
+  await rm(example.consumer, { recursive: true, force: true });
   const themeDir = join(publicRoot, 'themes/windows-95');
   await mkdir(themeDir, { recursive: true });
   for (const file of ['scheme.sit', 'meta.json']) await copyFile(join(root, 'themes/windows-95', file), join(themeDir, file));
@@ -190,6 +261,18 @@ try {
     errors.push(`Outside consumer origin: ${url.href}`); return route.abort();
   });
   try {
+    // Run the exact source shipped to consumers, rather than a parallel recipe.
+    await page.goto(`${origin}/nested/`);
+    await expect(page.locator('#status')).toHaveText('Ready');
+    await expect(page.locator('[data-scriptoscope-window-host]')).toHaveCount(1);
+    await page.evaluate(() => { window.exampleOriginalInput = document.querySelector('#check'); });
+    await page.getByRole('checkbox', { name: 'Keep my setting', exact: true }).check();
+    await page.getByRole('button', { name: 'Restore native HTML', exact: true }).click();
+    await expect(page.locator('#status')).toHaveText('Native HTML restored. Your checkbox value is preserved.');
+    await expect(page.locator('[data-scriptoscope-window-host],.scriptoscope-checkbox')).toHaveCount(0);
+    assert(await page.evaluate(() => document.querySelector('#check') === window.exampleOriginalInput && window.exampleOriginalInput.checked && document.querySelector('#window').isConnected));
+    assert(network.some(item => item.path === '/nested/themes/scriptoscope/scheme.rsrc' && item.status === 200));
+    record.example.teardown = { sameInput: true, checked: true, sourceConnected: true, remainingFaces: 0 };
     await page.goto(`${origin}/consumer/`);
     await page.waitForFunction(() => !!window.packedConsumer?.handle);
     await page.evaluate(() => window.packedConsumer.ready);
@@ -254,17 +337,23 @@ try {
   await new Promise(resolve => server.close(resolve)); server = null;
 
   await negativeTarball(tarball, 'dist/scriptoscope.css', 'exports', 'missing-css');
+  await negativeTarball(tarball, 'THIRD_PARTY_NOTICES', 'contents', 'missing-notices');
   await negativeTarball(tarball, 'dist/renderer.js', 'exports', 'missing-renderer');
-  await negativeTarball(tarball, 'dist/types/renderer.d.ts', 'types', 'missing-renderer-types', undefined, 'scriptoscope/renderer');
+  await negativeTarball(tarball, 'dist/types/renderer.d.ts', 'types', 'missing-renderer-types', undefined, '@khawkins98/scriptoscope/renderer');
   // The entry may be a re-export facade over shared chunks, so follow its static
   // import graph and take the first dynamic import found (the archive decoder).
+  const inspected = join(workspace, 'inspect-candidate');
+  await mkdir(inspected);
+  command('tar', ['-xzf', tarball, '-C', inspected], workspace);
+  const candidateDist = join(inspected, 'package/dist');
   const lazyImports = [], seen = new Set(), pending = ['scriptoscope.js'];
   while (pending.length) {
     const file = pending.shift();
     if (seen.has(file)) continue;
     seen.add(file);
-    const code = await readFile(join(root, 'dist', file), 'utf8');
-    const target = spec => relative(join(root, 'dist'), resolve(join(root, 'dist'), dirname(file), spec));
+    // Follow the candidate's installed files, including when no local dist exists.
+    const code = await readFile(join(candidateDist, file), 'utf8');
+    const target = spec => relative(candidateDist, resolve(candidateDist, dirname(file), spec));
     for (const [, spec] of code.matchAll(/import\(["'](\.\.?\/[^"']+\.js)["']\)/g)) lazyImports.push(target(spec));
     for (const [, spec] of code.matchAll(/(?:^|[\s;}])(?:import|export)\s*(?:[^'"();]*?\sfrom\s*)?["'](\.\.?\/[^"']+\.js)["']/g)) pending.push(target(spec));
   }
@@ -280,7 +369,7 @@ try {
     return declaration.replace(target, `from ${JSON.stringify(join(root, 'src/types.js'))}`);
   }, 'Declaration import escaped the installed consumer');
   record.complete = true;
-  console.log('Packed consumer passed: exports, strict declarations, renderer interoperability, isolated production build, archive decoding, native interaction/teardown and five package-boundary negatives.');
+  console.log('Packed consumer passed: contents/notices, exports, Bundler/NodeNext declarations, shipped example, renderer interoperability, archive decoding, native interaction/teardown and six package-boundary negatives.');
 } catch (error) {
   record.error = `${error.stack}\n${error.stdout ?? ''}\n${error.stderr ?? ''}`;
   throw error;

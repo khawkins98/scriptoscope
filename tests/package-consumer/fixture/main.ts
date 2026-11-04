@@ -1,10 +1,10 @@
 import { verifyFiniteTransfer } from './finite-transfer.js';
 import { verifyRendererEntry } from './renderer.js';
 import { VERSION, prepareCinfEnvironment, type CinfEnvironmentInput, type PreparedCinfEnvironment, prepareBitmapFont, type BitmapFontData, type PreparedBitmapFont, type BitmapTextPaint, prepareDisplayProfile, DisplayProfileError, type DisplayProfileData, loadKaleidoscopeScheme, loadTheme, renderWindow, composeTab, composeHeaderSurface,
-  type ThemeInspector, type WindowByteProvenance, type ButtonOptions, type BevelButtonOptions, type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence, type CicnSampledBandAsset, type CicnBodyBinding, type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from 'scriptoscope';
-import { createOwnedThemeResolver, ScriptoscopeWindow, promoteGuardedControl, restoreControl } from 'scriptoscope/declarative';
-import { WindowManager, type ThemeInput, type ManagedWindowState } from 'scriptoscope';
-import 'scriptoscope/scriptoscope.css';
+  type ThemeInspector, type WindowByteProvenance, type ButtonOptions, type BevelButtonOptions, type ControlDiagnostics, type TabBodyTrace, type CicnSamplingEquivalence, type CicnSampledBandAsset, type CicnBodyBinding, type HeaderSurfaceOptions, type HeaderSurfaceResult, type HeaderSurfaceTrace } from '@khawkins98/scriptoscope';
+import { createOwnedThemeResolver, ScriptoscopeWindow, promoteGuardedControl, restoreControl } from '@khawkins98/scriptoscope/declarative';
+import { WindowManager, type ThemeInput, type ManagedWindowState } from '@khawkins98/scriptoscope';
+import '@khawkins98/scriptoscope/scriptoscope.css';
 
 const iconMaskDeclaration: ThemeInspector['iconMaskResources'] = [{ id: -10234, resourceIndex: 0, byteLength: 64 }];
 const iconOccurrenceDeclaration: ThemeInspector['iconIndex'][number]['resourceIndex'] = 1;
