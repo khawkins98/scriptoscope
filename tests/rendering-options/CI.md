@@ -82,14 +82,18 @@ There are no automatic retries or baseline updates in verification.
 
 ## CI sharding (#576)
 
-CI runs the bounded contracts as five parallel `--shard=i/5` jobs in the same
-container, with gates and goldens in their own jobs. The required check
+CI runs the bounded contracts as seven parallel jobs in the same container,
+with gates and goldens in their own jobs. `SCRIPTOSCOPE_RENDERING_PART` splits
+the bounded inventory in two: `matrix` is `matrix.spec.mjs` alone, run as two
+`--shard=i/2` jobs, and `rest` is every other spec, run as five `--shard=i/5`
+jobs. Unset, the config runs both, as locally. The required check
 **Gates + build + browser contracts** is the aggregate. Each shard writes a
 Playwright JSON report (`SCRIPTOSCOPE_RENDERING_JSON_REPORT`) and its own
 `rendering-evidence` tree. The aggregate does three things:
 
 - `node tests/rendering-options/shards.mjs parity` checks that every test in the
-  unsharded `--list` inventory ran exactly once, and that nothing else ran.
+  unsharded `--list` inventory (no part set) ran exactly once across all seven
+  jobs, and that nothing else ran.
 - `shards.mjs evidence` merges the observation trees in run order, with the later
   writer winning as in a serial run. It also concatenates the shard
   `requirements/execution.json` records under one commit identity.
@@ -99,6 +103,17 @@ The extended workflow shards each project three ways and runs the same parity
 check. Playwright shards by test count and keeps a file's tests that share a
 worker in one shard, so the balance between shards is approximate. Coverage
 does not depend on it.
+
+The matrix has its own jobs because count balance fails for it. It has one
+test per theme, each comparing source and built pixels for the whole case list,
+so its 18 tests took about 400 s, as long as roughly 160 ordinary tests. With
+five count-balanced shards, the whole file landed in shard 1 (12.4 min against
+5.5–8 min for the others). The file runs in `parallel` describe mode, so its
+tests are separate shard groups. With `workers: 1` they still run one at a
+time in one worker. Its tests share only the worker-scoped `servers` fixture,
+and each writes its own `contracts/<theme>` observation, so splitting it
+changes neither behaviour nor evidence. When adding shards, check
+the per-shard durations in the `rendering-shard-report-*` artifacts first.
 
 ## What the PR tier leaves to the release tier
 

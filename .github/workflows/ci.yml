@@ -31,13 +31,19 @@ concurrency:
 # `--list` inventory, and the merged requirement execution evidence validates.
 # Shard count only changes balance (Playwright splits by test count, keeping a
 # file's same-worker tests together); tests/rendering-options/shards.mjs proves coverage parity every run.
+# Because the split is by count, the corpus matrix (matrix.spec.mjs: 18 tests,
+# one per theme, about a fifth of all browser time) has its own jobs
+# (SCRIPTOSCOPE_RENDERING_PART=matrix, sharded per test) and every other spec
+# shards across the `rest` jobs. Together they are still one bounded inventory.
 # The Firefox/WebKit interaction contracts (#598) ran here as part of the
 # aggregate until the maintainer moved them to the release tier
 # (release-gate.yml, DECISIONS #14). The PR tier is Chromium-only.
 # The bounded profile also leaves most built-mode twins and report-only specs to
 # the release tier's extended matrix (tests/rendering-options/pr-tier.mjs).
 env:
+  # Keep both in step with the rendering job's matrix.include.
   RENDERING_SHARDS: 5
+  RENDERING_MATRIX_SHARDS: 2
 
 jobs:
   gates:
@@ -137,7 +143,7 @@ jobs:
         run: node --test tests/visual-baselines/button-activation.spec.mjs
 
   rendering:
-    name: Rendering contracts (shard ${{ matrix.shard }}/5)
+    name: Rendering contracts (${{ matrix.part }} ${{ matrix.shard }}/${{ matrix.of }})
     runs-on: ubuntu-24.04
     container:
       image: mcr.microsoft.com/playwright:v1.64.0-noble@sha256:06a9939e57531807f8d5fd76ce44b53165ffb7d7501d87ab10e285c20b1e971f
@@ -146,8 +152,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Keep in step with RENDERING_SHARDS above.
-        shard: [1, 2, 3, 4, 5]
+        # Keep in step with RENDERING_SHARDS and RENDERING_MATRIX_SHARDS above.
+        include:
+          - { part: rest, shard: 1, of: 5 }
+          - { part: rest, shard: 2, of: 5 }
+          - { part: rest, shard: 3, of: 5 }
+          - { part: rest, shard: 4, of: 5 }
+          - { part: rest, shard: 5, of: 5 }
+          - { part: matrix, shard: 1, of: 2 }
+          - { part: matrix, shard: 2, of: 2 }
 
     steps:
       - uses: actions/checkout@v6
@@ -170,16 +183,18 @@ jobs:
       # as raw source pixels; gates alone cannot see CSS decoration regressions.
       # test:rendering builds the library and demo, then runs this shard's slice.
       - name: Rendering option contracts (bounded corpus matrix)
+        env:
+          SCRIPTOSCOPE_RENDERING_PART: ${{ matrix.part }}
         run: |
           export SCRIPTOSCOPE_RENDERING_JSON_REPORT="$GITHUB_WORKSPACE/test-results/rendering-shard-report/report.json"
-          npm run test:rendering -- --shard=${{ matrix.shard }}/${{ env.RENDERING_SHARDS }}
+          npm run test:rendering -- --shard=${{ matrix.shard }}/${{ matrix.of }}
 
       # Fixed names (overwritten on re-run) so the aggregate sees exactly one per shard.
       - name: Upload shard observations
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rendering-evidence-shard-${{ matrix.shard }}
+          name: rendering-evidence-${{ matrix.part }}-${{ matrix.shard }}
           path: test-results/rendering-evidence/
           if-no-files-found: ignore
           overwrite: true
@@ -189,7 +204,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: rendering-shard-report-${{ matrix.shard }}
+          name: rendering-shard-report-${{ matrix.part }}-${{ matrix.shard }}
           path: test-results/rendering-shard-report/report.json
           if-no-files-found: ignore
           overwrite: true
@@ -199,7 +214,7 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: rendering-options-shard-${{ matrix.shard }}-${{ github.run_attempt }}
+          name: rendering-options-${{ matrix.part }}-${{ matrix.shard }}-${{ github.run_attempt }}
           path: |
             test-results/rendering-options/
             playwright-report/rendering-options/
@@ -292,25 +307,30 @@ jobs:
           pattern: rendering-shard-report-*
           path: test-results/shard-reports
 
-      # Every test in the unsharded inventory ran exactly once across the shards.
+      # Every test in the unsharded inventory (no SCRIPTOSCOPE_RENDERING_PART)
+      # ran exactly once across the rest and matrix shards together.
       - name: Rendering contract coverage parity (shards vs unsharded list)
         shell: bash
         run: |
           set -euo pipefail
           npx playwright test --config tests/rendering-options/playwright.config.mjs --list --reporter=json > test-results/rendering-list.json
           reports=()
-          for i in $(seq 1 "$RENDERING_SHARDS"); do reports+=("test-results/shard-reports/rendering-shard-report-$i/report.json"); done
-          node tests/rendering-options/shards.mjs parity --list test-results/rendering-list.json --expect-reports "$RENDERING_SHARDS" "${reports[@]}"
+          for i in $(seq 1 "$RENDERING_SHARDS"); do reports+=("test-results/shard-reports/rendering-shard-report-rest-$i/report.json"); done
+          for i in $(seq 1 "$RENDERING_MATRIX_SHARDS"); do reports+=("test-results/shard-reports/rendering-shard-report-matrix-$i/report.json"); done
+          node tests/rendering-options/shards.mjs parity --list test-results/rendering-list.json --expect-reports "$((RENDERING_SHARDS + RENDERING_MATRIX_SHARDS))" "${reports[@]}"
 
-      # Shard order is run order, then goldens, as in the former serial job.
+      # Shard order is run order, then goldens, as in the former serial job. The
+      # matrix writes only contracts/<theme> observations, which no other spec
+      # writes, so its position among the shards cannot change the merge.
       - name: Merge rendering observations
         if: always()
         shell: bash
         run: |
           set -euo pipefail
           dirs=()
-          for i in $(seq 1 "$RENDERING_SHARDS"); do dirs+=("test-results/shard-evidence/rendering-evidence-shard-$i"); done
-          node tests/rendering-options/shards.mjs evidence --out test-results/rendering-evidence --expect-executions "$RENDERING_SHARDS" "${dirs[@]}" test-results/shard-evidence/rendering-evidence-goldens
+          for i in $(seq 1 "$RENDERING_SHARDS"); do dirs+=("test-results/shard-evidence/rendering-evidence-rest-$i"); done
+          for i in $(seq 1 "$RENDERING_MATRIX_SHARDS"); do dirs+=("test-results/shard-evidence/rendering-evidence-matrix-$i"); done
+          node tests/rendering-options/shards.mjs evidence --out test-results/rendering-evidence --expect-executions "$((RENDERING_SHARDS + RENDERING_MATRIX_SHARDS))" "${dirs[@]}" test-results/shard-evidence/rendering-evidence-goldens
 
       # Fidelity assessments are reviewed data; execution is a separate column.
       # Require the exact registered source/built assertions to have actually run.

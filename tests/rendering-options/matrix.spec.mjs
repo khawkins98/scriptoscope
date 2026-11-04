@@ -1,6 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { test, expect, openHarness, attachCase, attachObservations } from './fixtures.mjs';
 import { listCases } from './cases.mjs';
+// Each theme's test is independent (worker-scoped servers, own contracts/<slug>
+// observation). Parallel mode lets CI shard them individually; with workers: 1
+// they still run one at a time (tests/rendering-options/CI.md "CI sharding").
+test.describe.configure({ mode: 'parallel' });
 const catalog = JSON.parse(readFileSync(new URL('../../demo/themes-manifest.json', import.meta.url)));
 
 async function pixels(page, canvases) {
