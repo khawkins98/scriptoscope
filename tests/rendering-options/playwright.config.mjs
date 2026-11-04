@@ -1,6 +1,7 @@
 import { defineConfig } from '@playwright/test';
 import { INTERACTION_SPECS } from './interaction-specs.mjs';
 import { releaseOnlySpecs, builtTwinGrepInvert } from './pr-tier.mjs';
+const MATRIX_SPEC = 'matrix.spec.mjs';
 const goldens = process.env.SCRIPTOSCOPE_RENDERING_GOLDENS === '1';
 const extended = process.env.SCRIPTOSCOPE_RENDERING_PROFILE === 'extended';
 // The interaction suite (#598) runs only INTERACTION_SPECS, by default in the
@@ -10,10 +11,17 @@ if (interaction && (goldens || extended)) throw new Error('SCRIPTOSCOPE_RENDERIN
 // The bounded PR profile leaves built-mode twins and report-only specs to the
 // release tier (pr-tier.mjs). SCRIPTOSCOPE_RENDERING_BUILT=all opts back in.
 const prTier = !goldens && !extended && !interaction && process.env.SCRIPTOSCOPE_RENDERING_BUILT !== 'all';
+// CI part (ci.yml): `matrix` runs only the per-theme corpus matrix, `rest` every
+// other bounded spec. The matrix is ~18 tests that take as long as ~160 others,
+// and Playwright shards by test count, so it gets its own jobs. Unset runs all.
+const part = process.env.SCRIPTOSCOPE_RENDERING_PART ?? 'all';
+if (!['all', 'matrix', 'rest'].includes(part)) throw new Error(`SCRIPTOSCOPE_RENDERING_PART must be matrix or rest, not ${part}`);
+if (part !== 'all' && (goldens || interaction)) throw new Error('SCRIPTOSCOPE_RENDERING_PART applies to the bounded and extended profiles only');
 const browsers = (process.env.SCRIPTOSCOPE_RENDERING_BROWSERS ?? (extended ? 'chromium,firefox,webkit' : interaction ? 'firefox,webkit' : 'chromium')).split(',');
 export default defineConfig({
   globalSetup: './launch-preflight.mjs',
-  testDir: '.', testMatch: goldens ? 'goldens.spec.mjs' : interaction ? [...INTERACTION_SPECS] : '*.spec.mjs', testIgnore: goldens ? [] : ['goldens.spec.mjs', ...(prTier ? releaseOnlySpecs(browsers) : [])],
+  testDir: '.', testMatch: goldens ? 'goldens.spec.mjs' : interaction ? [...INTERACTION_SPECS] : part === 'matrix' ? MATRIX_SPEC : '*.spec.mjs',
+  testIgnore: goldens ? [] : ['goldens.spec.mjs', ...(part === 'rest' ? [MATRIX_SPEC] : []), ...(prTier ? releaseOnlySpecs(browsers) : [])],
   ...(prTier ? { grepInvert: builtTwinGrepInvert() } : {}),
   updateSnapshots: process.env.SCRIPTOSCOPE_UPDATE_GOLDENS === '1' ? 'all' : 'none',
   snapshotPathTemplate: '{testDir}/goldens/{arg}{ext}', fullyParallel: false, workers: 1,
