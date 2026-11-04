@@ -168,6 +168,28 @@ this proposal does not change account settings or publish anything.
 
 ## Implementation sequence and acceptance
 
+### Documentation and website rollout
+
+The planning PR links this proposal from README, CONTRIBUTING and `llms.txt`,
+and labels npm as planned on the website's `demo/install.html`. The homepage
+already sends consumers to that installation page and needs no new npm claim.
+
+When registry installation is verified, update these surfaces together:
+
+- README Install/Five-minute setup and `demo/install.html`: add tested npm
+  installation, CSS imports, theme hosting and teardown; retain the working
+  no-build Pages option. Distinguish the package primitives from the Pages host.
+- CONTRIBUTING: replace the GitHub-only release instructions with the actual
+  publisher, registry bootstrap, channel and recovery procedure.
+- `llms.txt`: update distribution status and link the npm recipe so integration
+  agents use the same supported paths as human consumers.
+- Homepage (`demo/index.html`): keep its installation link pointing at the
+  shared guide; add an npm-specific call to action only after the package exists.
+- CHANGELOG and release notes: record the first npm version, supported exports,
+  environment requirements, theme asset boundary and any migration steps.
+
+### Implementation work
+
 | Follow-up | Acceptance |
 | --- | --- |
 | Consumer docs/example | An installed-package example loads a self-hosted theme, promotes native content and tears down using public exports only. |

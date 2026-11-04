@@ -6,6 +6,7 @@ Drop two URLs in a `<head>`, tag some HTML with `data-scriptoscope-window` / `-b
 
 ## Start here
 
+- [npm distribution proposal](https://github.com/khawkins98/scriptoscope/blob/main/docs/npm-distribution-plan.md): draft package boundaries and publication plan, tracked in [#649](https://github.com/khawkins98/scriptoscope/issues/649). The package has not been published to npm; use the current Pages or self-hosted setup.
 - [README](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/README.md): consumer pitch + 5-minute setup + CDN paths + full `data-scriptoscope-*` attribute vocabulary + the example host's `mountExplicitPage()` options and handle API. This is the canonical integration reference.
 - [Live demo](https://khawkins98.github.io/scriptoscope/): the canonical consumer page; every documented feature exercised. View source = the recipe.
 - [Live diagnostic / per-scheme inspector](https://khawkins98.github.io/scriptoscope/diagnostic.html): every cicn / ppat / icon resource in each scheme, plus rendered windows for visual verification.

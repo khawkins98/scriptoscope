@@ -54,6 +54,9 @@ at 8-bit colour and in native Kaleidoscope before publishing it.
 
 ## Install
 
+Installation currently uses GitHub Pages or self-hosted build files. npm distribution
+is [being planned](./docs/npm-distribution-plan.md) ([#649](https://github.com/khawkins98/scriptoscope/issues/649)); the package has not been published to npm.
+
 > **Upgrading to 0.9.0:** managed windows now let clicks through the transparent parts of their frames, and a press on the page deactivates the active window. Use `data-scriptoscope-hit="box"` to keep the old behaviour; see the note in the [CHANGELOG](CHANGELOG.md).
 >
 > **0.8.0:** auto-sized windows now fit their chrome inside the element's box; see the Breaking note in the [CHANGELOG](CHANGELOG.md).
@@ -891,7 +894,7 @@ A non-binding "things that would be cool to build next" list, organized by theme
 
 - **In-browser theme browsing + remix** — pair the existing drop-zone with a curated gallery sourced from the community archives (see the "Want more?" block above). Drag any `.sit` from a Mac Themes Garden listing into Scriptoscope's demo and see it render live; save a favorites set; flip between them with the existing theme switcher.
 - **A Kaleidoscope-like configuration panel** — Scriptoscope's drop-zone is a thin echo of Kaleidoscope's own control panel. A consumer-side config UI that lets the user toggle desktop pattern / sounds / extras / accent variant per-scheme (the same checkboxes Kaleidoscope's CP shipped) is the natural next step.
-- **CDN-delivered sprites** — for the published npm package, themes are loaded from a base URL the consumer hosts. A community-run sprite CDN (`https://themes.scriptoscope.dev/<slug>/`) would let consumers point at it without hosting the bundles themselves. Per-bundle sprites could be served as compact atlas PNGs to cut round-trips.
+- **Theme hosting** — the [npm distribution proposal](./docs/npm-distribution-plan.md) keeps theme archives external to the runtime package, loaded from a URL the consumer hosts. A community-run theme CDN could provide an optional alternative. The runtime currently decodes the original archives in-browser.
 - **Theme curator / submission flow** — once the corpus grows beyond what we want to bundle in-repo, a community submission flow (`scriptoscope-themes` repo + a contributor guide) would scale better than hand-curated additions.
 
 ### Adopter-facing extras

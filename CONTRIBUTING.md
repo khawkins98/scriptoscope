@@ -205,6 +205,10 @@ CI runs in two tiers ([DECISIONS](./docs/v2/DECISIONS.md) #14, [#598](https://gi
 
 Releases are GitHub-only: a tag plus a GitHub release, with no npm publication.
 
+Future npm publication is tracked in [#649](https://github.com/khawkins98/scriptoscope/issues/649)
+and the [distribution proposal](./docs/npm-distribution-plan.md). Until that work
+lands, use the release procedure below.
+
 1. Branch `release/X.Y.Z` from `main`. Commit `chore(release): prepare X.Y.Z`: bump `package.json`, `package-lock.json` and `VERSION` in `src/renderer.ts`; date the CHANGELOG section and end it with `npm run loc:src -- HEAD --base <previous tag>`; leave an empty Unreleased heading; update docs that describe the release as unreleased.
 2. Open the release PR (`release: X.Y.Z`) against `main`. The PR tier and the release tier both run on it. Link the green **Release gate** run in the PR body. This is the early signal; it does not replace step 4.
 3. Merge after independent review.
