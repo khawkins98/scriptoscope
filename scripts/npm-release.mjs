@@ -85,6 +85,16 @@ export function matchesRegistry(actual, expected) {
   if (expected.integrity) assert.equal(actual.dist?.integrity, expected.integrity, 'Registry integrity differs from the tested candidate');
 }
 
+export async function waitForRegistry(expected, { fetcher = fetch, sleep = ms => new Promise(resolve => setTimeout(resolve, ms)), attempts = 6 } = {}) {
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    const actual = await registryVersion(expected.version, fetcher);
+    if (actual) { matchesRegistry(actual, expected); return actual; }
+    // Only publication propagation (404) is retried. Outages or wrong bytes fail.
+    if (attempt + 1 < attempts) await sleep(5_000);
+  }
+  throw new Error('Published version is not visible on npm after bounded retries; retry the workflow without changing the version');
+}
+
 export async function verifyCandidate(directory) {
   const metadata = await json(join(directory, 'release.json'));
   assert.equal(metadata.name, packageName);
@@ -120,14 +130,14 @@ async function main(command, directory = '.tmp/npm-release') {
   assert.equal(candidate.sha, process.env.RELEASE_SHA, 'Candidate is from another commit');
   assert.equal(candidate.version, manifest.version, 'Candidate version differs from checkout');
   if (command === 'verify') { await output('tarball', candidate.tarball); return; }
-  const actual = await registryVersion(candidate.version);
   if (command === 'exists') {
+    const actual = await registryVersion(candidate.version);
     if (actual) matchesRegistry(actual, candidate);
     await output('exists', !!actual);
     return;
   }
   assert.equal(command, 'registry-smoke', 'Unknown release command');
-  matchesRegistry(actual, candidate);
+  await waitForRegistry(candidate);
   const target = join(directory, 'registry');
   await mkdir(target, { recursive: true });
   const [packed] = JSON.parse(execFileSync('npm', ['pack', `${packageName}@${candidate.version}`, '--json', '--ignore-scripts',

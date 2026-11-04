@@ -35,15 +35,15 @@
     <p class="site-eyebrow">INSTALL / KEEP YOUR HTML. ADD SOME CHARACTER.</p>
     <h1 id="site-page-title">A few tags. A whole new look.</h1>
     <p class="site-deck">Start with a working page, choose the attributes you need, then bring your own scheme. Your content and event handlers stay yours.</p>
+    <p>You don’t need npm. For a plain HTML page or a quick try, use the <a href="#install">hosted starter below</a>. If your app already bundles JavaScript and you want a versioned dependency in your own deployment, use the <a href="https://github.com/khawkins98/scriptoscope/blob/main/docs/npm-consumer.md">npm integration guide</a>. Both use the same renderer and themes.</p>
     <nav class="site-intro-links" aria-label="Installation sections"><a href="#install">Starter</a><a href="#attributes">Data attributes</a><a href="#options">Runtime options</a><a href="#own-theme">Your own theme</a></nav>
   </section>
   <main class="site-install-content page" id="install">
     <section class="site-install-section" aria-labelledby="starter-title">
       <p class="site-section-label">01 / START WITH A PAGE</p>
       <h2 id="starter-title">Copy. Save. Try it.</h2>
-      <p>Building an application? Install <code>@khawkins98/scriptoscope</code> with npm to manage its version with your other dependencies and bundle it into your own deployment. Keep your existing HTML and native form controls, choose a theme, and host the theme files with your app. The <a href="https://github.com/khawkins98/scriptoscope/blob/main/docs/npm-consumer.md">npm integration guide</a> includes a complete example and theme setup.</p>
-      <pre aria-label="Install with npm"><code>npm install @khawkins98/scriptoscope</code></pre>
-      <p>Copy this into an HTML page and serve it through your usual web server or local dev server. The stylesheet, runtime, and bundled themes come from this project’s GitHub Pages; there’s no build step or npm install required. The page imports the published example host as well as the runtime; the host owns finite source selection and teardown.</p>
+      <p>Copy the complete HTML starter below into your page and serve it through your usual web server or local dev server. The stylesheet, runtime, example host and themes load from GitHub Pages; no npm install or build step is required. Add the attributes shown in the example and the host attaches the windows and controls.</p>
+      <p>For the npm path, install <code>@khawkins98/scriptoscope</code> and follow the <a href="https://github.com/khawkins98/scriptoscope/blob/main/docs/npm-consumer.md">application example</a> instead. Your app hosts the themes and owns attachment and cleanup. You can also <a href="https://github.com/khawkins98/scriptoscope#vendoring-if-you-dont-want-a-third-party-cdn-dependency">self-host the HTML starter’s files</a>.</p>
       <p>The starter uses <code id="install-scheme-name">1138</code>. Choose a scheme in the <a href="./showcase.html">showcase</a> and follow its Install link to carry that choice here.</p>
 <div class="site-code-frame"><div class="site-code-example" data-scriptoscope-window data-scriptoscope-title="Complete starter" data-example-compact-title="Starter" data-scriptoscope-window-type="document-window" data-scriptoscope-widgets="zoom,collapse"><div class="site-code-bar"><span>complete starter</span><button type="button" data-copy-snippet="powers-install-snippet" aria-label="Copy complete starter">Copy</button></div><pre id="powers-install-snippet" tabindex="0" data-install-default>&lt;link rel=&quot;stylesheet&quot; href=&quot;https://khawkins98.github.io/scriptoscope/scriptoscope.css&quot;&gt;
 &lt;article data-scriptoscope-window data-scriptoscope-title=&quot;Hello&quot;&gt;

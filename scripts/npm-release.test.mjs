@@ -4,7 +4,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import { matchesRegistry, packageName, pagesReady, registryVersion, resolveReleaseTag, selectReleaseGate, validateRelease, verifyCandidate } from './npm-release.mjs';
+import { matchesRegistry, packageName, pagesReady, registryVersion, resolveReleaseTag, selectReleaseGate, validateRelease, verifyCandidate, waitForRegistry } from './npm-release.mjs';
 
 test('release identity rejects a mismatched tag, version constant or example dependency', () => {
   const manifest = { name: packageName, version: '0.10.0', publishConfig: { access: 'public' } };
@@ -48,6 +48,24 @@ test('registry absence is distinct from outage and integrity mismatch', async ()
   matchesRegistry({ ...expected, dist: { integrity: expected.integrity } }, expected);
   assert.throws(() => matchesRegistry({ ...expected, dist: { integrity: 'sha512-other' } }, expected), /integrity/);
   assert.throws(() => matchesRegistry(null, expected), /not available/);
+});
+
+test('publication propagation retries are bounded and never hide wrong bytes or outages', async () => {
+  const expected = { name: packageName, version: '0.10.0', integrity: 'sha512-tested' };
+  let requests = 0, waits = 0;
+  const sleep = async () => { waits++; };
+  const fetcher = async () => ++requests < 3 ? { status: 404 } : {
+    ok: true, json: async () => ({ ...expected, dist: { integrity: expected.integrity } }),
+  };
+  await waitForRegistry(expected, { fetcher, sleep });
+  assert.deepEqual([requests, waits], [3, 2]);
+  requests = 0; waits = 0;
+  await assert.rejects(() => waitForRegistry(expected, { fetcher: async () => { requests++; return { status: 404 }; }, sleep, attempts: 3 }), /bounded retries/);
+  assert.deepEqual([requests, waits], [3, 2]);
+  waits = 0;
+  await assert.rejects(() => waitForRegistry(expected, { fetcher: async () => ({ ok: true, json: async () => ({ ...expected, dist: { integrity: 'wrong' } }) }), sleep }), /integrity/);
+  await assert.rejects(() => waitForRegistry(expected, { fetcher: async () => ({ ok: false, status: 503 }), sleep }), /503/);
+  assert.equal(waits, 0);
 });
 
 test('Pages requires matching latest plus a completed successful promotion, not prepare/next', async () => {

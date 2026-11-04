@@ -281,11 +281,17 @@ verified instead of published again, so promotion can be a later dispatch.
 Use `--ref vX.Y.Z`: the workflow checks that its event SHA equals the release
 commit, so provenance cannot point at a newer main commit. After successful
 promotion, workflow completion automatically starts the Pages availability check.
+Re-running all jobs replaces the same run's candidate/evidence artifacts after
+the replacement candidate passes its checks; re-running only a failed publish
+job reuses the existing tested candidate.
 
-If a registry smoke fails, keep Pages held and do not promote `latest`. Fix and
-release a new version; never overwrite an existing version. Compare integrity
-before retrying a publish that may already have succeeded. If a version already
-reached `latest`, correct the dist-tag and deprecate the broken version as needed.
+The registry smoke retries a newly published version's temporary 404 responses
+for a bounded period. Registry outages and integrity mismatches fail immediately.
+For a transient visibility/network failure, keep Pages held and rerun the same
+tag; the workflow checks an existing version's integrity before proceeding. For
+a broken package, fix and release a new version; never overwrite an existing
+version. If a broken version reached `latest`, correct the dist-tag and deprecate
+that version as needed.
 
 See [npm publish](https://docs.npmjs.com/cli/v11/commands/npm-publish/) and
 [dist-tags](https://docs.npmjs.com/adding-dist-tags-to-packages/) for registry

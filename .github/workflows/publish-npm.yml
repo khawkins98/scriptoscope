@@ -93,10 +93,12 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
           compression-level: 0
+          overwrite: true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: npm-candidate-evidence-${{ github.run_id }}
+          overwrite: true
           path: test-results/npm-release/
           if-no-files-found: ignore
 
@@ -181,5 +183,6 @@ jobs:
         if: always()
         with:
           name: npm-registry-evidence-${{ github.run_id }}
+          overwrite: true
           path: test-results/npm-release/
           if-no-files-found: ignore

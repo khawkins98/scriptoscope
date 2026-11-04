@@ -1,6 +1,6 @@
 # Scriptoscope
 
-[Landing page](https://khawkins98.github.io/scriptoscope/) · [Interactive demo](https://khawkins98.github.io/scriptoscope/showcase.html)
+[Landing page](https://khawkins98.github.io/scriptoscope/) · [Interactive demo](https://khawkins98.github.io/scriptoscope/showcase.html) · [Install](#install)
 
 A web-native re-implementation of Apple's Mac OS 8 [Appearance Manager](https://developer.apple.com/library/archive/documentation/Carbon/Reference/Appearance_Manager/index.html). Period Mac window-types (`kThemeDocumentWindow`, `kThemeUtilityWindow`, `kThemeMovableModalWindow`) are HTML attributes; the chrome paints into a `<canvas>` from the original `cicn` / `ppat` / `Colr` resources the [Kaleidoscope](https://en.wikipedia.org/wiki/Kaleidoscope_(software)) control panel read in 1998. Eighteen vintage schemes ship as evidence — running in a browser tab twenty-five years too late.
 
@@ -54,7 +54,18 @@ at 8-bit colour and in native Kaleidoscope before publishing it.
 
 ## Install
 
-Install Scriptoscope in your application:
+You don't need npm to use Scriptoscope. Choose the setup that fits your site:
+
+| Your site | Start here | What you manage |
+| --- | --- | --- |
+| Plain HTML, a personal page, or a quick experiment | [Hosted starter](#five-minute-setup) — copy the HTML and load the stylesheet and module | Add attributes to your HTML; the example host attaches the windows and controls and loads hosted themes. |
+| An app that already bundles JavaScript, where you want dependency versioning and your own deployment | [npm integration guide](./docs/npm-consumer.md) | Install the runtime, host your theme files, and attach/clean up windows and controls in your app's lifecycle. |
+
+Both use the same renderer and theme format. npm gives you dependency and
+deployment control; it doesn't add rendering features or require a framework.
+If you only want to decorate an HTML page, start with the hosted starter.
+
+For the npm option, install Scriptoscope in your application:
 
 ```sh
 npm install @khawkins98/scriptoscope
@@ -451,17 +462,24 @@ That's the full BYO path. `loadKaleidoscopeScheme` accepts every container the [
 | `https://khawkins98.github.io/scriptoscope/theme-loader/loadKaleidoscopeScheme.js` | Standalone decoder ESM: the public `loadKaleidoscopeScheme` wrapper (engine `cinf` and icon-blit cicn ids on by default, so themed sliders draw and icon blits get their companions; pass `engineCinfIds: []` / `iconBlitCicnIds: []` to opt out) bundled with the conversion core. Same function `scriptoscope.js` exports; use it when you want the decoder without the runtime. `theme-loader/index.js` re-exports it. Lazily imports `../sit-wasm/index.mjs` for `.sit` input |
 | `https://khawkins98.github.io/scriptoscope/sit-wasm/dist/munbox.wasm` | Standalone decoder WASM; the bundled runtime embeds its WASM in the lazy JavaScript chunk |
 
-> **Heads-up:** the CDN URL points at a single-account GitHub Pages deploy tracking `main` — there's no versioned URL, no integrity hash, and no SLA. Fine for prototyping, hobby projects, and demos. If you're shipping to a real-traffic site, **vendor the files** (see below) at a commit you choose.
+The hosted URLs track the project's `main` deployment. To control when your
+runtime updates, use npm with a committed lockfile and your own deployment, or
+vendor the files from a chosen commit as described below.
 
 ### Vendoring (if you don't want a third-party CDN dependency)
 
-There's no npm package. If you'd rather not pin your site to this repo's GitHub Pages, vendor the files into your own build:
+If you want to host the no-build starter yourself, copy a chosen build rather
+than importing the GitHub Pages URLs:
 
-1. Build a chosen commit with `npm run build:demo`. Copy every top-level `dist/*.js` file, `dist/scriptoscope.css`, and `dist/demo/themes/`. Keep the JavaScript files beside each other so relative lazy imports resolve. If importing the standalone decoder for a drop zone, also copy `dist/demo/theme-loader/` and `dist/demo/sit-wasm/` beside them; `dist/demo/theme-loader/loadKaleidoscopeScheme.js` there is the built public wrapper (engine `cinf` ids on by default), not the raw `tools/theme-loader/` file, which leaves them off and hands every slider to the Platinum fallback.
-2. Host them alongside your site.
-3. Point `themeBaseUrl` at wherever you put `themes/`.
+1. Build a chosen commit with `npm run build:demo`. Copy every top-level `dist/*.js` file, `dist/scriptoscope.css`, `dist/demo/explicit-host.mjs`, `dist/demo/explicit-layout.mjs`, and the theme bundles you use from `dist/demo/themes/`, retaining their metadata and provenance. Keep the JavaScript and helper files beside each other so relative imports resolve. If importing the standalone decoder for a drop zone, also copy `dist/demo/theme-loader/` and `dist/demo/sit-wasm/` beside them; `dist/demo/theme-loader/loadKaleidoscopeScheme.js` there is the built public wrapper (engine `cinf` ids on by default), not the raw `tools/theme-loader/` file, which leaves them off and hands every slider to the Platinum fallback.
+2. Host them alongside your site, retaining `LICENSE` and `THIRD_PARTY_NOTICES`
+   with the runtime files.
+3. Change the starter's stylesheet URL to your local `./scriptoscope.css`, import
+   `mountExplicitPage` from `./explicit-host.mjs`, and set `themeBaseUrl` to your
+   local `./themes`. Adjust those paths if you host the files in a subdirectory.
 
-Same import path either way (ESM module from a URL), no bundler required.
+The page still loads an ESM module from a URL; it does not need npm or a bundler
+to run. Building the vendored files is a maintainer/setup step.
 
 ## Trying it locally
 

@@ -1,5 +1,12 @@
 # Use the package in an application
 
+Use this path when your application already bundles JavaScript and you want
+Scriptoscope managed through dependencies, a lockfile and your own deployment.
+For a plain HTML page or a quick try, the
+[hosted starter](https://khawkins98.github.io/scriptoscope/install.html) is the
+shorter setup: copy its HTML, load its stylesheet/module and choose a hosted
+theme. npm is optional; both paths use the same renderer and theme format.
+
 Scriptoscope adds classic-Mac window chrome and themed controls to your own
 HTML. Your content stays selectable, your forms keep native values and keyboard
 behavior, and your application owns when the decoration attaches and disappears.
@@ -10,6 +17,11 @@ of runtime upgrades. This works for personal sites, retro interfaces and existin
 applications that want a themed window without replacing their content system.
 
 ## Install
+
+With npm, your application loads its own theme files and explicitly attaches
+and cleans up windows and controls. The hosted starter provides a page-level
+helper for that orchestration. Installing the package does not automatically scan or
+decorate your page; the complete example below shows the application lifecycle.
 
 ```sh
 npm install @khawkins98/scriptoscope
