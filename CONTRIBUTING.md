@@ -207,14 +207,68 @@ CI runs in two tiers ([DECISIONS](./docs/v2/DECISIONS.md) #14, [#598](https://gi
 
 ## Cutting a release
 
-The npm distribution decision and launch prerequisites are tracked in
-[#649](https://github.com/khawkins98/scriptoscope/issues/649) and the
-[distribution proposal](./docs/npm-distribution-plan.md). Consumer documentation
-is prepared for npm installation; this branch has not published the package.
-Coordinate the first registry release and its installation smoke with the Pages
-deployment so the live docs and available package agree. The current GitHub
-release checks and tag procedure are below; npm publishing still needs to be
-connected to that gate as described in the proposal.
+### First npm launch
+
+The package contents, consumer example and installation documentation are ready
+for release preparation. The remaining launch work is tracked in
+[#649](https://github.com/khawkins98/scriptoscope/issues/649). This branch has not
+published a package or implemented the npm publisher. Consumer-facing docs are
+written for npm availability, so coordinate their deployment with publication.
+
+Before merging the npm launch changes:
+
+1. Confirm the npm owner and package name, and choose the first public version.
+   Align `package.json`, `package-lock.json`, `VERSION` in `src/renderer.ts`, the
+   dependency in `examples/npm/package.json` and the changelog. Use a fresh
+   release version rather than presenting the historical GitHub release as a
+   newly tested registry artifact.
+2. Implement the publisher: verify the tag/version and exact commit's successful
+   release gate, build and pack one candidate, test it with
+   `npm run test:package:tarball -- /absolute/path/to/candidate.tgz`, then publish
+   that same tarball. Serialize releases and record the tarball digest. The
+   publisher must enforce the gate itself; a concurrent tag-check workflow is
+   not a dependency.
+3. Complete npm account/first-package bootstrap and configure the exact publisher
+   workflow using [trusted publishing](https://docs.npmjs.com/trusted-publishers/).
+   Verify the bootstrap method for a new package before depending on OIDC.
+   Use a supported npm CLI and enable the operations needed for publishing and
+   dist-tag promotion; they are separate trusted-publisher permissions.
+4. Coordinate Pages with the registry smoke. Its current push-to-`main` workflow
+   deploys immediately, so make the launch deployment wait for successful npm
+   publication/verification, or deliberately hold Pages during the first launch.
+   Prepare this before merging the npm-facing website copy.
+5. Require green PR CI and independent review. Account/bootstrap, publisher and
+   Pages coordination are launch prerequisites, not effects of merging docs.
+
+Then release in this order:
+
+1. Merge the reviewed release changes with the Pages launch held as above.
+2. Run the full release gate on the resulting commit and confirm the successful
+   run tested that exact SHA, as described in the GitHub procedure below.
+3. Tag the verified commit. Build/pack/test the candidate for that tag and publish
+   the chosen version under `next` first, with public access. A stable version can
+   use `next` as its initial dist-tag; that does not require a prerelease suffix.
+4. Install `scriptoscope@X.Y.Z` from the registry into a fresh app. Check registry
+   integrity against the tested tarball, types/build, theme acquisition, browser
+   rendering, native input interaction and teardown. Local tarball testing does
+   not replace this registry check.
+5. Promote that same version to `latest`, then verify plain
+   `npm install scriptoscope` and the documented example setup. Do not rebuild
+   or republish to change a dist-tag.
+6. Create the GitHub release with the gate, package version and provenance links,
+   then release the prepared Pages/docs deployment and smoke-check the live guide.
+
+If a registry smoke fails, keep Pages held and do not promote `latest`. Fix and
+release a new version; never overwrite an existing version. Compare integrity
+before retrying a publish that may already have succeeded. If a version already
+reached `latest`, correct the dist-tag and deprecate the broken version as needed.
+
+See [npm publish](https://docs.npmjs.com/cli/v11/commands/npm-publish/) and
+[dist-tags](https://docs.npmjs.com/adding-dist-tags-to-packages/) for registry
+operations. OIDC publishing from a public GitHub repository generates provenance;
+verify the attestation on the actual published package.
+
+### GitHub release gate and tag procedure
 
 1. Branch `release/X.Y.Z` from `main`. Commit `chore(release): prepare X.Y.Z`: bump `package.json`, `package-lock.json` and `VERSION` in `src/renderer.ts`; date the CHANGELOG section and end it with `npm run loc:src -- HEAD --base <previous tag>`; leave an empty Unreleased heading; update docs that describe the release as unreleased.
 2. Open the release PR (`release: X.Y.Z`) against `main`. The PR tier and the release tier both run on it. Link the green **Release gate** run in the PR body. This is the early signal; it does not replace step 4.
