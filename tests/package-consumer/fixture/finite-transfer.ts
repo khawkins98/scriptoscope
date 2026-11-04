@@ -1,4 +1,4 @@
-import { prepareCicnTransferResults, type CicnTransferData, type CicnTransferOption, prepareDisplayProfile, type DisplayProfileData, loadKaleidoscopeScheme, CicnTransferError } from 'scriptoscope';
+import { prepareCicnTransferResults, type CicnTransferData, type CicnTransferOption, prepareDisplayProfile, type DisplayProfileData, loadKaleidoscopeScheme, CicnTransferError } from '@khawkins98/scriptoscope';
 const channels = Array.from({length:256}, (_,i)=>(i+3)%256);
 const producer = {model:'rgb16-high-byte-table' as const, channels:[channels,channels,channels] as const};
 const devicePalette = [{index:2,rgb16:[4352,4352,4352] as const},{index:3,rgb16:[8448,8448,8448] as const}];

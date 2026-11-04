@@ -11,7 +11,7 @@ and drop flows use owned loading; diagnostic catalog images export asynchronousl
 Native checkbox/radio inputs replace the retired interactive checkable factories.
 
 ```ts
-import { loadOwnedTheme, interactiveButton, WindowManager, themeImageUrl, type OwnedTheme } from 'scriptoscope';
+import { loadOwnedTheme, interactiveButton, WindowManager, themeImageUrl, type OwnedTheme } from '@khawkins98/scriptoscope';
 
 const theme = await loadOwnedTheme('/themes/1138');
 const button = await interactiveButton(theme, { label: 'OK', onClick: save });
@@ -38,7 +38,7 @@ renderer; they do not introduce another rendering engine.
 ## Explicit host loading
 
 ```ts
-import { loadOwnedKaleidoscopeScheme } from 'scriptoscope';
+import { loadOwnedKaleidoscopeScheme } from '@khawkins98/scriptoscope';
 // Application example helper, separate from the package exports.
 import { mountExplicitPage } from './explicit-host.mjs'; // copy/adapt demo helper into your app
 
@@ -64,7 +64,7 @@ or removing them, and disconnect before replacing the root. See the
 Icons in the explicit host export selected images asynchronously and ignore stale
 completion after cancellation, changed attributes or movement into another theme
 scope. The existing synchronous `promoteIcon` remains supported for ready-image
-themes; `promoteIconAsync` in `scriptoscope/declarative` accepts either contract.
+themes; `promoteIconAsync` in `@khawkins98/scriptoscope/declarative` accepts either contract.
 Active picker previews retain the actual selected base owner; background tiles
 keep their separate folder-only loader.
 

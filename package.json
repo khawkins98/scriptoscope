@@ -1,5 +1,5 @@
 {
-  "name": "scriptoscope",
+  "name": "@khawkins98/scriptoscope",
   "version": "0.9.0",
   "private": false,
   "description": "A Kaleidoscope-compatible window manager and theme engine for the web. Renders classic Mac OS schemes from their original binary resources (cicn/wnd#/cinf/ppat/Colr).",
@@ -127,5 +127,8 @@
     "@types/node": "^24.0.0",
     "typescript": "^5.6.0",
     "vite": "^7.3.7"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

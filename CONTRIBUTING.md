@@ -217,7 +217,8 @@ written for npm availability, so coordinate their deployment with publication.
 
 Before merging the npm launch changes:
 
-1. Confirm the npm owner and package name, and choose the first public version.
+1. Use the public npm package `@khawkins98/scriptoscope`. Confirm access to the
+   `khawkins98` npm account/scope and choose the first public version.
    Align `package.json`, `package-lock.json`, `VERSION` in `src/renderer.ts`, the
    dependency in `examples/npm/package.json` and the changelog. Use a fresh
    release version rather than presenting the historical GitHub release as a
@@ -246,14 +247,15 @@ Then release in this order:
 2. Run the full release gate on the resulting commit and confirm the successful
    run tested that exact SHA, as described in the GitHub procedure below.
 3. Tag the verified commit. Build/pack/test the candidate for that tag and publish
-   the chosen version under `next` first, with public access. A stable version can
+   the chosen version under `next` first, with public access (`publishConfig.access`
+   is set to `public` for the scoped package). A stable version can
    use `next` as its initial dist-tag; that does not require a prerelease suffix.
-4. Install `scriptoscope@X.Y.Z` from the registry into a fresh app. Check registry
+4. Install `@khawkins98/scriptoscope@X.Y.Z` from the registry into a fresh app. Check registry
    integrity against the tested tarball, types/build, theme acquisition, browser
    rendering, native input interaction and teardown. Local tarball testing does
    not replace this registry check.
 5. Promote that same version to `latest`, then verify plain
-   `npm install scriptoscope` and the documented example setup. Do not rebuild
+   `npm install @khawkins98/scriptoscope` and the documented example setup. Do not rebuild
    or republish to change a dist-tag.
 6. Create the GitHub release with the gate, package version and provenance links,
    then release the prepared Pages/docs deployment and smoke-check the live guide.

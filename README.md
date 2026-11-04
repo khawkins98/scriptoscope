@@ -57,7 +57,7 @@ at 8-bit colour and in native Kaleidoscope before publishing it.
 Install Scriptoscope in your application:
 
 ```sh
-npm install scriptoscope
+npm install @khawkins98/scriptoscope
 ```
 
 Use it to give an existing website classic-Mac windows and themed controls while
@@ -487,12 +487,12 @@ Two surfaces, same engine.
 ### Renderer-only entry
 
 Renderer-only consumers that already have a `LoadedTheme` or `OwnedTheme` can
-import the shared rendering API from `scriptoscope/renderer`. The full
-`scriptoscope` entry continues to support theme loaders and declarative DOM
+import the shared rendering API from `@khawkins98/scriptoscope/renderer`. The full
+`@khawkins98/scriptoscope` entry continues to support theme loaders and declarative DOM
 integration; use it when your application needs those features.
 
 ```ts
-import { renderWindow, type ThemeInput } from 'scriptoscope/renderer';
+import { renderWindow, type ThemeInput } from '@khawkins98/scriptoscope/renderer';
 
 async function showWindow(theme: ThemeInput, container: HTMLElement) {
   container.append(await renderWindow(theme, {
@@ -651,7 +651,7 @@ Load raw scheme colors through an explicit finite display profile when you have
 reviewed mappings for a particular device/producer environment:
 
 ```js
-import { prepareDisplayProfile, loadTheme } from 'scriptoscope';
+import { prepareDisplayProfile, loadTheme } from '@khawkins98/scriptoscope';
 const data = await fetch('/my-reviewed-display-profile.json').then(r => r.json());
 const displayProfile = await prepareDisplayProfile(data);
 const theme = await loadTheme('/themes/windows-95', { displayProfile });
@@ -709,7 +709,7 @@ that content viewport's logical position and scroll. Standalone controls keep
 local context. Imperative consumers opt in explicitly:
 
 ```ts
-import { interactiveButton, WindowManager, bindButtonToContentPort } from 'scriptoscope';
+import { interactiveButton, WindowManager, bindButtonToContentPort } from '@khawkins98/scriptoscope';
 
 const content = document.createElement('div');
 const button = await interactiveButton(theme, { label: 'OK', default: true });
@@ -726,7 +726,7 @@ manager.remove(host);
 host.remove();
 ```
 
-Import these functions from `scriptoscope`. Binding adopts the committed window
+Import these functions from `@khawkins98/scriptoscope`. Binding adopts the committed window
 scale by default, so a 1x button deliberately grows to 2x in this example; ordinary
 HTML siblings do not. `{ scale: 'preserve' }` keeps the caller's size and reports
 incompatible units explicitly. A direct `setButtonCompositionContext(button,

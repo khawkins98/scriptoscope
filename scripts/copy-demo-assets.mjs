@@ -179,7 +179,7 @@ console.log('Demo assets copied.');
 // Keep these source modules readable and stable for copied installation pages.
 for (const name of ['explicit-host.mjs', 'explicit-layout.mjs']) {
   const source = await readFile(resolve(root, 'demo', name), 'utf8');
-  const hosted = source.replaceAll("from 'scriptoscope'", "from './scriptoscope.js'")
+  const hosted = source.replaceAll("from '@khawkins98/scriptoscope'", "from './scriptoscope.js'")
     .replaceAll("from '../src/declarative/index.ts'", "from './declarative.js'");
   await writeFile(resolve(root, 'dist/demo', name), hosted);
 }

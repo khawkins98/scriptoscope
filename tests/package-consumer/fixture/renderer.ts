@@ -1,15 +1,15 @@
-import * as declarative from 'scriptoscope/declarative';
+import * as declarative from '@khawkins98/scriptoscope/declarative';
 import { rootExports, rendererExports, declarativeExports, sharedHostExports } from './public-exports.mjs';
-import * as root from 'scriptoscope';
-import * as renderer from 'scriptoscope/renderer';
-import type { ThemeInput, DisplayProfileData, CinfEnvironmentInput, ButtonOptions } from 'scriptoscope/renderer';
+import * as root from '@khawkins98/scriptoscope';
+import * as renderer from '@khawkins98/scriptoscope/renderer';
+import type { ThemeInput, DisplayProfileData, CinfEnvironmentInput, ButtonOptions } from '@khawkins98/scriptoscope/renderer';
 
 // @ts-expect-error Automatic mounts are retired from the package root.
 type NoRootMount = typeof root.mountDeclarative;
 // @ts-expect-error Automatic owned mounts are retired from declarative.
 type NoOwnedMount = typeof declarative.mountOwnedDeclarative;
 // @ts-expect-error Mount lifetime types are retired.
-type NoMountHandle = import('scriptoscope/declarative').MountHandle;
+type NoMountHandle = import('@khawkins98/scriptoscope/declarative').MountHandle;
 
 // @ts-expect-error The focused entry does not include the package manager API.
 type NoLoader = typeof renderer.loadOwnedTheme;
@@ -23,7 +23,7 @@ export async function verifyRendererEntry() {
     check(JSON.stringify(Object.keys(entry).sort()) === JSON.stringify(names), 'Explicit public namespace changed');
   for (const key of sharedHostExports) check((declarative as unknown as Record<string, unknown>)[key] === full[key], `Host alias: ${key}`);
   for (const [key, value] of Object.entries(renderer)) check(value === full[key], `Renderer alias: ${key}`);
-  check(await import('scriptoscope/renderer') === renderer, 'Repeated renderer import changed identity');
+  check(await import('@khawkins98/scriptoscope/renderer') === renderer, 'Repeated renderer import changed identity');
   const pixel = new renderer.PixelBuffer(2, 2);
   check(pixel instanceof root.PixelBuffer, 'Cross-entry PixelBuffer identity');
   const channel = Array.from({ length: 256 }, (_, i) => i);

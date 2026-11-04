@@ -17,7 +17,7 @@
 //                 closed-shadow-root hosts (frame pass-through, hit-regions §9)
 //
 // USAGE FROM A DEMO/CONSUMER:
-//   import { setDebug } from 'scriptoscope';
+//   import { setDebug } from '@khawkins98/scriptoscope';
 //   setDebug(true);                                 // all categories
 //   setDebug({ categories: ['scrollbar','drag'] });  // filtered
 //   setDebug(false);                                 // off

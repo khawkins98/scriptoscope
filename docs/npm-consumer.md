@@ -12,16 +12,16 @@ applications that want a themed window without replacing their content system.
 ## Install
 
 ```sh
-npm install scriptoscope
+npm install @khawkins98/scriptoscope
 ```
 
 The runtime is framework-independent ESM with TypeScript declarations. Import
 the APIs you need and the optional stylesheet:
 
 ```ts
-import { loadOwnedTheme, WindowManager, type OwnedTheme } from 'scriptoscope';
-import { ScriptoscopeWindow, promoteControl, restoreControl } from 'scriptoscope/declarative';
-import 'scriptoscope/scriptoscope.css';
+import { loadOwnedTheme, WindowManager, type OwnedTheme } from '@khawkins98/scriptoscope';
+import { ScriptoscopeWindow, promoteControl, restoreControl } from '@khawkins98/scriptoscope/declarative';
+import '@khawkins98/scriptoscope/scriptoscope.css';
 ```
 
 For a page without a build step, use the
@@ -37,7 +37,7 @@ The installed package includes a small Vite app at `examples/npm/`. From a
 project where you installed Scriptoscope, copy it into a new directory:
 
 ```sh
-cp -R node_modules/scriptoscope/examples/npm ../my-scriptoscope-app
+cp -R node_modules/@khawkins98/scriptoscope/examples/npm ../my-scriptoscope-app
 cd ../my-scriptoscope-app
 npm install
 npm run theme
@@ -93,9 +93,9 @@ The complete executable recipe is [main.ts](../examples/npm/main.ts) with
 [index.html](../examples/npm/index.html). Its key calls are:
 
 ```ts
-import { loadOwnedTheme, WindowManager, type OwnedTheme } from 'scriptoscope';
-import { ScriptoscopeWindow, promoteControl, restoreControl } from 'scriptoscope/declarative';
-import 'scriptoscope/scriptoscope.css';
+import { loadOwnedTheme, WindowManager, type OwnedTheme } from '@khawkins98/scriptoscope';
+import { ScriptoscopeWindow, promoteControl, restoreControl } from '@khawkins98/scriptoscope/declarative';
+import '@khawkins98/scriptoscope/scriptoscope.css';
 
 const theme = await loadOwnedTheme(`${import.meta.env.BASE_URL}themes/scriptoscope`, {
   source: 'scheme.rsrc',
@@ -112,7 +112,7 @@ to the hosted Pages example and is not a package export.
 
 The manager's default type is `LoadedTheme`. With an owned loader, explicitly
 use `WindowManager<OwnedTheme>`, or `WindowManager<ThemeInput>` if the application
-accepts both theme forms. Import these types from `scriptoscope`. Keep the
+accepts both theme forms. Import these types from `@khawkins98/scriptoscope`. Keep the
 theme alive while any window or control borrows it.
 
 The URL uses Vite's `import.meta.env.BASE_URL` so it works at `/nested/` as well
@@ -135,9 +135,9 @@ and keeps the live UI when the browser places the page in its Back/Forward cache
 
 ## Public files and troubleshooting
 
-Supported imports are `scriptoscope`, `scriptoscope/renderer`,
-`scriptoscope/declarative`, `scriptoscope/scriptoscope.css` and
-`scriptoscope/package.json`. Shared hashed JS chunks are shipped dependencies of
+Supported imports are `@khawkins98/scriptoscope`, `@khawkins98/scriptoscope/renderer`,
+`@khawkins98/scriptoscope/declarative`, `@khawkins98/scriptoscope/scriptoscope.css` and
+`@khawkins98/scriptoscope/package.json`. Shared hashed JS chunks are shipped dependencies of
 these entries, not additional supported imports. Keep them when self-hosting.
 The package includes [LICENSE](../LICENSE) and
 [THIRD_PARTY_NOTICES](../THIRD_PARTY_NOTICES); it excludes demo themes and fonts.

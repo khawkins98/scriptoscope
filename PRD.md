@@ -88,7 +88,7 @@ The primary integration path is markup-only. The library scans the DOM (on `DOMC
 **Imperative API stays available** for dynamic / programmatic cases:
 
 ```ts
-import { AaronWindow, loadTheme } from 'scriptoscope';
+import { AaronWindow, loadTheme } from '@khawkins98/scriptoscope';
 
 await loadTheme('https://example.com/themes/beos-r503/');
 const win = new AaronWindow({
@@ -229,7 +229,7 @@ Two integration paths, declarative first per the North Star:
 **Imperative (for dynamic / programmatic cases):**
 
 ```ts
-import { loadTheme, AaronWindow } from 'scriptoscope';
+import { loadTheme, AaronWindow } from '@khawkins98/scriptoscope';
 
 await loadTheme('https://example.com/themes/beos-r503/');
 const win = new AaronWindow({ title: 'Window', html: '...' });
@@ -284,7 +284,7 @@ These were suggestions when written. **Superseded orientation (2026-10-23):** th
 ## Success criteria
 
 1. cv-mac swaps WinBox for Scriptoscope in a single PR with zero behavioral regression at merge.
-2. A third party can `npm install scriptoscope` (or `<script src>`) and have draggable, Kaleidoscope-themed windows on a page in <50 LOC.
+2. A third party can `npm install @khawkins98/scriptoscope` (or `<script src>`) and have draggable, Kaleidoscope-themed windows on a page in <50 LOC.
 3. At least two Kaleidoscope schemes load and switch live without page reload (one extracted bundle plus one additional loaded from an external URL).
 4. Visual spot-check against the source scheme: under a loaded scheme, a panel of 5–10 controls renders pixel-faithfully enough that someone comparing against Kaleidoscope's own scheme preview would recognise it as the same scheme.
 5. Bundle ≤30 KB gzipped for the WM core + theme runtime (excluding the bundled-default scheme's PNG assets, which are accounted separately).

@@ -28,13 +28,13 @@ by local path. Its filename is `scriptoscope-<version>.tgz` (for example `script
 
 | Import | Intended use |
 |---|---|
-| `scriptoscope` | Full ESM runtime, loaders, interaction and selected promotion APIs |
-| `scriptoscope/renderer` | Shared rendering/composition API when a theme is already available |
-| `scriptoscope/declarative` | Explicit window/control/field/tab/icon/picker/modal promotion primitives |
-| `scriptoscope/scriptoscope.css` | Optional outer-shell styling |
+| `@khawkins98/scriptoscope` | Full ESM runtime, loaders, interaction and selected promotion APIs |
+| `@khawkins98/scriptoscope/renderer` | Shared rendering/composition API when a theme is already available |
+| `@khawkins98/scriptoscope/declarative` | Explicit window/control/field/tab/icon/picker/modal promotion primitives |
+| `@khawkins98/scriptoscope/scriptoscope.css` | Optional outer-shell styling |
 
 These are the package's declared entries, with type declarations for the three
-JavaScript entries. `scriptoscope/package.json` is also exported. The renderer
+JavaScript entries. `@khawkins98/scriptoscope/package.json` is also exported. The renderer
 entry shares implementation and constructor identities with the root; it does
 not provide the full loader/host surface. `mountExplicitPage` is **separate
 application example code**, not an export from any package entry. Copy/adapt the

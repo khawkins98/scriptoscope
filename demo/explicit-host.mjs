@@ -1,5 +1,5 @@
 import { ownLayout } from './explicit-layout.mjs';
-import { WindowManager, bindButtonToContentPort } from 'scriptoscope';
+import { WindowManager, bindButtonToContentPort } from '@khawkins98/scriptoscope';
 import { ScriptoscopeWindow, createOwnedThemeResolver, promoteGuardedButton, restoreButton, disposePromotedButtonFace,
   promoteGuardedControl, restoreControl, promoteField, restoreField, promoteTabs, restoreTabs, promoteIconAsync, promoteThemePicker,
   syncThemePickerActive, openModal } from '../src/declarative/index.ts';

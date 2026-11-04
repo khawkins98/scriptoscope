@@ -1,6 +1,6 @@
-import { loadOwnedTheme, WindowManager, type OwnedTheme } from 'scriptoscope';
-import { ScriptoscopeWindow, promoteControl, restoreControl } from 'scriptoscope/declarative';
-import 'scriptoscope/scriptoscope.css';
+import { loadOwnedTheme, WindowManager, type OwnedTheme } from '@khawkins98/scriptoscope';
+import { ScriptoscopeWindow, promoteControl, restoreControl } from '@khawkins98/scriptoscope/declarative';
+import '@khawkins98/scriptoscope/scriptoscope.css';
 
 const source = document.querySelector<HTMLElement>('#window')!;
 const input = document.querySelector<HTMLInputElement>('#check')!;

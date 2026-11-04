@@ -1,4 +1,4 @@
-import { createOwnedThemeResolver, ScriptoscopeWindow, WindowManager } from 'scriptoscope';
+import { createOwnedThemeResolver, ScriptoscopeWindow, WindowManager } from '@khawkins98/scriptoscope';
 import themes from './themes-manifest.json';
 
 // Keep existing shared demo links working after moving the showcase.

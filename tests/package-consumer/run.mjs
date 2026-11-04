@@ -66,7 +66,7 @@ async function prepareConsumer(tarball, name, example = false) {
   await mkdir(consumer);
   await writeFile(join(consumer, 'package.json'), JSON.stringify({ name: `consumer-${name}`, private: true, type: 'module' }));
   command(npm, ['install', '--ignore-scripts', '--no-audit', '--no-fund', '--offline', tarball], consumer);
-  const installed = await realpath(join(consumer, 'node_modules/scriptoscope'));
+  const installed = await realpath(join(consumer, 'node_modules/@khawkins98/scriptoscope'));
   assert(inside(consumer, installed), 'The installed package must not be a repository symlink');
   await cp(example ? join(installed, 'examples/npm') : new URL('./fixture/', import.meta.url), consumer, {
     recursive: true, filter: source => !example || !source.endsWith('/package.json'),
@@ -75,7 +75,7 @@ async function prepareConsumer(tarball, name, example = false) {
   // different condition set, and verify actual files rather than resolution alone.
   let phase = 'exports';
   try {
-    const specifiers = ['scriptoscope', 'scriptoscope/renderer', 'scriptoscope/declarative', 'scriptoscope/scriptoscope.css', 'scriptoscope/package.json'];
+    const specifiers = ['@khawkins98/scriptoscope', '@khawkins98/scriptoscope/renderer', '@khawkins98/scriptoscope/declarative', '@khawkins98/scriptoscope/scriptoscope.css', '@khawkins98/scriptoscope/package.json'];
     const paths = JSON.parse(command(process.execPath, ['--input-type=module', '-e',
       `console.log(JSON.stringify(${JSON.stringify(specifiers)}.map(id => import.meta.resolve(id))))`], consumer));
     for (const [index, url] of paths.entries()) {
@@ -85,16 +85,16 @@ async function prepareConsumer(tarball, name, example = false) {
     }
     command(process.execPath, ['--input-type=module', '-e', `
       import assert from 'node:assert/strict';
-      import * as root from 'scriptoscope';
-      import * as renderer from 'scriptoscope/renderer';
-      import * as declarative from 'scriptoscope/declarative';
+      import * as root from '@khawkins98/scriptoscope';
+      import * as renderer from '@khawkins98/scriptoscope/renderer';
+      import * as declarative from '@khawkins98/scriptoscope/declarative';
       assert.deepEqual(Object.keys(root).sort(), ${JSON.stringify(rootExports)});
       assert.deepEqual(Object.keys(renderer).sort(), ${JSON.stringify(rendererExports)});
       assert.deepEqual(Object.keys(declarative).sort(), ${JSON.stringify(declarativeExports)});
       for (const key of ${JSON.stringify(sharedHostExports)}) assert.equal(declarative[key], root[key], key);
       for (const entry of [root, declarative]) for (const name of ['mountDeclarative', 'mountOwnedDeclarative']) assert.equal(name in entry, false);
       for (const [key, value] of Object.entries(renderer)) assert.equal(value, root[key], key);
-      assert.equal(await import('scriptoscope/renderer'), renderer);
+      assert.equal(await import('@khawkins98/scriptoscope/renderer'), renderer);
     `], consumer);
     phase = 'contents';
     const files = await checkContents(installed);
@@ -339,7 +339,7 @@ try {
   await negativeTarball(tarball, 'dist/scriptoscope.css', 'exports', 'missing-css');
   await negativeTarball(tarball, 'THIRD_PARTY_NOTICES', 'contents', 'missing-notices');
   await negativeTarball(tarball, 'dist/renderer.js', 'exports', 'missing-renderer');
-  await negativeTarball(tarball, 'dist/types/renderer.d.ts', 'types', 'missing-renderer-types', undefined, 'scriptoscope/renderer');
+  await negativeTarball(tarball, 'dist/types/renderer.d.ts', 'types', 'missing-renderer-types', undefined, '@khawkins98/scriptoscope/renderer');
   // The entry may be a re-export facade over shared chunks, so follow its static
   // import graph and take the first dynamic import found (the archive decoder).
   const inspected = join(workspace, 'inspect-candidate');
