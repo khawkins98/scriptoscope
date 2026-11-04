@@ -217,11 +217,18 @@ The trial exposed these concrete gaps to address before publication:
 | Consumer obstacle | Required follow-up |
 | --- | --- |
 | The shortest README recipe uses the Pages-only `mountExplicitPage`; the npm outline does not show actual attachment/disposal code. | Supply one complete installed-package example, including HTML, imports, theme placement, promotion and teardown. |
+| The packed README links to checkout-only demo files and documentation that the tarball does not include. | Ship the consumer guide or use release-specific hosted documentation links; avoid checkout-relative imports in the npm recipe. |
 | `loadOwnedTheme()` paired with the natural `new WindowManager()` fails TypeScript checking: the manager defaults to `LoadedTheme`. | Show `new WindowManager<OwnedTheme>()` with `type OwnedTheme` imported from the root, or explicitly choose `ThemeInput`. Assess inference ergonomics separately; no redesign is required for the working recipe. |
 | Runtime installation does not provide a theme or tell a new consumer where to obtain one. | Show exactly which archive/metadata files the example expects, where to place them and how to preserve their provenance. |
 | Theme URLs need to respect a nested deployment base. | Demonstrate an explicit application-aware URL; the trial used `${import.meta.env.BASE_URL}themes/windows-95` and `{ source: 'scheme.sit' }`. |
 | Packing after `build:demo` includes demo output and additional assets. | Enforce runtime-only package contents regardless of build history and check the actual release tarball. |
 | The demo-inclusive tarball still lacks an explicit munbox notice file. | Ship and assert the bundled dependency notices independently of demo assets and source maps. |
+
+The working teardown order was `restoreControl(input)`, `promoted.unmount()`,
+`manager.dispose()`, then `theme.dispose()`. Disposing the manager alone neither
+removes the host DOM nor disposes the application-owned theme. The browser trial
+checked the native checkbox and clicked the teardown button through browser
+automation; it did not assign the checkbox state programmatically.
 
 The demo-first tarball contained 345 files (224 under `dist/demo`), measured
 7,316,439 bytes compressed and 15,664,442 bytes unpacked. Compare with the
