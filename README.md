@@ -12,7 +12,7 @@ Decades on, the schemes are remembered with nostalgia but largely unreachable �
 
 If you're in that very small Venn diagram overlap, behold: Scriptoscope is a compatibility layer that reads those same scheme files — the actual `.sit` and `.rsrc` bundles people made in the nineties — and paints them onto your webpage. Same color icons, same window frames, same fill patterns. Your HTML stays live underneath; only the skin is canvas.
 
-A Kaleidoscope scheme is a [Mac resource fork](https://en.wikipedia.org/wiki/Resource_fork): a little database of typed records authored against a system that stopped shipping in 2001. So Scriptoscope reads one the way the old Finder did. Drop a scheme on the page, and it unpacks the archive, walks the resource map, pulls each record into memory, and hands the lot to a `<canvas>` renderer that speaks the same scheme format the original control panel did. *(That renderer is a spec-compatible reimplementation of the 2.3.1 engine; the divergences are logged in [the ledger](./docs/spec/kdef-faithfulness-ledger.md) if you care.)* All of it runs in the tab. Nothing's uploaded, and a refresh throws the bytes away.
+A Kaleidoscope scheme is a [Mac resource fork](https://en.wikipedia.org/wiki/Resource_fork): a little database of typed records authored against a system that stopped shipping in 2001. So Scriptoscope reads one the way the old Finder did. Drop a scheme on the page, and it unpacks the archive, walks the resource map, pulls each record into memory, and hands the lot to a `<canvas>` renderer that speaks the same scheme format the original control panel did. *(That renderer is a spec-compatible reimplementation of the 2.3.1 engine; the divergences are logged in [the ledger](https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/kdef-faithfulness-ledger.md) if you care.)* All of it runs in the tab. Nothing's uploaded, and a refresh throws the bytes away.
 
 To skin your own page, tag an element for what it is — window, button, slider — add one script tag, and it wears the current scheme. No framework, no build step. The children stay real HTML; only the chrome is painted.
 
@@ -30,7 +30,7 @@ The runtime is a clean-room reimplementation of the scheme-rendering interpreter
 
 The bundled scheme files in `themes/` are a separate matter: third-party freeware from the 1990s whose authors are largely unreachable today. Scriptoscope ships them under the same good-faith preservation posture [Macintosh Garden](https://macintoshgarden.org/) and the [Internet Archive's classic-software collection](https://archive.org/details/softwarelibrary_apple) use for orphan classic-software, including the take-down-on-request commitment. This project is a hobby, MIT-licensed, no profit motive, no advertising. If any of the original authors object, I'll take it down.
 
-The current corpus of bundles lives under [`themes/`](./themes/): `1138`, `1984`, `1990`, `animals`, `apple-lisa`, `apple-platinum-2`, `beos-r503`, `black-platinum`, `crayon-os`, `dolphin-som`, `evolution`, `floppies`, `monkey-paradise`, `platinum-8`, `slimes`, `system7-nostalgia-silver`, `windows-31`, `windows-95`. Each bundle ships only the original archive (`scheme.sit` or `scheme.rsrc`) + `meta.json` + `PROVENANCE.md` — the runtime decodes them client-side, no pre-extraction in git.
+The current corpus of bundles lives under [`themes/`](https://github.com/khawkins98/scriptoscope/tree/main/themes/): `1138`, `1984`, `1990`, `animals`, `apple-lisa`, `apple-platinum-2`, `beos-r503`, `black-platinum`, `crayon-os`, `dolphin-som`, `evolution`, `floppies`, `monkey-paradise`, `platinum-8`, `slimes`, `system7-nostalgia-silver`, `windows-31`, `windows-95`. Each bundle ships only the original archive (`scheme.sit` or `scheme.rsrc`) + `meta.json` + `PROVENANCE.md` — the runtime decodes them client-side, no pre-extraction in git.
 
 Want more? Two community archives where Scriptoscope's drop-zone can read schemes from directly:
 - **[Mac Themes Garden](https://macthemes.garden/)** — a beautifully curated gallery + archive with reference renders and the original `.sit` downloads. The 2026-05-28 corpus additions came from here.
@@ -38,14 +38,14 @@ Want more? Two community archives where Scriptoscope's drop-zone can read scheme
 
 Both let you grab a `.sit` and drop it on the demo to see it render live without a build step.
 
-> **Status (pre-1.0, 2026-11-03):** The package version is **0.9.0**. The current **incremental decode-first v2** milestone moves families onto `src/engine/` through focused PRs to `main` and per-family releases ([decision #8](./docs/v2/DECISIONS.md)); the former `v2` integration branch was retired on 2026-10-30 ([decision #1](./docs/v2/DECISIONS.md)). Scroll bars, sliders, progress, procedural frames, window recipe/widgets, push/default-ring buttons and checkboxes/radios have engine drivers; follow-up work and review state are tracked in [issue #459](https://github.com/khawkins98/scriptoscope/issues/459). This is not an all-family cutover. `src/composeChrome.ts` is now a facade over `src/engine/families/window.ts`; the engine holds the decoded layout/widget rules. The May “v2 clean-break” and “v3 reset” names describe earlier architecture generations, not the retired October `v2` branch or package versions. Runtime contributors start with the [implementer brief](./docs/spec/engine/IMPLEMENTER-BRIEF.md) and assigned safe family spec; unresolved rules become spec questions. Consumers can use the imperative and declarative examples below.
+> **Status (pre-1.0, 2026-11-03):** The package version is **0.9.0**. The current **incremental decode-first v2** milestone moves families onto `src/engine/` through focused PRs to `main` and per-family releases ([decision #8](https://github.com/khawkins98/scriptoscope/blob/main/docs/v2/DECISIONS.md)); the former `v2` integration branch was retired on 2026-10-30 ([decision #1](https://github.com/khawkins98/scriptoscope/blob/main/docs/v2/DECISIONS.md)). Scroll bars, sliders, progress, procedural frames, window recipe/widgets, push/default-ring buttons and checkboxes/radios have engine drivers; follow-up work and review state are tracked in [issue #459](https://github.com/khawkins98/scriptoscope/issues/459). This is not an all-family cutover. `src/composeChrome.ts` is now a facade over `src/engine/families/window.ts`; the engine holds the decoded layout/widget rules. The May “v2 clean-break” and “v3 reset” names describe earlier architecture generations, not the retired October `v2` branch or package versions. Runtime contributors start with the [implementer brief](https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/engine/IMPLEMENTER-BRIEF.md) and assigned safe family spec; unresolved rules become spec questions. Consumers can use the imperative and declarative examples below.
 
 ## If you build a scheme
 
-Start with the [creation guide](./docs/authoring-a-scheme.md). It covers concept
+Start with the [creation guide](https://github.com/khawkins98/scriptoscope/blob/main/docs/authoring-a-scheme.md). It covers concept
 art, frame geometry, editable sprites, control families and visual review.
-[`tools/theme-author/`](./tools/theme-author/) builds real Kaleidoscope resource
-forks; [Scriptoscope Reference Native Theme](./authoring/schemes/scriptoscope/) is the worked reference implementation.
+[`tools/theme-author/`](https://github.com/khawkins98/scriptoscope/tree/main/tools/theme-author/) builds real Kaleidoscope resource
+forks; [Scriptoscope Reference Native Theme](https://github.com/khawkins98/scriptoscope/tree/main/authoring/schemes/scriptoscope/) is the worked reference implementation.
 
 Run `npm run author -- authoring/schemes/scriptoscope` to build an example. Load
 the resulting `scheme.rsrc` in the browser demo, or transfer the generated
@@ -55,7 +55,10 @@ at 8-bit colour and in native Kaleidoscope before publishing it.
 ## Install
 
 Installation currently uses GitHub Pages or self-hosted build files. npm distribution
-is [being planned](./docs/npm-distribution-plan.md) ([#649](https://github.com/khawkins98/scriptoscope/issues/649)); the package has not been published to npm.
+is [being planned](https://github.com/khawkins98/scriptoscope/blob/main/docs/npm-distribution-plan.md) ([#649](https://github.com/khawkins98/scriptoscope/issues/649)); the package has not been published to npm.
+To try the package now, use the [tarball consumer guide](./docs/npm-consumer.md).
+It includes a complete TypeScript example, a pinned first-party theme download,
+nested-path hosting and explicit teardown, all using public package exports.
 
 > **Upgrading to 0.9.0:** managed windows now let clicks through the transparent parts of their frames, and a press on the page deactivates the active window. Use `data-scriptoscope-hit="box"` to keep the old behaviour; see the note in the [CHANGELOG](CHANGELOG.md).
 >
@@ -63,7 +66,7 @@ is [being planned](./docs/npm-distribution-plan.md) ([#649](https://github.com/k
 >
 > **0.7.0:** applications own window/control attachment and lifetime through
 > explicit promotion primitives; the old `mountDeclarative` front door is gone. See
-> the [installation and migration guide](docs/v2/integration-release-notes.md).
+> the [installation and migration guide](https://github.com/khawkins98/scriptoscope/blob/main/docs/v2/integration-release-notes.md).
 > `v2` is an internal development branch label, not public release 2.0 or a
 > 1.0 threshold.
 
@@ -140,7 +143,7 @@ A more complete page with the script wired in, one window, and a button:
 </html>
 ```
 
-**That's it.** The bundled themes (`1138`, `beos-r503`, `apple-platinum-2`, `crayon-os`, `windows-95`, etc. — see [`themes/`](./themes/)) are served from the same URL, so `themeBaseUrl` resolves them transparently.
+**That's it.** The bundled themes (`1138`, `beos-r503`, `apple-platinum-2`, `crayon-os`, `windows-95`, etc. — see [`themes/`](https://github.com/khawkins98/scriptoscope/tree/main/themes/)) are served from the same URL, so `themeBaseUrl` resolves them transparently.
 
 The runtime exports explicit window/control promotion primitives. The published
 `explicit-host.mjs` example owns a finite set of sources, theme replacement, URL
@@ -158,7 +161,7 @@ If you only need it to work, you can skip this section. If something looks sligh
 2. **Your `.my-class { display: grid }` won't reach the host.** Ten CSS properties (`display`, `box-sizing`, `padding`, `border`, `background`, `overflow`, `margin`, `transform`, `filter`, `contain`) are locked down inline on the runtime host so consumer-class CSS can't break the host ↔ chrome-canvas correspondence. Everything else — color, font, custom properties, your `position: relative` for stacking — still applies.
 3. **Promotion is destructive.** The runtime moves your element's children into its slot and removes the original element. Framework refs to the wrapper become detached. Mount Scriptoscope AFTER your framework's first paint (`useEffect(() => mountExplicitPage(...), [])` in React; `onMounted` in Vue).
 
-The full set of behaviours, with the gotchas + framework integration notes + known incompatibilities ([`* { transform: translateZ(0) }`, `box-sizing: content-box`, `body { overflow: hidden }`, etc.), lives in **[docs/integration-edge-cases.md](./docs/integration-edge-cases.md)**. Open it when you hit a weird CSS issue and the cause isn't obvious; you don't need to read it first.
+The full set of behaviours, with the gotchas + framework integration notes + known incompatibilities ([`* { transform: translateZ(0) }`, `box-sizing: content-box`, `body { overflow: hidden }`, etc.), lives in **[docs/integration-edge-cases.md](https://github.com/khawkins98/scriptoscope/blob/main/docs/integration-edge-cases.md)**. Open it when you hit a weird CSS issue and the cause isn't obvious; you don't need to read it first.
 
 #### Available theme slugs
 
@@ -219,7 +222,7 @@ Want more? Drop any `.sit`/`.rsrc` you've grabbed from [Mac Themes Garden](https
 | `data-scriptoscope-icon="<name>"` | `<img>` or `<span>` | Render a scheme-resolved Finder icon by named key (`folder`, `system-folder`, `document`, `prefs`, etc.). Re-resolves on every retheme so the icon follows the active scheme. |
 | `data-scriptoscope-icon-id="<id>"` | `<img>` or `<span>` | Raw Apple resource id (e.g. `-3999`) — bypasses the named-key lookup for power users. |
 
-For what each window and control does once promoted (pointer, keyboard and touch behaviour, and every event you can listen for), see the **[interaction reference](./docs/interaction.md)**.
+For what each window and control does once promoted (pointer, keyboard and touch behaviour, and every event you can listen for), see the **[interaction reference](https://github.com/khawkins98/scriptoscope/blob/main/docs/interaction.md)**.
 
 ### Explicit page host options
 
@@ -353,7 +356,7 @@ actions and consumer listeners remain attached to the same source element. Butto
 disabled/default state is sampled on promotion and retheme; this does not add live
 button-attribute observation. Tab and text-field decoration restoration remains
 outside this contract. Latest-request theme ordering and its window-batch scope
-are described in the [runtime ownership spec](docs/spec/compositor-spec.md#runtime-theme-request-ownership).
+are described in the [runtime ownership spec](https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/compositor-spec.md#runtime-theme-request-ownership).
 
 The `promoteError` event is the per-target failure hook; pair with `rejectOnEmptyMount: true` for the "did everything fail" gate.
 
@@ -423,7 +426,7 @@ Two ways to wire it. The simpler one is a button or any element that doubles as 
 
 That's the full BYO path. `loadKaleidoscopeScheme` accepts every container the [Mac Themes Garden](https://macthemes.garden/) and [Kaleidoscope Scheme Archive](https://kaleidoscope.hryjksn.com/) archives ship (`.sit`, `.hqx`, `.bin`, AppleSingle/Double, raw `.rsrc`); the decode runs entirely client-side via the bundled StuffIt WASM. The dropped theme persists for the session; reload restores the default.
 
-**The richer pattern** (used by the demo's "Load your own" picker tile) opens a themed `movable-modal` window with the drop zone inside it. Use `handle.openModal(wrap, { returnFocusTo: triggerButton })` — the helper toggles `data-scriptoscope-modal-open` on the wrap (your CSS scopes off the attribute), traps focus inside (including the shadow-DOM chrome focusables), dismisses on Esc + backdrop click, and listens for the chrome's close widget via `scriptoscope:close`. The full markup is in [`demo/showcase.html`](./demo/showcase.html) (search for `powers-byo-modal-wrap`): a `position: fixed` wrap with `visibility: hidden; opacity: 0; pointer-events: none` until `[data-scriptoscope-modal-open]` flips them on, with a themed `<article data-scriptoscope-window data-scriptoscope-window-type="movable-modal">` inside.
+**The richer pattern** (used by the demo's "Load your own" picker tile) opens a themed `movable-modal` window with the drop zone inside it. Use `handle.openModal(wrap, { returnFocusTo: triggerButton })` — the helper toggles `data-scriptoscope-modal-open` on the wrap (your CSS scopes off the attribute), traps focus inside (including the shadow-DOM chrome focusables), dismisses on Esc + backdrop click, and listens for the chrome's close widget via `scriptoscope:close`. The full markup is in [`demo/showcase.html`](https://github.com/khawkins98/scriptoscope/blob/main/demo/showcase.html) (search for `powers-byo-modal-wrap`): a `position: fixed` wrap with `visibility: hidden; opacity: 0; pointer-events: none` until `[data-scriptoscope-modal-open]` flips them on, with a themed `<article data-scriptoscope-window data-scriptoscope-window-type="movable-modal">` inside.
 
 ### CDN paths reference
 
@@ -459,11 +462,11 @@ npm install        # dev dependencies (vite, tsc, playwright) — NOT the librar
 npm run dev        # http://localhost:5173/
 ```
 
-- **[`demo/index.html`](./demo/index.html)** — the **ad-style landing page**. A period multimedia-ad composition with one portrait split across five live Kaleidoscope windows. Drag, resize, close, zoom or shade the windows; “Reassemble the face” restores the composition while keeping the chosen scheme. The footer scheme buttons retheme the portrait in place, “Original mix” restores the five-theme arrangement, and “Explore the possibilities” opens the interactive demonstration with the installation example. The short pitch introduces the HTML attribute workflow, and a compact row links to all four example websites. A visible credit links to the original Apple New Media Forum: World Tour ’95 advertisement. Links lead to the interactive demo, integration guide, and project source. Existing `?theme=<slug>` links redirect to the interactive demo.
-- **[`demo/showcase.html`](./demo/showcase.html)** — the **interactive showcase**. Try original schemes, native controls, movable engine windows, bare HTML mode, and a local-file theme picker. The example gallery links to four complete page layouts. “Install” opens the separate guide while carrying the chosen scheme.
-- **[`demo/install.html`](./demo/install.html)** — the **installation guide**. Complete copyable starters, data attributes, runtime options, and recipes for picked or hosted Kaleidoscope schemes. Legacy `showcase.html#install` links redirect here.
-- **[`demo/diagnostic.html`](./demo/diagnostic.html)** — the **runtime showcase + developer diagnostic**. Pick any scheme from the ribbon and get its scene + reference comparison, live themed controls, and an interactive playground (every window type at any size, plus live buttons / checkboxes / radios / sliders / scrollbars / title-bar widgets). A drop-zone decodes any `.sit` / `.hqx` / `.rsrc` Kaleidoscope archive entirely in the browser. The dev-facing inspectors (geometry, slice inspector, icon inventory, raster foldout, resource roles) live behind the **"Developer tools"** disclosure at the bottom of each scheme's section — open it manually or visit with `?dev=1` to default-open.
-- **[`demo/declarative-hostile-css.html`](./demo/declarative-hostile-css.html)** — the **Shadow-DOM litmus test for ADR-0001 Decision 2**. A host page deliberately ships aggressive CSS (universal `!important` resets, opinionated `div`/`canvas`/`button` rules — the kind of thing a real CMS or third-party site does) to prove the chrome inside the shadow root survives unscathed. Slotted body content still picks up host styling (it stays in the light DOM by design); only the chrome is quarantined.
+- **[`demo/index.html`](https://github.com/khawkins98/scriptoscope/blob/main/demo/index.html)** — the **ad-style landing page**. A period multimedia-ad composition with one portrait split across five live Kaleidoscope windows. Drag, resize, close, zoom or shade the windows; “Reassemble the face” restores the composition while keeping the chosen scheme. The footer scheme buttons retheme the portrait in place, “Original mix” restores the five-theme arrangement, and “Explore the possibilities” opens the interactive demonstration with the installation example. The short pitch introduces the HTML attribute workflow, and a compact row links to all four example websites. A visible credit links to the original Apple New Media Forum: World Tour ’95 advertisement. Links lead to the interactive demo, integration guide, and project source. Existing `?theme=<slug>` links redirect to the interactive demo.
+- **[`demo/showcase.html`](https://github.com/khawkins98/scriptoscope/blob/main/demo/showcase.html)** — the **interactive showcase**. Try original schemes, native controls, movable engine windows, bare HTML mode, and a local-file theme picker. The example gallery links to four complete page layouts. “Install” opens the separate guide while carrying the chosen scheme.
+- **[`demo/install.html`](https://github.com/khawkins98/scriptoscope/blob/main/demo/install.html)** — the **installation guide**. Complete copyable starters, data attributes, runtime options, and recipes for picked or hosted Kaleidoscope schemes. Legacy `showcase.html#install` links redirect here.
+- **[`demo/diagnostic.html`](https://github.com/khawkins98/scriptoscope/blob/main/demo/diagnostic.html)** — the **runtime showcase + developer diagnostic**. Pick any scheme from the ribbon and get its scene + reference comparison, live themed controls, and an interactive playground (every window type at any size, plus live buttons / checkboxes / radios / sliders / scrollbars / title-bar widgets). A drop-zone decodes any `.sit` / `.hqx` / `.rsrc` Kaleidoscope archive entirely in the browser. The dev-facing inspectors (geometry, slice inspector, icon inventory, raster foldout, resource roles) live behind the **"Developer tools"** disclosure at the bottom of each scheme's section — open it manually or visit with `?dev=1` to default-open.
+- **[`demo/declarative-hostile-css.html`](https://github.com/khawkins98/scriptoscope/blob/main/demo/declarative-hostile-css.html)** — the **Shadow-DOM litmus test for ADR-0001 Decision 2**. A host page deliberately ships aggressive CSS (universal `!important` resets, opinionated `div`/`canvas`/`button` rules — the kind of thing a real CMS or third-party site does) to prove the chrome inside the shadow root survives unscathed. Slotted body content still picks up host styling (it stays in the light DOM by design); only the chrome is quarantined.
 
 ## The runtime API
 
@@ -495,7 +498,7 @@ and interactive promotion accept owned inputs;
 selected images export asynchronously through `themeImageUrl()`. Its `source`
 fields contain local resource paths, including fields historically named `url`.
 Existing loaders retain ready image URLs. See the [owned API and lifecycle
-contract](docs/v2/owned-theme-api.md) for examples and the current adoption boundary.
+contract](https://github.com/khawkins98/scriptoscope/blob/main/docs/v2/owned-theme-api.md) for examples and the current adoption boundary.
 Existing raw loading and factory APIs remain available. Registered themes are borrowed; release them only after host dependents are disconnected.
 
 ### Native form-control migration (0.7.0, #484)
@@ -512,7 +515,7 @@ mount an empty attached container, register the borrowed theme, then append the
 controls. This reuses the theme without another load:
 
 ```js
-import { mountExplicitPage } from './demo/explicit-host.mjs';
+import { mountExplicitPage } from 'https://khawkins98.github.io/scriptoscope/explicit-host.mjs';
 
 const root = document.createElement('div');
 document.body.append(root);
@@ -602,9 +605,9 @@ readback: at most 1,048,576 bytes across those two explicit RGBA planes.
 Destination-sized publication/frame output, input strings, opaque host memory,
 garbage collection and cumulative readback traffic are separate. Work is finite
 but can be quadratic, with no hard realtime or total-memory guarantee.
-[Measured long-title costs](./LEARNINGS.md#2026-11-02--bounded-title-coverage-needs-a-declared-raster-envelope-637)
+[Measured long-title costs](https://github.com/khawkins98/scriptoscope/blob/main/LEARNINGS.md#2026-11-02--bounded-title-coverage-needs-a-declared-raster-envelope-637)
 include seconds-scale regressions with guarded observation. See the
-[title-coverage contract](./docs/spec/engine/window-title-fit.md) for support
+[title-coverage contract](https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/engine/window-title-fit.md) for support
 premises, placement, failure semantics and resource limits.
 
 `loadTheme` tries `scheme.sit` first, then falls back to `scheme.rsrc` by default. When you already know which form the bundle ships (e.g. from a catalog manifest), pass `{ source: 'scheme.sit' }` to skip the cascade and avoid the dev-console 404 noise on `.rsrc`-only bundles:
@@ -626,9 +629,9 @@ optional `pressedPart` (a pressed state without a part means the thumb).
 never both, plus `indeterminate` and a phase byte. `composeProgressFrame` returns
 the phase after drawing; `ProgressIdle` handles idle advancement in the interactive
 layer. These are public exports; `src/engine/` remains internal. The option types
-in [`src/controls.ts`](./src/controls.ts) describe the released wrapper contract.
+in [`src/controls.ts`](https://github.com/khawkins98/scriptoscope/blob/main/src/controls.ts) describe the released wrapper contract.
 
-See [`demo/diagnostic.html`](./demo/diagnostic.html) for the full integration, [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md) for the chrome model, and [`docs/scene-slot-spec.md`](./docs/scene-slot-spec.md) + [`docs/scene-codex.md`](./docs/scene-codex.md) for the per-theme tier resolution of every Scene visual slot.
+See [`demo/diagnostic.html`](https://github.com/khawkins98/scriptoscope/blob/main/demo/diagnostic.html) for the full integration, [`docs/spec/compositor-spec.md`](https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/compositor-spec.md) for the chrome model, and [`docs/scene-slot-spec.md`](https://github.com/khawkins98/scriptoscope/blob/main/docs/scene-slot-spec.md) + [`docs/scene-codex.md`](https://github.com/khawkins98/scriptoscope/blob/main/docs/scene-codex.md) for the per-theme tier resolution of every Scene visual slot.
 
 ### Optional measured display preparation
 
@@ -647,7 +650,7 @@ Missing exact RGB16 mappings reject the load before asset URLs are allocated;
 base themes must use the same profile. Omitting the option preserves the default
 colors and reviewed goldens. A profile is finite environment data, not a general
 original-device emulator or whole-theme fidelity claim. See the
-[display-profile contract](./docs/spec/display-profile.md) for producer tables,
+[display-profile contract](https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/display-profile.md) for producer tables,
 fixed-icon conventions, ownership and unsupported inputs.
 
 ### Whole-header pixel surfaces
@@ -673,19 +676,19 @@ if (result.status === 'rendered') document.body.append(bufferToCanvas(result.buf
 
 Handle `unavailable` and `unsupported` explicitly. The initial supported subset
 uses solid bodies, binary masks and verified current-display sampling; patterns,
-device caches and recording remain outside it. See the [header-surface contract](./docs/spec/header-surface.md)
+device caches and recording remain outside it. See the [header-surface contract](https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/header-surface.md)
 for state selection, list-view extension before clipping, diagnostics and limits.
 
 ### Button label sizing
 
 Themed push and bevel buttons accept an explicit `fontSize` (finite, at least
 6px), with a 12px compatibility default independent of face height. See the
-[font-size policy and source boundary](docs/spec/control-font-size.md).
+[font-size policy and source boundary](https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/control-font-size.md).
 
 Plain push buttons also accept an opt-in caller-owned `bitmapFont`, prepared with
 `prepareBitmapFont`. It keeps advances, line metrics and signed ink bearings
 separate and uses the bounded source-derived single-line layout. Browser fonts
-remain the default; see [the prepared-strike contract](docs/spec/prepared-bitmap-font.md).
+remain the default; see [the prepared-strike contract](https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/prepared-bitmap-font.md).
 
 ### Managed button pattern context
 
@@ -718,7 +721,7 @@ incompatible units explicitly. A direct `setButtonCompositionContext(button,
 context)` replaces provider ownership. Unbind preserves newer consumer style
 edits. Unsupported mappings use explicit compatibility defaults; measured browser
 coordinates do not establish original GrafPort state. See the
-[managed-context contract](docs/spec/managed-control-context.md) for lifetimes,
+[managed-context contract](https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/managed-control-context.md) for lifetimes,
 coordinate limits and automatic/foreign-manager boundaries.
 
 ### Explicit hosts and `data-scriptoscope-*`
@@ -752,30 +755,31 @@ The same runtime exposed as markup. Put `data-scriptoscope-window` on a plain `<
 
 **Runtime theme switching**: any `<select data-scriptoscope-theme-switcher>` re-skins every window + control live, the Kaleidoscope way.
 
-**Gestures**: drag the title bar or any other frame edge; drag the gripper to resize; click the **collapse** box or **double-click** any frame edge to window-shade; click the **zoom** box to grow-to-fit; click a window to focus it. Keyboard equivalents, scroll-bar behaviour and the full event list: [docs/interaction.md](./docs/interaction.md).
+**Gestures**: drag the title bar or any other frame edge; drag the gripper to resize; click the **collapse** box or **double-click** any frame edge to window-shade; click the **zoom** box to grow-to-fit; click a window to focus it. Keyboard equivalents, scroll-bar behaviour and the full event list: [docs/interaction.md](https://github.com/khawkins98/scriptoscope/blob/main/docs/interaction.md).
 
-Full design + the feature-rich pass: [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md). Live: <https://khawkins98.github.io/scriptoscope/>.
+Full design + the feature-rich pass: [`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](https://github.com/khawkins98/scriptoscope/blob/main/docs/superpowers/specs/2026-05-27-declarative-windows-design.md). Live: <https://khawkins98.github.io/scriptoscope/>.
 
 ### Bring your own theme (in-browser conversion)
 
-Beyond the bundled corpus, the demo has a **drop-zone**: drag a Kaleidoscope theme file onto the page and it's decoded and rendered entirely client-side — no build step, no upload. Accepted inputs: a StuffIt `.sit` archive, a `.hqx` / MacBinary / AppleSingle·Double wrapper, or a raw `.rsrc` resource fork. The conversion runs through the public `loadKaleidoscopeScheme` wrapper ([`src/loadKaleidoscopeScheme.ts`](./src/loadKaleidoscopeScheme.ts)), which calls [`tools/theme-loader/loadKaleidoscopeScheme.js`](./tools/theme-loader/loadKaleidoscopeScheme.js) with the engine's `cinf` and icon-blit cicn ids; StuffIt is decoded by [`tools/sit-wasm/`](./tools/sit-wasm/) (the munbox C library compiled to WebAssembly — a self-contained, MIT, in-browser StuffIt decoder). Design + status: [`docs/superpowers/specs/2026-05-27-browser-conversion-design.md`](./docs/superpowers/specs/2026-05-27-browser-conversion-design.md); design context: [`docs/archive/byo-theme-todo.md`](./docs/archive/byo-theme-todo.md) (work completed 2026-05-27, archived as the planning record).
+Beyond the bundled corpus, the demo has a **drop-zone**: drag a Kaleidoscope theme file onto the page and it's decoded and rendered entirely client-side — no build step, no upload. Accepted inputs: a StuffIt `.sit` archive, a `.hqx` / MacBinary / AppleSingle·Double wrapper, or a raw `.rsrc` resource fork. The conversion runs through the public `loadKaleidoscopeScheme` wrapper ([`src/loadKaleidoscopeScheme.ts`](https://github.com/khawkins98/scriptoscope/blob/main/src/loadKaleidoscopeScheme.ts)), which calls [`tools/theme-loader/loadKaleidoscopeScheme.js`](https://github.com/khawkins98/scriptoscope/blob/main/tools/theme-loader/loadKaleidoscopeScheme.js) with the engine's `cinf` and icon-blit cicn ids; StuffIt is decoded by [`tools/sit-wasm/`](https://github.com/khawkins98/scriptoscope/tree/main/tools/sit-wasm/) (the munbox C library compiled to WebAssembly — a self-contained, MIT, in-browser StuffIt decoder). Design + status: [`docs/superpowers/specs/2026-05-27-browser-conversion-design.md`](https://github.com/khawkins98/scriptoscope/blob/main/docs/superpowers/specs/2026-05-27-browser-conversion-design.md); design context: [`docs/archive/byo-theme-todo.md`](https://github.com/khawkins98/scriptoscope/blob/main/docs/archive/byo-theme-todo.md) (work completed 2026-05-27, archived as the planning record).
 
 ## Documents
 
-- **[npm distribution proposal](./docs/npm-distribution-plan.md)** — draft package boundaries, architecture recommendations and publication plan; current releases remain GitHub-only.
-- **[Interaction reference](./docs/interaction.md)** — what users can do with a window and its controls (activation, focus, moving, resizing, title widgets, scroll bars, controls, modals), every `scriptoscope:*` event, keyboard equivalents, and touch and browser differences.
-- **[Measured simplification](./docs/measured-simplification.md)** — our approach to reducing runtime complexity and execution cost through consolidation, prepared inputs and differential validation; includes a reusable optimization prompt.
+- **[Tarball consumer guide](./docs/npm-consumer.md)** — complete installed-package example with a first-party theme download, owned theme types and teardown; usable before registry publication.
+- **[npm distribution proposal](https://github.com/khawkins98/scriptoscope/blob/main/docs/npm-distribution-plan.md)** — draft package boundaries, architecture recommendations and publication plan; current releases remain GitHub-only.
+- **[Interaction reference](https://github.com/khawkins98/scriptoscope/blob/main/docs/interaction.md)** — what users can do with a window and its controls (activation, focus, moving, resizing, title widgets, scroll bars, controls, modals), every `scriptoscope:*` event, keyboard equivalents, and touch and browser differences.
+- **[Measured simplification](https://github.com/khawkins98/scriptoscope/blob/main/docs/measured-simplification.md)** — our approach to reducing runtime complexity and execution cost through consolidation, prepared inputs and differential validation; includes a reusable optimization prompt.
 
-- **[`llms.txt`](./llms.txt)** ([live](https://khawkins98.github.io/scriptoscope/llms.txt)) — discovery file for LLM agents helping a consumer integrate. Curates pointers to README + integration docs + recipes + API surface so an agent has one canonical entry point. Follows the [llmstxt.org](https://llmstxt.org/) standard. Drop the live URL into your AI assistant's context if you're integrating Scriptoscope and want better answers.
-- **Runtime implementers: [`docs/spec/engine/IMPLEMENTER-BRIEF.md`](./docs/spec/engine/IMPLEMENTER-BRIEF.md) first**, then the assigned safe family spec under [`docs/spec/engine/`](./docs/spec/engine/). Ask spec questions rather than inspecting original evidence, independent test sources or verifier material. The brief's exhaustive read scope overrides general reading suggestions here.
-- **[`docs/v2/DECISIONS.md`](./docs/v2/DECISIONS.md)** — current October integration and compatibility decisions. Integration owners/spec writers also use the amended [`PLAN.md`](./docs/v2/PLAN.md); implementers use their brief and lane assignment.
-- **[`docs/history.md`](./docs/history.md)** and **[`LEARNINGS.md`](./LEARNINGS.md)** — historical project arc and dated decisions, for readers outside the implementer sandbox. May v2/v3 names are historical; current architecture is in the engine family specs and code.
-- **[`docs/maintainer-reference-environment.md`](./docs/maintainer-reference-environment.md)** — private Forgejo reference assets, verified fetch instructions and native acquisition/restore limits; for spec writers/verifiers acquiring original evidence, optional for maintainers, never a public CI dependency.
-- **[`docs/spec/README.md`](./docs/spec/README.md)** — source-reference index for spec writers and independent verifiers. Original binary references, including `kdef231-reference.md`, are for those roles; this index is not an implementer entry point.
-- **[`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md)** — listing-free window model alongside the current [`window/widgets family spec`](./docs/spec/engine/window-widgets.md).
-- **[`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](./docs/superpowers/specs/2026-05-27-declarative-windows-design.md)** — design + multi-night build log for the declarative (`data-scriptoscope-*`) front door: the attribute contract, the feature-rich pass (window-shade, zoom, themed scrollbars, runtime theme-switch, themed controls), the OS 8.6 desktop redesign, the review-driven hardening, and the known follow-ups. Read this when extending the declarative layer.
-- **[`PRD.md`](./PRD.md)** — the original product charter (vision still largely valid; implementation has since moved on — see `docs/history.md`).
-- **[`CONTRIBUTING.md`](./CONTRIBUTING.md)** — how to land changes and port a scheme.
+- **[`llms.txt`](https://github.com/khawkins98/scriptoscope/blob/main/llms.txt)** ([live](https://khawkins98.github.io/scriptoscope/llms.txt)) — discovery file for LLM agents helping a consumer integrate. Curates pointers to README + integration docs + recipes + API surface so an agent has one canonical entry point. Follows the [llmstxt.org](https://llmstxt.org/) standard. Drop the live URL into your AI assistant's context if you're integrating Scriptoscope and want better answers.
+- **Runtime implementers: [`docs/spec/engine/IMPLEMENTER-BRIEF.md`](https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/engine/IMPLEMENTER-BRIEF.md) first**, then the assigned safe family spec under [`docs/spec/engine/`](https://github.com/khawkins98/scriptoscope/tree/main/docs/spec/engine/). Ask spec questions rather than inspecting original evidence, independent test sources or verifier material. The brief's exhaustive read scope overrides general reading suggestions here.
+- **[`docs/v2/DECISIONS.md`](https://github.com/khawkins98/scriptoscope/blob/main/docs/v2/DECISIONS.md)** — current October integration and compatibility decisions. Integration owners/spec writers also use the amended [`PLAN.md`](https://github.com/khawkins98/scriptoscope/blob/main/docs/v2/PLAN.md); implementers use their brief and lane assignment.
+- **[`docs/history.md`](https://github.com/khawkins98/scriptoscope/blob/main/docs/history.md)** and **[`LEARNINGS.md`](https://github.com/khawkins98/scriptoscope/blob/main/LEARNINGS.md)** — historical project arc and dated decisions, for readers outside the implementer sandbox. May v2/v3 names are historical; current architecture is in the engine family specs and code.
+- **[`docs/maintainer-reference-environment.md`](https://github.com/khawkins98/scriptoscope/blob/main/docs/maintainer-reference-environment.md)** — private Forgejo reference assets, verified fetch instructions and native acquisition/restore limits; for spec writers/verifiers acquiring original evidence, optional for maintainers, never a public CI dependency.
+- **[`docs/spec/README.md`](https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/README.md)** — source-reference index for spec writers and independent verifiers. Original binary references, including `kdef231-reference.md`, are for those roles; this index is not an implementer entry point.
+- **[`docs/spec/compositor-spec.md`](https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/compositor-spec.md)** — listing-free window model alongside the current [`window/widgets family spec`](https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/engine/window-widgets.md).
+- **[`docs/superpowers/specs/2026-05-27-declarative-windows-design.md`](https://github.com/khawkins98/scriptoscope/blob/main/docs/superpowers/specs/2026-05-27-declarative-windows-design.md)** — design + multi-night build log for the declarative (`data-scriptoscope-*`) front door: the attribute contract, the feature-rich pass (window-shade, zoom, themed scrollbars, runtime theme-switch, themed controls), the OS 8.6 desktop redesign, the review-driven hardening, and the known follow-ups. Read this when extending the declarative layer.
+- **[`PRD.md`](https://github.com/khawkins98/scriptoscope/blob/main/PRD.md)** — the original product charter (vision still largely valid; implementation has since moved on — see `docs/history.md`).
+- **[`CONTRIBUTING.md`](https://github.com/khawkins98/scriptoscope/blob/main/CONTRIBUTING.md)** — how to land changes and port a scheme.
 
 ## North Star
 
@@ -787,9 +791,9 @@ The public promotion primitives and the `data-scriptoscope-*` parsers support ex
 
 2. **Explicit integration with ordinary HTML.** Data attributes describe window and control options; application code chooses source identities and owns their lifetimes. The example page host captures sources once. Later additions and removals use explicit attach/detach calls; theme replacements await current work. The runtime does not scan, move or retry newly discovered DOM. Native controls retain browser form and accessibility behavior.
 
-3. **A Kaleidoscope-compatibility runtime, clean-room from Kaleidoscope's code.** Scriptoscope is first a *runtime for an existing corpus*; its authoring toolkit writes ordinary scheme files rather than a second theme format. It reads Kaleidoscope resource bundles (`cicn`, `ppat`, `cinf`, `wnd#`, `Colr`) directly — decoded by [`tools/theme-loader/`](./tools/theme-loader/) via [`scripts/extract-scheme.mjs`](./scripts/extract-scheme.mjs) — and re-implements the rendering entirely in our own compositor (see [`docs/spec/compositor-spec.md`](./docs/spec/compositor-spec.md)). The corpus is the community-authored schemes archived on [Macintosh Garden](https://macintoshgarden.org/apps/kaleidoscope) and [Mac Themes Garden](https://macthemes.garden/), prioritizing those with explicit freeware-with-redistribution readmes. **We extract compiled assets from individual schemes** (with the author's stated permission) and **re-implement the rendering entirely in our own code** — Scriptoscope never uses Kaleidoscope's source code. Apple's own themes (Hi-Tech, Drawing Board, Gizmo) are deliberately out of scope, and **Scriptoscope does not hand-author chrome from the HIG** — it renders whatever scheme is loaded. Every extracted theme bundle carries provenance metadata (original author, source URL, license-of-origin); the only first-party visual artifacts Scriptoscope produces are the un-themed engine fallbacks needed when no scheme has loaded yet, plus authoring examples under [`authoring/`](./authoring/) that are themselves ordinary scheme files rendered through the same path (they are not part of the bundled corpus).
+3. **A Kaleidoscope-compatibility runtime, clean-room from Kaleidoscope's code.** Scriptoscope is first a *runtime for an existing corpus*; its authoring toolkit writes ordinary scheme files rather than a second theme format. It reads Kaleidoscope resource bundles (`cicn`, `ppat`, `cinf`, `wnd#`, `Colr`) directly — decoded by [`tools/theme-loader/`](https://github.com/khawkins98/scriptoscope/tree/main/tools/theme-loader/) via [`scripts/extract-scheme.mjs`](https://github.com/khawkins98/scriptoscope/blob/main/scripts/extract-scheme.mjs) — and re-implements the rendering entirely in our own compositor (see [`docs/spec/compositor-spec.md`](https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/compositor-spec.md)). The corpus is the community-authored schemes archived on [Macintosh Garden](https://macintoshgarden.org/apps/kaleidoscope) and [Mac Themes Garden](https://macthemes.garden/), prioritizing those with explicit freeware-with-redistribution readmes. **We extract compiled assets from individual schemes** (with the author's stated permission) and **re-implement the rendering entirely in our own code** — Scriptoscope never uses Kaleidoscope's source code. Apple's own themes (Hi-Tech, Drawing Board, Gizmo) are deliberately out of scope, and **Scriptoscope does not hand-author chrome from the HIG** — it renders whatever scheme is loaded. Every extracted theme bundle carries provenance metadata (original author, source URL, license-of-origin); the only first-party visual artifacts Scriptoscope produces are the un-themed engine fallbacks needed when no scheme has loaded yet, plus authoring examples under [`authoring/`](https://github.com/khawkins98/scriptoscope/tree/main/authoring/) that are themselves ordinary scheme files rendered through the same path (they are not part of the bundled corpus).
 
-> *Name note:* "Scriptoscope" = JavaScript ("Script") × the instrument-suffix family of names ("-oscope" — the instrument you look through to see classic Mac themes rendered on the modern web). Renamed 2026-05-28 from Aaron UI; the prior name was a deep-cut nod to *Aaron*, Apple's internal codename for the Copland-era Appearance Manager demo, but the etymology got loose after the project pivoted to a Kaleidoscope-compatibility runtime. Full rationale in [`LEARNINGS.md`](./LEARNINGS.md). The consumer-facing API surface is `data-scriptoscope-*` attributes, `.scriptoscope-*` CSS classes, and the `ScriptoscopeWindow` class (swept 2026-05-29 from the original `data-aaron-*`/.aw-/AaronWindow naming).
+> *Name note:* "Scriptoscope" = JavaScript ("Script") × the instrument-suffix family of names ("-oscope" — the instrument you look through to see classic Mac themes rendered on the modern web). Renamed 2026-05-28 from Aaron UI; the prior name was a deep-cut nod to *Aaron*, Apple's internal codename for the Copland-era Appearance Manager demo, but the etymology got loose after the project pivoted to a Kaleidoscope-compatibility runtime. Full rationale in [`LEARNINGS.md`](https://github.com/khawkins98/scriptoscope/blob/main/LEARNINGS.md). The consumer-facing API surface is `data-scriptoscope-*` attributes, `.scriptoscope-*` CSS classes, and the `ScriptoscopeWindow` class (swept 2026-05-29 from the original `data-aaron-*`/.aw-/AaronWindow naming).
 
 ## Where the idea came from
 
@@ -823,7 +827,7 @@ The primary reference for any visual question is Apple's own Mac OS 8 Human Inte
 
 ## A heads-up on hover
 
-Mac OS 8 chrome had exactly three control states: **Normal, Pressed, Disabled**. There was no "hover" — that's a post-OS X / web-era concept. Kaleidoscope schemes ship `cicn` artwork only for those three states, so Scriptoscope renders them faithfully: pointing at a close box looks the same as pointing anywhere else. If that surprises modern-web reflexes, it's intentional and authentic. A light, opt-in hover affordance may land in a later phase for ergonomic / accessibility cases; it'll never be on by default. See [`LEARNINGS.md`](./LEARNINGS.md) for the full reasoning.
+Mac OS 8 chrome had exactly three control states: **Normal, Pressed, Disabled**. There was no "hover" — that's a post-OS X / web-era concept. Kaleidoscope schemes ship `cicn` artwork only for those three states, so Scriptoscope renders them faithfully: pointing at a close box looks the same as pointing anywhere else. If that surprises modern-web reflexes, it's intentional and authentic. A light, opt-in hover affordance may land in a later phase for ergonomic / accessibility cases; it'll never be on by default. See [`LEARNINGS.md`](https://github.com/khawkins98/scriptoscope/blob/main/LEARNINGS.md) for the full reasoning.
 
 ## What loaded themes carry (and don't)
 
@@ -833,7 +837,7 @@ If a consumer wants period sounds or a desktop picture alongside a loaded scheme
 
 ## Rendering regression coverage
 
-The [control matrix](./tests/rendering-options/README.md) exercises all 18 schemes
+The [control matrix](https://github.com/khawkins98/scriptoscope/blob/main/tests/rendering-options/README.md) exercises all 18 schemes
 through source and built APIs, actual promoted DOM and consumer CSS. Its bounded
 profile covers 70 cases per scheme; the extended profile covers 660 valid
 combinations. Development is driven by this harness: reproduce a concrete issue,
@@ -845,30 +849,30 @@ current output alone cannot establish it. Remaining control limits are tracked i
 tab, font, device and window fidelity remain active work in
 [epic #221](https://github.com/khawkins98/scriptoscope/issues/221); the independent
 reference corpus is tracked in [#190](https://github.com/khawkins98/scriptoscope/issues/190).
-The [reference intake](./tests/reference-captures/README.md) also defines a narrow
+The [reference intake](https://github.com/khawkins98/scriptoscope/blob/main/tests/reference-captures/README.md) also defines a narrow
 review scope for complete fixed-size empty face observations.
 Such composited-pixel evidence leaves the broader requirements unresolved; it
 cannot certify masks, typography, unobserved states or private painter selection.
-The [original corpus](./tests/reference-captures/ORIGINALS.md) now contains fifty-four
+The [original corpus](https://github.com/khawkins98/scriptoscope/blob/main/tests/reference-captures/ORIGINALS.md) now contains fifty-four
 independently AI-reviewed scoped observations. All fifty-four whole requests remain
 evidence-incomplete, with all broader requirements unresolved. Maintainers can
-reuse the [private original-reference environment](./docs/maintainer-reference-environment.md)
+reuse the [private original-reference environment](https://github.com/khawkins98/scriptoscope/blob/main/docs/maintainer-reference-environment.md)
 to acquire additional evidence; access is optional and never required by public CI.
 
-[Actual resource-byte provenance](./docs/spec/resource-byte-provenance.md) can opt in
+[Actual resource-byte provenance](https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/resource-byte-provenance.md) can opt in
 to joining loaded archive, fork and resource bytes to selected manifest entries
 and painted push/default/bevel faces. It establishes input identity through shared
 conversion; independent decoder correctness and broader control families remain
 separate requirements.
 
-The [draft acceptance inventory](./docs/spec/acceptance-inventory-proposal.md) proposes
+The [draft acceptance inventory](https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/acceptance-inventory-proposal.md) proposes
 full-target families, paths and boundary classes; its closure and unresolved evidence remain open.
 
-A [pinned-source emulator build](./docs/research/emulator-build-reproduction/2026-10-19/README.md)
+A [pinned-source emulator build](https://github.com/khawkins98/scriptoscope/blob/main/docs/research/emulator-build-reproduction/2026-10-19/README.md)
 now reproduces the preserved JS/WASM exactly; glyph-provider tracing remains unresolved.
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for setup and the required checks. The
-[fidelity plan](./docs/spec/fidelity-verification-plan.md) and
+See [CONTRIBUTING.md](https://github.com/khawkins98/scriptoscope/blob/main/CONTRIBUTING.md) for setup and the required checks. The
+[fidelity plan](https://github.com/khawkins98/scriptoscope/blob/main/docs/spec/fidelity-verification-plan.md) and
 [epic #221](https://github.com/khawkins98/scriptoscope/issues/221) define the path
 from regression coverage to independently verified rendering.
 
@@ -878,7 +882,7 @@ A non-binding "things that would be cool to build next" list, organized by theme
 
 ### Themes — bring more in, surface what they ship
 
-- **Mac OS Appearance Manager theme import (.afm / kTHM)** — currently out of scope by deliberate decision ([#174](https://github.com/khawkins98/scriptoscope/issues/174) closed `wontfix`; the user-side `.afm` → `.rsrc` conversion path is documented at [`docs/converting-from-afm.md`](./docs/converting-from-afm.md)). If trademark posture changes, [#176](https://github.com/khawkins98/scriptoscope/issues/176) tracks the positive-side conversion-tooling roadmap (Tier 1: worked docs; Tier 2: Node CLI converter; Tier 3: standalone npm package; Tier 4: drop-zone integration).
+- **Mac OS Appearance Manager theme import (.afm / kTHM)** — currently out of scope by deliberate decision ([#174](https://github.com/khawkins98/scriptoscope/issues/174) closed `wontfix`; the user-side `.afm` → `.rsrc` conversion path is documented at [`docs/converting-from-afm.md`](https://github.com/khawkins98/scriptoscope/blob/main/docs/converting-from-afm.md)). If trademark posture changes, [#176](https://github.com/khawkins98/scriptoscope/issues/176) tracks the positive-side conversion-tooling roadmap (Tier 1: worked docs; Tier 2: Node CLI converter; Tier 3: standalone npm package; Tier 4: drop-zone integration).
 - **Theme variants / accents** — some Kaleidoscope schemes ship multiple palettes in one `.ksc` (day/night, gold/silver/copper, B/W vs colour). Currently we extract one variant deterministically. Whether they become theme **siblings** (separate slugs) or a runtime **knob** (`LoadedTheme.variant`) is an open design call. Tracked in [#177](https://github.com/khawkins98/scriptoscope/issues/177).
 - **Bonus assets in scheme bundles** — schemes routinely ship more than chrome: desktop patterns (`crayon-os`'s "Crayon OS Desktop"), bitmap fonts (`apple-lisa`'s Lisa Classic 12 / Icon Names 10), custom cursors (`slimes`' Slime cursor), zip icon overlays, HTML readmes with embedded GIFs, custom Finder icons. Currently silently discarded. [#177](https://github.com/khawkins98/scriptoscope/issues/177) tracks per-asset-type wiring.
 
@@ -894,13 +898,13 @@ A non-binding "things that would be cool to build next" list, organized by theme
 
 - **In-browser theme browsing + remix** — pair the existing drop-zone with a curated gallery sourced from the community archives (see the "Want more?" block above). Drag any `.sit` from a Mac Themes Garden listing into Scriptoscope's demo and see it render live; save a favorites set; flip between them with the existing theme switcher.
 - **A Kaleidoscope-like configuration panel** — Scriptoscope's drop-zone is a thin echo of Kaleidoscope's own control panel. A consumer-side config UI that lets the user toggle desktop pattern / sounds / extras / accent variant per-scheme (the same checkboxes Kaleidoscope's CP shipped) is the natural next step.
-- **Theme hosting** — the [npm distribution proposal](./docs/npm-distribution-plan.md) keeps theme archives external to the runtime package, loaded from a URL the consumer hosts. A community-run theme CDN could provide an optional alternative. The runtime currently decodes the original archives in-browser.
+- **Theme hosting** — the [npm distribution proposal](https://github.com/khawkins98/scriptoscope/blob/main/docs/npm-distribution-plan.md) keeps theme archives external to the runtime package, loaded from a URL the consumer hosts. A community-run theme CDN could provide an optional alternative. The runtime currently decodes the original archives in-browser.
 - **Theme curator / submission flow** — once the corpus grows beyond what we want to bundle in-repo, a community submission flow (`scriptoscope-themes` repo + a contributor guide) would scale better than hand-curated additions.
 
 ### Adopter-facing extras
 
 - **`<scriptoscope-window>` Custom Element** alongside explicit data-attribute promotion ([#29](https://github.com/khawkins98/scriptoscope/issues/29) — open decision).
-- ~~**CSS `border-image` emitter** for the body-frame chrome~~ — **retired 2026-05-28** after three spike rounds couldn't reach fidelity on exotic schemes (BeOS asymmetric title bar, evolution, etc.). The architecture is now explicitly "DOM structure + canvas decoration" — see [`docs/adr/0001-consumption-architecture.md`](./docs/adr/0001-consumption-architecture.md) §Spike result.
+- ~~**CSS `border-image` emitter** for the body-frame chrome~~ — **retired 2026-05-28** after three spike rounds couldn't reach fidelity on exotic schemes (BeOS asymmetric title bar, evolution, etc.). The architecture is now explicitly "DOM structure + canvas decoration" — see [`docs/adr/0001-consumption-architecture.md`](https://github.com/khawkins98/scriptoscope/blob/main/docs/adr/0001-consumption-architecture.md) §Spike result.
 - **High-contrast / accessibility variants** — auto-generate a high-contrast pair from each scheme (override headerColors, force pinstripe density) so accessibility-mode users can still pick a theme they like.
 - **VS Code / editor theme generation** — export a scheme's palette + chrome accents as a `vscode-theme.json` so developers can match their editor to their windowing chrome.
 - **Period-correct animation polish** — zoom-to-icon close, windowshade collapse, sheet slide-in. Tracked under [#25](https://github.com/khawkins98/scriptoscope/issues/25) Phase 6.
@@ -910,7 +914,7 @@ Tracker issues for new ideas: <https://github.com/khawkins98/scriptoscope/issues
 
 ## License
 
-The site’s [Acknowledgements page](./demo/acknowledgements.html) collects scheme authors, archives, visual inspiration, image provenance, fonts, and supporting tools.
+The site’s [Acknowledgements page](https://github.com/khawkins98/scriptoscope/blob/main/demo/acknowledgements.html) collects scheme authors, archives, visual inspiration, image provenance, fonts, and supporting tools.
 
 **Scriptoscope's own code is [MIT](./LICENSE)** (best for adoption — the library is meant to be embedded in other projects). The bundled third-party material keeps its own terms and is **not** relicensed:
 
@@ -918,4 +922,4 @@ The site’s [Acknowledgements page](./demo/acknowledgements.html) collects sche
 - **`tools/sit-wasm/munbox/`** — a vendored subset of [munbox](https://github.com/idolpx/munbox) (MIT); see `tools/sit-wasm/munbox/LICENSE` and `PATCHES.md`.
 - **`demo/assets/fonts/`** — Instrument Serif and Cormorant Garamond (SIL OFL 1.1), Charcoal 12 (Jeremy Sachs, CC BY-SA), and Virtue (Marty Pfeiffer, author’s terms); see the license files alongside them.
 
-The standalone StuffIt decoder, [`tools/sit-wasm/`](./tools/sit-wasm/), carries its own MIT `LICENSE` so it stays self-contained if extracted.
+The standalone StuffIt decoder, [`tools/sit-wasm/`](https://github.com/khawkins98/scriptoscope/tree/main/tools/sit-wasm/), carries its own MIT `LICENSE` so it stays self-contained if extracted.

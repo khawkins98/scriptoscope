@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:,">
+    <title>Scriptoscope package example</title>
+  </head>
+  <body>
+    <article id="window" data-scriptoscope-window data-scriptoscope-title="My npm window"
+      style="width:360px;height:180px">
+      <p>Your real HTML, wearing a scheme.</p>
+      <label><input id="check" type="checkbox"> Keep my setting</label>
+    </article>
+    <button id="teardown" type="button" disabled>Restore native HTML</button>
+    <output id="status" aria-live="polite">Loading theme…</output>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

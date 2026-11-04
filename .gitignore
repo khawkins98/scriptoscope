@@ -4,6 +4,8 @@ node_modules/
 
 # Build output
 dist/
+examples/npm/public/
+examples/npm/package-lock.json
 build/
 *.tsbuildinfo
 # ...but DO track the committed sit-wasm WASM build, so consumers never need Emscripten

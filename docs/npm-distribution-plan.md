@@ -15,7 +15,36 @@ The changes needed are at the distribution boundary: a complete npm setup recipe
 predictable package contents, bundled dependency notices, a few additional consumer
 checks and a publisher connected to the existing release gate.
 
-## What exists today
+## Implementation status
+
+The consumer-trial fixes are implemented in this PR:
+
+- The [shipped consumer guide](./npm-consumer.md) and `examples/npm` provide a
+  complete public-export recipe, explicit owned manager typing, pinned first-party
+  theme acquisition, base-aware URLs and restore/unmount/dispose ordering.
+- Explicit package file patterns include the runtime chunks, types, CSS, notices,
+  guide and example sources. Demo output and downloaded example assets stay out.
+- `THIRD_PARTY_NOTICES` preserves munbox and decoder runtime support notices.
+- The installed-package contract checks packed documentation links and notices,
+  imports without DOM globals, Bundler and NodeNext types, and browser interaction
+  and teardown of the shipped example under `/nested/`.
+- The runner accepts a supplied tarball so a future publisher can test the exact
+  artifact it will publish, without depending on a local library build.
+
+Registry ownership/bootstrap, initial version/channel, publication automation and
+the release procedure change remain follow-up work. No npm package is published
+by these fixes. Repository-only README references now point to hosted source;
+the consumer guide and its example links resolve inside the installed package.
+
+An independent re-trial copied the shipped scaffold from the actual tarball,
+installed it outside the checkout, downloaded the pinned sample and built it.
+At `/nested/`, browser interaction and Restore preserved the native input's
+identity/checked state and removed promotion, with no browser errors. Real clean
+library and demo-first packs were byte-identical (128 files, approximately
+1.06 MB compressed); the harness also probes generated directories automatically.
+BFCache restoration and injected mid-mount failures were not exercised by that trial.
+
+## Baseline before these fixes
 
 Inspected commit: `8f5635699fd7a5fe666187b1af87bd9ae4b5000c`, package `0.9.0`.
 
@@ -60,7 +89,7 @@ lives in `demo/explicit-host.mjs`, imports `explicit-layout.mjs`, and reaches in
 `src/declarative/index.ts`; it is not an npm export. Simply substituting a bare
 package import into that snippet would fail.
 
-First ship a small npm-first example using existing exported APIs:
+The shipped npm-first example uses existing exported APIs:
 
 1. Install the package and import its stylesheet.
 2. Host a theme archive and its metadata at an explicit application URL, or read
@@ -96,10 +125,12 @@ or hosted catalog is a later distribution choice, not a runtime dependency.
 
 ### Harden output contents and declaration ownership
 
-`files: ["dist", ...]` includes everything under `dist`. A clean library build
+The baseline `files: ["dist", ...]` included everything under `dist`. A clean library build
 removes old output, but `build:demo` subsequently adds `dist/demo` and
 `dist/pages-loader`. Define an allowlist or a dedicated package staging directory
 so packing after either build history produces the same runtime-only contents.
+The implemented allowlist now covers top-level runtime JS/maps/CSS, declarations,
+the guide/example sources and required notices, excluding nested demo builds.
 Always include shared and lazy chunks; copying only the named entry files breaks
 decoding and built-in frames.
 
@@ -113,10 +144,11 @@ test. Preserve it initially; if this grows, move reusable runtime loader code an
 its authoritative types into a clearly owned runtime directory in a focused
 follow-up. No need to reorganize the entire repository before release.
 
-The tarball currently has only the top-level Scriptoscope `LICENSE` as a license
-file. Include a `THIRD_PARTY_NOTICES` file with the bundled munbox notice from
-`tools/sit-wasm/munbox/LICENSE` (copyright dafo123), and audit other bundled inputs.
-Make the notice a required packed file, independent of source maps.
+The baseline tarball had only the top-level Scriptoscope `LICENSE` as a license
+file. The new `THIRD_PARTY_NOTICES` includes the bundled munbox notice from
+`tools/sit-wasm/munbox/LICENSE` (copyright dafo123), plus Emscripten runtime and
+musl support notices.
+The consumer contract now requires the full munbox notice, independent of source maps.
 
 ### Define environment support explicitly
 
@@ -125,7 +157,7 @@ successfully in Node without DOM globals in this investigation. Turn that into a
 consumer contract for server-side module evaluation; it does not establish server
 rendering support. DOM attachment and canvas work belong on the client.
 
-Extend strict declaration checks from Bundler resolution to NodeNext. Keep the
+Strict declaration checks now cover Bundler and NodeNext resolution. Keep the
 current browser target as the implementation baseline until it is verified and
 documented; the build target alone does not prove API availability in every
 browser. Separate contributor/publisher Node requirements from consumer support.
@@ -147,7 +179,7 @@ browser. Separate contributor/publisher Node requirements from consumer support.
    not a dependency: the publisher must perform or depend on the check itself.
 4. On that commit, build once and pack one candidate. Record its digest and file
    list, install/test that tarball, then publish the same artifact. Extend the
-   harness to accept a supplied tarball: today it builds/packs its own candidate.
+   harness's supplied-tarball mode rather than rebuilding its own candidate.
    Avoid a subsequent source-directory publish that silently rebuilds new bytes.
 5. Set the intended dist-tag explicitly, serialize publication and handle retries.
    If the version exists, compare registry integrity with the candidate; never
@@ -197,8 +229,9 @@ When registry installation is verified, update these surfaces together:
 | Consumer harness | Preserve browser and negative cases; add supplied-tarball mode, packed-file/notices assertions, Node import safety and strict NodeNext types. |
 | Publisher/release docs | The exact tested artifact is published only after the tagged commit's release gate; registry smoke and recovery are documented. |
 
-These can land as focused PRs. This draft records the plan and baseline only.
-It does not implement a publisher, change runtime exports or decide v1 readiness.
+The consumer, package-contents and harness follow-ups are implemented here.
+The publisher remains a separate follow-up; this PR does not change runtime
+exports or decide v1 readiness.
 
 ## Independent consumer trial
 
@@ -212,7 +245,7 @@ build served under `/nested/`. In Chromium it loaded a consumer-hosted Windows95
 with its checked state retained. Window, manager and theme disposal completed
 without browser errors. This supports keeping the existing runtime architecture.
 
-The trial exposed these concrete gaps to address before publication:
+The trial exposed these concrete gaps; the consumer fixes above address them:
 
 | Consumer obstacle | Required follow-up |
 | --- | --- |
@@ -233,9 +266,9 @@ automation; it did not assign the checkbox state programmatically.
 The demo-first tarball contained 345 files (224 under `dist/demo`), measured
 7,316,439 bytes compressed and 15,664,442 bytes unpacked. Compare with the
 clean-library measurements below; these are observations of local build states,
-not fixed size budgets. The trial workspace and screenshots are temporary local
-evidence, not a committed consumer fixture. Promote the complete example into
-the installed-package contract as implementation work.
+not fixed size budgets. The initial trial workspace and screenshots were temporary
+local evidence. The complete example is now shipped and exercised by the
+installed-package contract.
 
 ## Local evidence
 

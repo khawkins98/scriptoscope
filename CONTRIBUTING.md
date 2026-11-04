@@ -73,6 +73,10 @@ toolchain requirement.
    run `npm run test:package`. It installs an actual tarball into a clean consumer
    and verifies the production browser path; repository aliases cannot satisfy
    its imports. See [`tests/package-consumer/README.md`](./tests/package-consumer/README.md).
+   To verify an already packed candidate without rebuilding it, use
+   `npm run test:package:tarball -- /absolute/path/to/package.tgz`. The shipped
+   consumer guide/example are part of this contract, including NodeNext types
+   and restore/unmount/dispose behavior under a nested deployment path.
 
    Golden updates are review candidates. Inspect source evidence and the
    expected/actual/diff artifacts before accepting a changed image; recording

@@ -6,6 +6,7 @@ Drop two URLs in a `<head>`, tag some HTML with `data-scriptoscope-window` / `-b
 
 ## Start here
 
+- [Tarball consumer guide](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/npm-consumer.md): runnable installed-package example, pinned first-party theme setup, base-aware asset URLs, owned manager typing and teardown. Included in the tarball with examples/npm/. npm registry publication is still pending.
 - [npm distribution proposal](https://github.com/khawkins98/scriptoscope/blob/main/docs/npm-distribution-plan.md): draft package boundaries and publication plan, tracked in [#649](https://github.com/khawkins98/scriptoscope/issues/649). The package has not been published to npm; use the current Pages or self-hosted setup.
 - [README](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/README.md): consumer pitch + 5-minute setup + CDN paths + full `data-scriptoscope-*` attribute vocabulary + the example host's `mountExplicitPage()` options and handle API. This is the canonical integration reference.
 - [Live demo](https://khawkins98.github.io/scriptoscope/): the canonical consumer page; every documented feature exercised. View source = the recipe.

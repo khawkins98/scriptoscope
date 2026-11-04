@@ -9,6 +9,9 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed
 
+- Package contents exclude demo build output regardless of build history. The
+  tarball includes decoder notices, a consumer guide and a runnable example with
+  self-hosted theme setup and explicit teardown. npm publication remains pending.
 - Title fitting and painting now share a fixed 4096×32 plain Canvas 2D surface,
   including tiled publication of wide titles. This removes the WebKitGTK
   surface-size mismatch between fit observation and painted coverage (#646).
