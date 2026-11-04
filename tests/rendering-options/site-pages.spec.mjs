@@ -11,8 +11,15 @@ test('wayfinding carries the scheme from installation through examples and back'
   await page.locator('.site-example-card').getByRole('link', { name: /Personal/ }).click();
   await expect(page).toHaveURL(/personal.html\?theme=1138/);
   await expect(page.locator('.site-example-nav a[aria-current]')).toHaveText('Personal page');
+  // The example pages mount on <body>: the example host makes it inert until
+  // `.scriptoscope-ready` (#565). A click whose actionability check passes just
+  // before boot sets `inert` lands on an inert link and is dropped without a
+  // retry (Firefox CI trace: body not inert at the click's input snapshot,
+  // inert with three hosts right after, no navigation). Click once ready.
+  await expect(page.locator('body.scriptoscope-ready')).toHaveCount(1);
   await page.locator('.site-example-nav').getByRole('link', { name: 'Docs layout' }).click();
   await expect(page).toHaveURL(/docs.html\?theme=1138/);
+  await expect(page.locator('body.scriptoscope-ready')).toHaveCount(1);
   await page.locator('.site-next').getByRole('link', { name: /Put it on your page/ }).click();
   await expect(page).toHaveURL(/install.html\?theme=1138/);
   await expect(page.locator('#install')).toBeVisible();

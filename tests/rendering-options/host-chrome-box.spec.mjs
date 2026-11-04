@@ -212,3 +212,27 @@ for (const mode of ['source', 'production']) {
     }
   }
 }
+
+// The heavy showcase cards are content-box with `max-height: 280px`, so their captured
+// border box is 306 px (280 + 2 × 12 padding + 2 × 1 border), while the border-box host
+// inheriting the cap stops at 280. The growth observer applies the cap, but from a rAF,
+// and WebKit sometimes runs no rAF for over a second after boot (release-gate run
+// 41867122386: both heavy cards 306 px tall in 280 px hosts). Hold every rAF from the
+// first window host on, so the caps must already hold when promotion resolves.
+showcaseTest('source: showcase capped cards fit their hosts before any auto-fit frame (#526)', async ({ page, demo }) => {
+  await page.addInitScript(() => {
+    const raf = window.requestAnimationFrame.bind(window);
+    let hold = false;
+    window.requestAnimationFrame = cb => raf(t => { if (!hold) cb(t); });
+    new MutationObserver(() => { hold ||= !!document.querySelector('#powers [data-scriptoscope-window-host]'); })
+      .observe(document, { childList: true, subtree: true });
+  });
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(`${demo}/showcase.html?theme=evolution`);
+  await expect(page.locator('#powers.scriptoscope-ready')).toBeVisible({ timeout: 30_000 });
+  const cards = await page.evaluate(() => [...document.querySelectorAll('#powers .powers-card-row.heavy [data-scriptoscope-window-host]')].map(host => {
+    const c = host.shadowRoot.querySelector('canvas.scriptoscope-chrome').getBoundingClientRect(), h = host.getBoundingClientRect();
+    return { host: Math.round(h.height), canvas: Math.round(c.height), cap: getComputedStyle(host).maxHeight };
+  }));
+  expect(cards).toEqual([{ host: 280, canvas: 280, cap: '280px' }, { host: 280, canvas: 280, cap: '280px' }]);
+});

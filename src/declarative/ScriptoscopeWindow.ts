@@ -28,6 +28,16 @@ export interface ScriptoscopeWindowDeps<Theme extends ThemeInput = LoadedTheme> 
 const FIT_DEFAULT = { w: 260, h: 150 }; // provisional first-render outer size for content-fit (corrected after measure)
 const FIT_MAX_W = 720; // outer cap so a wide content block doesn't yield a monster window
 const MIN_W = 80, MIN_H = 40; // OUTER floors: measured boxes only, never a declared content size (#558)
+/** A consumer px `max-width`/`max-height` as an outer cap. Only px values cap:
+ *  percentages, em, vh/vw, calc(), none, etc. all leave the cap at Infinity.
+ *  (parseFloat('100%') returns 100, not NaN, so a unit check is required —
+ *  losing this bit collapsed Read Me's host to 100px wide because
+ *  `.powers-inner > * { max-width: 100% }` applied via inheritance.) */
+function pxCap(v: string): number {
+  if (!v.endsWith('px')) return Infinity;
+  const n = parseFloat(v);
+  return isNaN(n) || n <= 0 ? Infinity : n;
+}
 // A cancelled mount may be replaced before its async render finishes. Only the
 // current preparation owns the source's stamp; old completions cannot clear it.
 const pendingPromotions = new WeakMap<HTMLElement, object>();
@@ -428,6 +438,10 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
         // without consumer intervention. Declared dimensions are preserved
         // inside fitToContent (declaredW / declaredH). FE-reviewer follow-up
         // 2026-05-30 P1.
+        // The host now carries the consumer's classes, so its px caps are readable:
+        // apply them to the captured bound before anyone measures the window.
+        await inst.fitInitialCaps();
+        assertCurrent();
         inst.startGrowthObserver({
           initialH: h0, initialW: w0,
           ...(parsed.title !== undefined ? { title: parsed.title } : {}),
@@ -551,22 +565,10 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
           if (!this.contentFit) ({ w: measuredW, h: measuredH } = this.initial);
           this.last = { w: 0, h: 0 };
         }
-        // Cap grow by consumer-imposed PIXEL max-width / max-height. Only px
-        // values cap — percentages, em, vh/vw, calc(), none, etc. all leave
-        // the cap at Infinity. (parseFloat('100%') returns 100, not NaN, so
-        // a unit check is required — losing this bit collapsed Read Me's
-        // host to 100px wide because `.powers-inner > * { max-width: 100% }`
-        // applied via inheritance.)
-        const cs = getComputedStyle(this.host);
-        const pxCap = (v: string): number => {
-          if (!v.endsWith('px')) return Infinity;
-          const n = parseFloat(v);
-          return isNaN(n) || n <= 0 ? Infinity : n;
-        };
-        const capW = pxCap(cs.maxWidth);
-        const capH = pxCap(cs.maxHeight);
-        const w = this.declaredW ?? Math.min(capW, Math.max(measuredW, this.last.w));
-        const h = this.declaredH ?? Math.min(capH, Math.max(measuredH, this.last.h));
+        // Cap grow by consumer-imposed PIXEL max-width / max-height (see pxCap).
+        const cap = this.hostCaps();
+        const w = this.declaredW ?? Math.min(cap.w, Math.max(measuredW, this.last.w));
+        const h = this.declaredH ?? Math.min(cap.h, Math.max(measuredH, this.last.h));
         if (Math.abs(w - this.last.w) < 1 && Math.abs(h - this.last.h) < 1) {
           // Window dimensions are stable but the fit's content changed
           // (e.g. picker tiles populated AFTER mount, growing the slot's
@@ -589,6 +591,30 @@ export class ScriptoscopeWindow<Theme extends ThemeInput = LoadedTheme> {
         this.rendering = false;
       })();
     });
+  }
+
+  /** The host's px `max-width`/`max-height` as outer caps (Infinity when absent). */
+  private hostCaps(): { w: number; h: number } {
+    const cs = getComputedStyle(this.host);
+    return { w: pxCap(cs.maxWidth), h: pxCap(cs.maxHeight) };
+  }
+
+  /** Fit the captured outer bound inside the host's px caps before promotion resolves.
+   *  The captured rect is the SOURCE's border box, and a `max-height` on a content-box
+   *  source bounds only its content, so that rect can exceed the cap by the source's
+   *  padding and border (the showcase's heavy cards: 280 + 2 × 12 + 2 × 1 = 306). The
+   *  host inherits the cap but is border-box, so the box stopped at 280 while the first
+   *  render's canvas was 306 tall. The growth observer applies the cap, but only from a
+   *  rAF after the first ResizeObserver delivery, and WebKit sometimes delays that past a
+   *  second (release-gate run 41867122386). Until then the chrome hung out of its host.
+   *  Same caps, same outer-box rule as scheduleFit; one extra render, only when capped. */
+  private async fitInitialCaps(): Promise<void> {
+    const cap = this.hostCaps();
+    const w = this.declaredW ?? Math.min(cap.w, this.last.w);
+    const h = this.declaredH ?? Math.min(cap.h, this.last.h);
+    if (w === this.last.w && h === this.last.h) return;
+    this.last = { w, h };
+    await this.applySize(w, h);
   }
 
   /** The fit wrapper's scroll size is a CONTENT measurement; add the current frame so

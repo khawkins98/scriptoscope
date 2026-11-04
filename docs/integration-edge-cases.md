@@ -191,7 +191,7 @@ Auto-fit also terminates the first time the user grow-box-resizes the window. Th
 
 Past a 30 px / 500 ms growth threshold the runtime emits a one-shot `console.warn` suggesting you pre-declare via `data-scriptoscope-extra-width="N"` / `-extra-height="N"` to skip the visual pop on initial load. **To suppress the warning**: either set the suggested `-extra-*` attribute, or declare absolute `-width`/`-height` (auto-resize is suppressed entirely for declared dimensions).
 
-If you set a px-valued `max-width` / `max-height` on the host via CSS (a class or id rule the host inherits; an inline `style` on the source element is not carried over), the auto-resize respects it as a hard cap on the whole window, chrome included, and the slot scrolls instead. Percentage / em / vh-based caps are ignored (treated as no cap) — if you need a viewport-relative max you'll need to convert to px in JS and re-apply on resize.
+If you set a px-valued `max-width` / `max-height` on the host via CSS (a class or id rule the host inherits; an inline `style` on the source element is not carried over), the auto-resize respects it as a hard cap on the whole window, chrome included, and the slot scrolls instead. The cap also bounds the window's first size: a `max-height` on a `content-box` source limits only its content, so the captured rect can be taller than the cap by the source's padding and border; the window is fitted inside the cap before `promote` resolves, rather than on the first auto-fit frame (which WebKit can delay past a second). Percentage / em / vh-based caps are ignored (treated as no cap) — if you need a viewport-relative max you'll need to convert to px in JS and re-apply on resize.
 
 ## Class inheritance and the locked-down properties
 
