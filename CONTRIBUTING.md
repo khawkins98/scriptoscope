@@ -207,11 +207,14 @@ CI runs in two tiers ([DECISIONS](./docs/v2/DECISIONS.md) #14, [#598](https://gi
 
 ## Cutting a release
 
-Releases are GitHub-only: a tag plus a GitHub release, with no npm publication.
-
-Future npm publication is tracked in [#649](https://github.com/khawkins98/scriptoscope/issues/649)
-and the [distribution proposal](./docs/npm-distribution-plan.md). Until that work
-lands, use the release procedure below.
+The npm distribution decision and launch prerequisites are tracked in
+[#649](https://github.com/khawkins98/scriptoscope/issues/649) and the
+[distribution proposal](./docs/npm-distribution-plan.md). Consumer documentation
+is prepared for npm installation; this branch has not published the package.
+Coordinate the first registry release and its installation smoke with the Pages
+deployment so the live docs and available package agree. The current GitHub
+release checks and tag procedure are below; npm publishing still needs to be
+connected to that gate as described in the proposal.
 
 1. Branch `release/X.Y.Z` from `main`. Commit `chore(release): prepare X.Y.Z`: bump `package.json`, `package-lock.json` and `VERSION` in `src/renderer.ts`; date the CHANGELOG section and end it with `npm run loc:src -- HEAD --base <previous tag>`; leave an empty Unreleased heading; update docs that describe the release as unreleased.
 2. Open the release PR (`release: X.Y.Z`) against `main`. The PR tier and the release tier both run on it. Link the green **Release gate** run in the PR body. This is the early signal; it does not replace step 4.

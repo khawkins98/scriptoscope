@@ -1,8 +1,31 @@
 # Use the package in an application
 
-The registry package is not published yet. This guide works with a locally built
-tarball now; publication will use the same package exports. For the current
-no-build hosted setup, use the [website installation guide](https://khawkins98.github.io/scriptoscope/install.html).
+Scriptoscope adds classic-Mac window chrome and themed controls to your own
+HTML. Your content stays selectable, your forms keep native values and keyboard
+behavior, and your application owns when the decoration attaches and disappears.
+
+Install it with your app's other dependencies, commit your lockfile, and bundle
+the runtime with your application. You can choose and host themes independently
+of runtime upgrades. This works for personal sites, retro interfaces and existing
+applications that want a themed window without replacing their content system.
+
+## Install
+
+```sh
+npm install scriptoscope
+```
+
+The runtime is framework-independent ESM with TypeScript declarations. Import
+the APIs you need and the optional stylesheet:
+
+```ts
+import { loadOwnedTheme, WindowManager, type OwnedTheme } from 'scriptoscope';
+import { ScriptoscopeWindow, promoteControl, restoreControl } from 'scriptoscope/declarative';
+import 'scriptoscope/scriptoscope.css';
+```
+
+For a page without a build step, use the
+[hosted installation guide](https://khawkins98.github.io/scriptoscope/install.html).
 
 ## Install and run the complete example
 
@@ -10,32 +33,22 @@ Use Node 24 for this Vite/TypeScript example. This is a browser application;
 DOM promotion and canvas rendering run on the client. Importing the JS entrypoints
 on a server does not provide server rendering.
 
-From a Scriptoscope checkout, prepare a tarball:
+The installed package includes a small Vite app at `examples/npm/`. From a
+project where you installed Scriptoscope, copy it into a new directory:
 
 ```sh
-npm ci
-npm run build
-mkdir -p /absolute/path/to/output
-npm pack --ignore-scripts --pack-destination /absolute/path/to/output
-```
-
-Create a new app outside the checkout, copying the example directory from either
-the checkout or an installed package. Replace the absolute paths below with your
-paths and use the tarball filename printed by `npm pack`:
-
-```sh
-mkdir my-scriptoscope-app
-cp -R /absolute/path/to/scriptoscope/examples/npm/. my-scriptoscope-app/
-cd my-scriptoscope-app
-npm install /absolute/path/to/output/scriptoscope-0.9.0.tgz
+cp -R node_modules/scriptoscope/examples/npm ../my-scriptoscope-app
+cd ../my-scriptoscope-app
+npm install
 npm run theme
 npm run dev
 ```
 
 Open the URL printed by Vite, including `/nested/`. Check “Keep my setting”,
 then press “Restore native HTML”. The original checkbox and its value remain.
-The example files are included in the package at `examples/npm/`; there are no
-imports from the Scriptoscope checkout or the Pages example host.
+The sample uses the package's public exports and your own hosted theme files.
+You can copy its markup and lifecycle into an existing application instead of
+starting a separate Vite app.
 
 To verify production output:
 
@@ -66,7 +79,7 @@ This download needs network access during setup. The running app fetches these
 files from your own server; it does not depend on Pages or contact the archive
 source. Vite copies `public/` files unchanged into the production output.
 For offline setup, copy those four files from a previous download into the same
-layout. The theme archive is deliberately separate from the runtime tarball.
+layout. The theme archive is deliberately separate from the runtime package.
 
 For another Kaleidoscope scheme, obtain the original `.sit` or `.rsrc` archive,
 retain its original provenance/terms when redistributing, and place it with its
@@ -119,11 +132,6 @@ theme.dispose();
 or dispose application-owned themes. Call each window's `unmount()` and restore
 controls first. The example also cleans up on failed mounting and page exit,
 and keeps the live UI when the browser places the page in its Back/Forward cache.
-
-The isolated package test compiles and runs this shipped example, including the
-restore button, alongside the broader consumer contract. Package JS imports are
-checked without DOM globals; strict types are checked with both Bundler and
-NodeNext resolution.
 
 ## Public files and troubleshooting
 

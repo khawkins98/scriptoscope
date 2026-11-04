@@ -54,11 +54,21 @@ at 8-bit colour and in native Kaleidoscope before publishing it.
 
 ## Install
 
-Installation currently uses GitHub Pages or self-hosted build files. npm distribution
-is [being planned](https://github.com/khawkins98/scriptoscope/blob/main/docs/npm-distribution-plan.md) ([#649](https://github.com/khawkins98/scriptoscope/issues/649)); the package has not been published to npm.
-To try the package now, use the [tarball consumer guide](./docs/npm-consumer.md).
-It includes a complete TypeScript example, a pinned first-party theme download,
-nested-path hosting and explicit teardown, all using public package exports.
+Install Scriptoscope in your application:
+
+```sh
+npm install scriptoscope
+```
+
+Use it to give an existing website classic-Mac windows and themed controls while
+keeping your HTML, native form values and event handlers. npm lets you manage the
+runtime with your app's dependencies and lockfile, bundle it with your own code,
+and deploy it alongside themes you host yourself.
+
+Start with the [npm integration guide](./docs/npm-consumer.md). It includes a
+complete TypeScript example, a first-party sample theme, deployment under a
+nested URL and explicit teardown. The package is framework-independent; attach
+it after your page or component creates its native DOM.
 
 > **Upgrading to 0.9.0:** managed windows now let clicks through the transparent parts of their frames, and a press on the page deactivates the active window. Use `data-scriptoscope-hit="box"` to keep the old behaviour; see the note in the [CHANGELOG](CHANGELOG.md).
 >
@@ -70,8 +80,8 @@ nested-path hosting and explicit teardown, all using public package exports.
 > `v2` is an internal development branch label, not public release 2.0 or a
 > 1.0 threshold.
 
-The runtime and the 18 themes are hosted on the project's GitHub Pages. For a
-matching deployed build, the page integration uses two URLs and no build step:
+For a page without a build step, the runtime and 18 demonstration themes are
+also hosted on GitHub Pages. Use the matching hosted example with two URLs:
 
 ```html
 <link rel="stylesheet" href="https://khawkins98.github.io/scriptoscope/scriptoscope.css">
@@ -108,7 +118,9 @@ If you'd prefer to vendor it (no third-party CDN dependency), copy every top-lev
 
 ## Five-minute setup
 
-A more complete page with the script wired in, one window, and a button:
+For the hosted option without a build step, here is a complete page with one
+window and a button. For an application using npm, follow the
+[npm integration guide](./docs/npm-consumer.md).
 
 ```html
 <!doctype html>
@@ -765,8 +777,7 @@ Beyond the bundled corpus, the demo has a **drop-zone**: drag a Kaleidoscope the
 
 ## Documents
 
-- **[Tarball consumer guide](./docs/npm-consumer.md)** — complete installed-package example with a first-party theme download, owned theme types and teardown; usable before registry publication.
-- **[npm distribution proposal](https://github.com/khawkins98/scriptoscope/blob/main/docs/npm-distribution-plan.md)** — draft package boundaries, architecture recommendations and publication plan; current releases remain GitHub-only.
+- **[npm integration guide](./docs/npm-consumer.md)** — install the package, run a complete example with a first-party theme, and manage window/control attachment and teardown in your application.
 - **[Interaction reference](https://github.com/khawkins98/scriptoscope/blob/main/docs/interaction.md)** — what users can do with a window and its controls (activation, focus, moving, resizing, title widgets, scroll bars, controls, modals), every `scriptoscope:*` event, keyboard equivalents, and touch and browser differences.
 - **[Measured simplification](https://github.com/khawkins98/scriptoscope/blob/main/docs/measured-simplification.md)** — our approach to reducing runtime complexity and execution cost through consolidation, prepared inputs and differential validation; includes a reusable optimization prompt.
 
@@ -898,7 +909,7 @@ A non-binding "things that would be cool to build next" list, organized by theme
 
 - **In-browser theme browsing + remix** — pair the existing drop-zone with a curated gallery sourced from the community archives (see the "Want more?" block above). Drag any `.sit` from a Mac Themes Garden listing into Scriptoscope's demo and see it render live; save a favorites set; flip between them with the existing theme switcher.
 - **A Kaleidoscope-like configuration panel** — Scriptoscope's drop-zone is a thin echo of Kaleidoscope's own control panel. A consumer-side config UI that lets the user toggle desktop pattern / sounds / extras / accent variant per-scheme (the same checkboxes Kaleidoscope's CP shipped) is the natural next step.
-- **Theme hosting** — the [npm distribution proposal](https://github.com/khawkins98/scriptoscope/blob/main/docs/npm-distribution-plan.md) keeps theme archives external to the runtime package, loaded from a URL the consumer hosts. A community-run theme CDN could provide an optional alternative. The runtime currently decodes the original archives in-browser.
+- **Theme hosting** — the [npm integration guide](./docs/npm-consumer.md) shows how to host theme archives alongside your application. A community-run theme CDN could provide an optional alternative. The runtime decodes the original archives in-browser.
 - **Theme curator / submission flow** — once the corpus grows beyond what we want to bundle in-repo, a community submission flow (`scriptoscope-themes` repo + a contributor guide) would scale better than hand-curated additions.
 
 ### Adopter-facing extras

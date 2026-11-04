@@ -1,8 +1,13 @@
 # npm distribution proposal
 
 Status: draft for review, 2026-11-04. Tracker: [#649](https://github.com/khawkins98/scriptoscope/issues/649).
-This proposes future work; the [current release procedure](../CONTRIBUTING.md#cutting-a-release)
-still produces GitHub releases and Pages deployments only.
+This PR decides whether and how to distribute Scriptoscope on npm and prepares
+the package and consumer experience for that release. The consumer-facing README,
+website install page and integration guide intentionally describe the launch
+state: `npm install scriptoscope`, then integrate it into an application.
+Registry publication has not happened in this branch. Publishing decisions,
+validation limits and launch prerequisites belong here and in
+[maintainer release instructions](../CONTRIBUTING.md#cutting-a-release).
 
 ## Recommendation
 
@@ -14,6 +19,48 @@ rewrite. Treat npm publication separately from the [v1 threshold](https://github
 The changes needed are at the distribution boundary: a complete npm setup recipe,
 predictable package contents, bundled dependency notices, a few additional consumer
 checks and a publisher connected to the existing release gate.
+
+## Why offer npm distribution?
+
+The primary audience is a developer adding themed windows and native controls
+to an existing application. npm gives that developer a normal dependency to
+install, an explicit version recorded in a lockfile, TypeScript declarations,
+and modules their application build can bundle and deploy. They can update the
+runtime deliberately rather than depend on a changing Pages URL or manually
+track shared/lazy JS files. Hosting themes separately lets them choose the
+appearance and preserve each archive's provenance independently of code upgrades.
+
+For a personal site or demonstration with no build system, the existing hosted
+example remains useful. npm should expand the ways people can consume the
+project; it does not require every user to adopt a bundler or every theme to
+become an npm dependency.
+
+| Distribution | Who benefits | Maintenance/consumer cost |
+| --- | --- | --- |
+| npm ESM package | Apps with a build step; developers who want typed imports, lockfile versioning and their own deployment | Maintain public exports, release artifacts and migration notes; consumers explicitly attach and dispose the runtime. |
+| Hosted Pages example | Simple HTML sites and quick experiments | Depends on the hosted runtime/example and theme URLs; updates follow the deployed site. |
+| Vendored build files | Sites that want direct file hosting without npm | Consumers copy every shared/lazy chunk and manage updates themselves. |
+
+Recommend proceeding with the npm option once the launch checks below pass.
+The independent consumer trials show that the current public primitives can
+support it. The remaining decision is the publishing/support commitment, not
+whether the engine needs a rewrite.
+
+## Decision and launch prerequisites
+
+- Confirm the package owner/name and the first version/channel. Align the
+  example's runtime dependency with that release.
+- Commit to the documented ESM/public-export and explicit lifetime contracts;
+  use changelog/migration notes for pre-1.0 API changes.
+- Configure publication through the existing exact-commit release gate and
+  verify the actual registry artifact, including a fresh scaffold install.
+- Coordinate the npm release with the consumer documentation deployment. Pages
+  currently deploys on pushes to `main`; publish and smoke-check the registry
+  package before exposing the npm install instructions on the live site.
+
+Approval of this proposal should lead to an available npm package and usable
+documentation together. Local tarball success is supporting evidence; it does
+not replace the first registry installation check.
 
 ## Implementation status
 
@@ -84,7 +131,7 @@ migration or redesigning the rendering architecture.
 
 ### Make the npm front door complete
 
-The README's easiest setup imports `mountExplicitPage` from Pages. That helper
+The hosted README setup imports `mountExplicitPage` from Pages. That helper
 lives in `demo/explicit-host.mjs`, imports `explicit-layout.mjs`, and reaches into
 `src/declarative/index.ts`; it is not an npm export. Simply substituting a bare
 package import into that snippet would fail.
@@ -189,8 +236,8 @@ browser. Separate contributor/publisher Node requirements from consumer support.
 6. Install the published version in an isolated consumer and run the bounded
    browser smoke. Link the package version, gate and provenance in release notes.
    On a broken release, document deprecation/channel correction and a fix version.
-7. Update CONTRIBUTING's GitHub-only procedure and add the npm path to README.
-   Continue shipping the Pages demo through its existing pipeline.
+7. Complete the maintainer release procedure and deploy the prepared npm-facing
+   docs after the registry smoke passes. Continue shipping the Pages demo.
 
 Authoritative references: [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/),
 [npm lifecycle scripts](https://docs.npmjs.com/cli/v11/using-npm/scripts/),
@@ -202,21 +249,23 @@ this proposal does not change account settings or publish anything.
 
 ### Documentation and website rollout
 
-The planning PR links this proposal from README, CONTRIBUTING and `llms.txt`,
-and labels npm as planned on the website's `demo/install.html`. The homepage
-already sends consumers to that installation page and needs no new npm claim.
+Consumer docs in this PR are written for the released package rather than as
+instructions for reviewing a proposal or building a tarball. README and the
+website installation page explain the benefits and link the npm integration
+guide; `llms.txt` points integration agents to that same guide. The homepage
+already links to the shared installation page.
 
-When registry installation is verified, update these surfaces together:
+At launch, verify these prepared surfaces together:
 
-- README Install/Five-minute setup and `demo/install.html`: add tested npm
+- README Install/Five-minute setup and `demo/install.html`: verify npm
   installation, CSS imports, theme hosting and teardown; retain the working
   no-build Pages option. Distinguish the package primitives from the Pages host.
 - CONTRIBUTING: replace the GitHub-only release instructions with the actual
   publisher, registry bootstrap, channel and recovery procedure.
-- `llms.txt`: update distribution status and link the npm recipe so integration
+- `llms.txt`: link the npm recipe so integration
   agents use the same supported paths as human consumers.
 - Homepage (`demo/index.html`): keep its installation link pointing at the
-  shared guide; add an npm-specific call to action only after the package exists.
+  shared guide.
 - CHANGELOG and release notes: record the first npm version, supported exports,
   environment requirements, theme asset boundary and any migration steps.
 

@@ -1,13 +1,12 @@
 # Scriptoscope
 
-> A web-native re-implementation of Apple's Mac OS 8 Appearance Manager. Period Mac window-types are HTML attributes; the chrome paints into a `<canvas>` from the original `cicn` / `ppat` / `Colr` resources Kaleidoscope read in 1998. Eighteen vintage schemes ship as evidence. CDN-canonical install via GitHub Pages (no npm).
+> A web-native re-implementation of Apple's Mac OS 8 Appearance Manager. Period Mac window-types are HTML attributes; the chrome paints into a `<canvas>` from the original `cicn` / `ppat` / `Colr` resources Kaleidoscope read in 1998. Install the ESM runtime with `npm install scriptoscope`, or use the hosted GitHub Pages example without a build step. Theme archives are separate inputs hosted by the consumer; the demo includes eighteen vintage schemes.
 
-Drop two URLs in a `<head>`, tag some HTML with `data-scriptoscope-window` / `-button` / `-control`, and the consumer's elements become draggable, themable Mac windows + widgets. No build step. Native form controls stay real (form submission, keyboard, a11y preserved); chrome is canvas. The library renders schemes 1:1 from their original `.sit` / `.rsrc` binary archives, decoded in-browser. Live demo: <https://khawkins98.github.io/scriptoscope/>.
+For applications, import from `scriptoscope` and `scriptoscope/declarative`, load a self-hosted theme and explicitly promote native DOM elements. For a page without a build step, use the hosted stylesheet and page example with `data-scriptoscope-*` markup. Native form controls stay real (form submission, keyboard, a11y preserved); chrome is canvas. Schemes load from their original `.sit` / `.rsrc` binary archives, decoded in-browser. Live demo: <https://khawkins98.github.io/scriptoscope/>.
 
 ## Start here
 
-- [Tarball consumer guide](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/npm-consumer.md): runnable installed-package example, pinned first-party theme setup, base-aware asset URLs, owned manager typing and teardown. Included in the tarball with examples/npm/. npm registry publication is still pending.
-- [npm distribution proposal](https://github.com/khawkins98/scriptoscope/blob/main/docs/npm-distribution-plan.md): draft package boundaries and publication plan, tracked in [#649](https://github.com/khawkins98/scriptoscope/issues/649). The package has not been published to npm; use the current Pages or self-hosted setup.
+- [npm integration guide](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/npm-consumer.md): install with npm, run the included examples/npm app, acquire a first-party theme, use base-aware asset URLs and manage owned theme/window/control lifetimes. Use this for applications with a build step.
 - [README](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/README.md): consumer pitch + 5-minute setup + CDN paths + full `data-scriptoscope-*` attribute vocabulary + the example host's `mountExplicitPage()` options and handle API. This is the canonical integration reference.
 - [Live demo](https://khawkins98.github.io/scriptoscope/): the canonical consumer page; every documented feature exercised. View source = the recipe.
 - [Live diagnostic / per-scheme inspector](https://khawkins98.github.io/scriptoscope/diagnostic.html): every cicn / ppat / icon resource in each scheme, plus rendered windows for visual verification.
@@ -21,7 +20,7 @@ Drop two URLs in a `<head>`, tag some HTML with `data-scriptoscope-window` / `-b
 
 ## Common recipes (in README)
 
-- **Five-minute setup** (basic install): tag elements + drop two URLs. <https://raw.githubusercontent.com/khawkins98/scriptoscope/main/README.md#five-minute-setup>
+- **Five-minute hosted setup** (no build step): tag elements + load the stylesheet and page example. <https://raw.githubusercontent.com/khawkins98/scriptoscope/main/README.md#five-minute-setup>
 - **Theme switching at runtime**: `<div data-scriptoscope-theme-picker>` populated from `mountOptions.themes` + `handle.retheme(slug)`. <https://raw.githubusercontent.com/khawkins98/scriptoscope/main/README.md#theme-switching-at-runtime>
 - **Bring your own theme (drop `.sit` / `.rsrc`)**: `attachThemeDropZone()` decodes in-browser; `handle.registerTheme(ref, theme)` makes it switchable. <https://raw.githubusercontent.com/khawkins98/scriptoscope/main/README.md#bring-your-own-theme--drop-a-sit--rsrc-and-see-it-render>
 - **Themed modal pattern**: `handle.openModal(wrap, { returnFocusTo })` — focus trap (including shadow-DOM chrome), Esc + backdrop, listens for `scriptoscope:close`. Same section as BYO above.
