@@ -100,38 +100,59 @@ check. Playwright shards by test count and keeps a file's tests that share a
 worker in one shard, so the balance between shards is approximate. Coverage
 does not depend on it.
 
+## What the PR tier leaves to the release tier
+
+The bounded profile that CI runs on every PR skips two kinds of test. Both still
+run in the extended matrix, which the release gate requires. The lists live in
+[`pr-tier.mjs`](./pr-tier.mjs), which the config reads.
+
+- **Built-mode twins.** Most specs run each test against the source modules and
+  again against the built bundle. Both share the decoder, resolver and
+  compositor, so the built twin only catches packaging differences, and it was a
+  third of PR browser time. On PRs a built twin still runs when its spec
+  registers `fidelity-assertion` annotations
+  (`test:requirements -- --require-execution` needs both modes of every
+  registered assertion) or is in `BUILT_SMOKE_SPECS` (the production demo bundle
+  and the public explicit-host entry). `matrix.spec.mjs` keeps its source/built
+  pixel comparison for all 18 themes, and the gates job runs the installed
+  package consumer contract.
+- **Report-only specs.** `frame-pass-through-perf.spec.mjs` asserts its budget
+  only in WebKit. In Chromium it reports and returns, so it does not run on PRs.
+
+`SCRIPTOSCOPE_RENDERING_BUILT=all npm run test:rendering` runs the full bounded
+inventory locally. The aggregate job's `--list` uses the same config, so shard
+parity still compares like with like.
+
 ## Firefox and WebKit interaction contracts (#598)
 
-The release tier (`.github/workflows/release-gate.yml`) runs a narrow required
-job, **Interaction contracts (firefox)** and **(webkit)**, one matrix leg per
-engine at DPR 1 in the same pinned container. It ran on every PR until the
-maintainer moved it to the release tier (#598, DECISIONS #14); the PR tier is now
-Chromium-only, and Chromium still runs these specs on every PR in the bounded shards.
-It runs only the specs listed in [`interaction-specs.mjs`](./interaction-specs.mjs),
-where engines genuinely differ on pointer capture, sub-pixel pointer coordinates
-and focus: `window-pointer-drag`, `growbox-zero-delta`, `growbox-zone`,
-`posture-b`, `transformed-ancestors` and the five `frame-pass-through*` specs of
-#597 (hit-regions §9.8; HPT36's WebKit budget is gated only in that engine). Pixel and trace
-contracts are not part of this job; the extended matrix, which the release gate
-also runs, covers every spec (these included) in every engine. `scrollbar-parts`
-is green in both engines but its hold-to-repeat cases cost about 4.7 minutes per
-engine, so it is covered only by the extended matrix.
+The specs listed in [`interaction-specs.mjs`](./interaction-specs.mjs) are where
+engines genuinely differ on pointer capture, sub-pixel pointer coordinates and
+focus: `window-pointer-drag`, `growbox-zero-delta`, `growbox-zone`, `posture-b`,
+`transformed-ancestors`, the `frame-pass-through*` specs of #597 (hit-regions
+§9.8; HPT36's WebKit budget is gated only in that engine) and the rest of the
+list. They ran on every PR until the maintainer moved them to the release tier
+(#598, DECISIONS #14). The PR tier is Chromium-only, and Chromium still runs these
+specs on every PR in the bounded shards (source mode, plus built where pr-tier.mjs
+keeps it).
+
+In the release tier, the extended matrix runs every spec, these included, in
+source and built modes in `firefox-dpr1` and `webkit-dpr1`. A separate
+**Interaction contracts (firefox)/(webkit)** job used to run the list again in
+both engines; it was removed because it repeated the extended run (about 25
+minutes of WebKit per release run). The release gate's **Interaction contract
+coverage (firefox, webkit)** job, required by the aggregate, now reads the
+extended Firefox and WebKit shard reports. It lists the extended inventory for
+those two engines and runs `shards.mjs parity` with
+`--require-projects firefox-dpr1,webkit-dpr1 --require-files <list>`: every listed
+test ran exactly once, and each interaction spec file listed and ran at least one
+test in each engine. A renamed or emptied spec fails rather than passing as
+"nothing listed, nothing ran". Failures upload with the extended shards.
 
 Locally, `npm run test:rendering:interaction` builds the library and demo, then
 runs the list in Firefox and WebKit (`SCRIPTOSCOPE_RENDERING_SUITE=interaction`;
 `SCRIPTOSCOPE_RENDERING_BROWSERS` narrows or widens the engines). The list file is
 the only place the spec set is named: the config, the npm script and the CI
 check all read it.
-
-The **Release gate** aggregate needs this job and fails unless both legs
-succeeded. It is a subset by design, so it is not fed into the extended shard
-parity. Instead the release gate's **Interaction contract coverage (firefox,
-webkit)** job, also required by the aggregate, lists the interaction inventory and runs `shards.mjs parity` with
-`--require-projects firefox-dpr1,webkit-dpr1 --require-files <list>`: every listed
-test ran exactly once, and each listed spec file listed and ran at least one test
-in each engine. A renamed or emptied spec fails rather than passing as "nothing
-listed, nothing ran". Failure evidence uploads as
-`interaction-contracts-<browser>-<attempt>`.
 
 ## Current coverage boundaries
 

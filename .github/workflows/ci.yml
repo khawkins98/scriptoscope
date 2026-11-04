@@ -34,6 +34,8 @@ concurrency:
 # The Firefox/WebKit interaction contracts (#598) ran here as part of the
 # aggregate until the maintainer moved them to the release tier
 # (release-gate.yml, DECISIONS #14). The PR tier is Chromium-only.
+# The bounded profile also leaves most built-mode twins and report-only specs to
+# the release tier's extended matrix (tests/rendering-options/pr-tier.mjs).
 env:
   RENDERING_SHARDS: 5
 
