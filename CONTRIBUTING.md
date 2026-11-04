@@ -210,10 +210,10 @@ CI runs in two tiers ([DECISIONS](./docs/v2/DECISIONS.md) #14, [#598](https://gi
 ### First npm launch
 
 The package contents, consumer example and installation documentation are ready
-for release preparation. The remaining launch work is tracked in
-[#649](https://github.com/khawkins98/scriptoscope/issues/649). This branch has not
-published a package or implemented the npm publisher. Consumer-facing docs are
-written for npm availability, so coordinate their deployment with publication.
+for release preparation. The remaining account/version work is tracked in
+[#649](https://github.com/khawkins98/scriptoscope/issues/649). The manual
+`publish-npm.yml` workflow prepares/tests a candidate by default; only an explicit
+`publish=true` dispatch publishes it. This branch has not published a package.
 
 Before merging the npm launch changes:
 
@@ -223,21 +223,27 @@ Before merging the npm launch changes:
    dependency in `examples/npm/package.json` and the changelog. Use a fresh
    release version rather than presenting the historical GitHub release as a
    newly tested registry artifact.
-2. Implement the publisher: verify the tag/version and exact commit's successful
-   release gate, build and pack one candidate, test it with
-   `npm run test:package:tarball -- /absolute/path/to/candidate.tgz`, then publish
-   that same tarball. Serialize releases and record the tarball digest. The
-   publisher must enforce the gate itself; a concurrent tag-check workflow is
-   not a dependency.
-3. Complete npm account/first-package bootstrap and configure the exact publisher
-   workflow using [trusted publishing](https://docs.npmjs.com/trusted-publishers/).
-   Verify the bootstrap method for a new package before depending on OIDC.
-   Use a supported npm CLI and enable the operations needed for publishing and
-   dist-tag promotion; they are separate trusted-publisher permissions.
-4. Coordinate Pages with the registry smoke. Its current push-to-`main` workflow
-   deploys immediately, so make the launch deployment wait for successful npm
-   publication/verification, or deliberately hold Pages during the first launch.
-   Prepare this before merging the npm-facing website copy.
+2. Review `publish-npm.yml`: it validates the tag's main-branch ancestry and exact
+   commit's successful dispatch/scheduled gate, packs once, tests that tarball,
+   and records its integrity. Publication and registry smoke run in the pinned
+   browser image. A retry accepts an existing version only when integrity matches.
+3. Complete npm account/first-package bootstrap and configure
+   [trusted publishing](https://docs.npmjs.com/trusted-publishers/): GitHub owner
+   `khawkins98`, repository `scriptoscope`, workflow `publish-npm.yml`, environment
+   `npm`. Allow direct publishing and dist-tag management. The workflow pins npm
+   12.2.1, which supports both OIDC operations. If npm requires an initial
+   authenticated publication before publisher setup, use the prepare-only
+   artifact for that one-off bootstrap under `next`, then configure OIDC and
+   resume the same tag's workflow. Do not publish a placeholder version or rebuild
+   the bootstrap tarball; record any missing provenance on a manual first publish.
+4. Review Pages coordination. `deploy-pages.yml` holds the build/deployment until
+   npm `latest` matches the checkout's name/version and that version's tag has a
+   completed successful `npm vX.Y.Z (latest)` publisher run. Prepare-only, next-only
+   and failed promotion runs cannot unlock it. Missing releases leave the existing
+   site untouched; registry outages fail the check. Publisher completion triggers
+   Pages on main, where the check runs again. If main has advanced to another
+   package version, Pages stays held until that version is released. This does not
+   establish byte identity between the site's demo build and the npm library.
 5. Require green PR CI and independent review. Account/bootstrap, publisher and
    Pages coordination are launch prerequisites, not effects of merging docs.
 
@@ -259,6 +265,22 @@ Then release in this order:
    or republish to change a dist-tag.
 6. Create the GitHub release with the gate, package version and provenance links,
    then release the prepared Pages/docs deployment and smoke-check the live guide.
+
+After the workflow has landed on main and the release tag exists, first prepare
+and test without publishing:
+
+```sh
+gh workflow run publish-npm.yml --ref vX.Y.Z -f tag=vX.Y.Z
+```
+
+Inspect the `npm-candidate-<run-id>` artifact (`release.json` plus the tarball)
+and the package-consumer evidence. When ready to publish under `next`, dispatch
+the same tag with `-f publish=true`. To publish/verify and promote to `latest`
+in one run, also pass `-f promote_latest=true`. An existing identical version is
+verified instead of published again, so promotion can be a later dispatch.
+Use `--ref vX.Y.Z`: the workflow checks that its event SHA equals the release
+commit, so provenance cannot point at a newer main commit. After successful
+promotion, workflow completion automatically starts the Pages availability check.
 
 If a registry smoke fails, keep Pages held and do not promote `latest`. Fix and
 release a new version; never overwrite an existing version. Compare integrity
