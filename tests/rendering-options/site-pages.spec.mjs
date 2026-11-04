@@ -224,7 +224,9 @@ test('windows inside a scaled ancestor track the pointer when dragged and resize
   expect(Math.abs(moved.x - before.x - 50)).toBeLessThanOrEqual(1);
   expect(Math.abs(moved.y - before.y - 40)).toBeLessThanOrEqual(1);
 
-  // Resize: the grow box follows the pointer too.
+  // Resize: the grow box follows the pointer too. Page copy and the preceding
+  // drag can put it below the fold; bring the actual resize target into view.
+  await host.evaluate(el => el.shadowRoot.querySelector('.scriptoscope-growbox').scrollIntoView({ block: 'center' }));
   const corner = await host.evaluate(el => {
     const r = el.shadowRoot.querySelector('.scriptoscope-growbox').getBoundingClientRect();
     return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
