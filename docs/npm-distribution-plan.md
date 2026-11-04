@@ -200,6 +200,36 @@ When registry installation is verified, update these surfaces together:
 These can land as focused PRs. This draft records the plan and baseline only.
 It does not implement a publisher, change runtime exports or decide v1 readiness.
 
+## Independent consumer trial
+
+A second agent tried an isolated application from a locally packed tarball,
+using public exports rather than the repository's demo host. This simulates the
+proposed npm path; it is not a registry-install test.
+
+The application passed strict TypeScript NodeNext checking and a Vite production
+build served under `/nested/`. In Chromium it loaded a consumer-hosted Windows95
+`scheme.sit`, promoted a window and checkbox, and restored the same native input
+with its checked state retained. Window, manager and theme disposal completed
+without browser errors. This supports keeping the existing runtime architecture.
+
+The trial exposed these concrete gaps to address before publication:
+
+| Consumer obstacle | Required follow-up |
+| --- | --- |
+| The shortest README recipe uses the Pages-only `mountExplicitPage`; the npm outline does not show actual attachment/disposal code. | Supply one complete installed-package example, including HTML, imports, theme placement, promotion and teardown. |
+| `loadOwnedTheme()` paired with the natural `new WindowManager()` fails TypeScript checking: the manager defaults to `LoadedTheme`. | Show `new WindowManager<OwnedTheme>()` with `type OwnedTheme` imported from the root, or explicitly choose `ThemeInput`. Assess inference ergonomics separately; no redesign is required for the working recipe. |
+| Runtime installation does not provide a theme or tell a new consumer where to obtain one. | Show exactly which archive/metadata files the example expects, where to place them and how to preserve their provenance. |
+| Theme URLs need to respect a nested deployment base. | Demonstrate an explicit application-aware URL; the trial used `${import.meta.env.BASE_URL}themes/windows-95` and `{ source: 'scheme.sit' }`. |
+| Packing after `build:demo` includes demo output and additional assets. | Enforce runtime-only package contents regardless of build history and check the actual release tarball. |
+| The demo-inclusive tarball still lacks an explicit munbox notice file. | Ship and assert the bundled dependency notices independently of demo assets and source maps. |
+
+The demo-first tarball contained 345 files (224 under `dist/demo`), measured
+7,316,439 bytes compressed and 15,664,442 bytes unpacked. Compare with the
+clean-library measurements below; these are observations of local build states,
+not fixed size budgets. The trial workspace and screenshots are temporary local
+evidence, not a committed consumer fixture. Promote the complete example into
+the installed-package contract as implementation work.
+
 ## Local evidence
 
 Observed 2026-11-04, Node `24.18.0`, npm `11.16.0` on the baseline above:
