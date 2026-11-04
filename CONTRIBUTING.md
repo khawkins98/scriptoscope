@@ -199,7 +199,7 @@ CI runs in two tiers ([DECISIONS](./docs/v2/DECISIONS.md) #14, [#598](https://gi
   - pull requests from `release/*` branches in this repository (not forks);
   - pushes of `v*` tags. These do not re-run the matrix: a single job fails unless the tagged commit already has a successful release-gate run, and links that run in the summary.
 
-  The **Release gate** job fails unless every required part passed: the extended matrix, both interaction legs and their coverage check, the golden verify, the decoded lint and package consumer, and the size trend.
+  The **Release gate** job fails unless every required part passed: the extended matrix, the interaction coverage check, the golden verify, the decoded lint and package consumer, and the size trend.
 
   A red scheduled run blocks the next release only (maintainer decision, #598). It opens or updates one issue labelled `release-gate`, and the next green run on `main` (scheduled or manual) closes it. PR merges continue. The release is blocked because a `v*` tag push fails unless the tagged commit has its own green dispatch or scheduled release-gate run ("Cutting a release" step 4), and a red run is not one.
 

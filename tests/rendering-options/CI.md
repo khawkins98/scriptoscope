@@ -116,12 +116,17 @@ run in the extended matrix, which the release gate requires. The lists live in
   and the public explicit-host entry). `matrix.spec.mjs` keeps its source/built
   pixel comparison for all 18 themes, and the gates job runs the installed
   package consumer contract.
-- **Report-only specs.** `frame-pass-through-perf.spec.mjs` asserts its budget
-  only in WebKit. In Chromium it reports and returns, so it does not run on PRs.
+- **WebKit-gated timing.** `frame-pass-through-perf.spec.mjs` (HPT36) spends
+  5+ minutes on timing trials whose ceilings apply only in WebKit, so the bounded
+  profile skips it unless WebKit is selected. Its functional HP20 check (the
+  region clip is a path at 1280 × 800, no size fallback to box) runs on every PR
+  in `frame-pass-through.spec.mjs`.
 
 `SCRIPTOSCOPE_RENDERING_BUILT=all npm run test:rendering` runs the full bounded
-inventory locally. The aggregate job's `--list` uses the same config, so shard
-parity still compares like with like.
+inventory locally (`npm run test:rendering:container` forwards it). The
+aggregate job's `--list` uses the same config, so shard parity still compares
+like with like. A spec named in either list that no longer exists fails config
+load, so a rename cannot silently drop its coverage.
 
 ## Firefox and WebKit interaction contracts (#598)
 
@@ -146,7 +151,9 @@ those two engines and runs `shards.mjs parity` with
 `--require-projects firefox-dpr1,webkit-dpr1 --require-files <list>`: every listed
 test ran exactly once, and each interaction spec file listed and ran at least one
 test in each engine. A renamed or emptied spec fails rather than passing as
-"nothing listed, nothing ran". Failures upload with the extended shards.
+"nothing listed, nothing ran". Failures upload with the extended shards. These
+specs now run under the extended profile's 180 s per-test timeout instead of the
+bounded 90 s.
 
 Locally, `npm run test:rendering:interaction` builds the library and demo, then
 runs the list in Firefox and WebKit (`SCRIPTOSCOPE_RENDERING_SUITE=interaction`;

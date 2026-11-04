@@ -1,6 +1,6 @@
 import { defineConfig } from '@playwright/test';
 import { INTERACTION_SPECS } from './interaction-specs.mjs';
-import { RELEASE_ONLY_SPECS, builtTwinGrepInvert } from './pr-tier.mjs';
+import { releaseOnlySpecs, builtTwinGrepInvert } from './pr-tier.mjs';
 const goldens = process.env.SCRIPTOSCOPE_RENDERING_GOLDENS === '1';
 const extended = process.env.SCRIPTOSCOPE_RENDERING_PROFILE === 'extended';
 // The interaction suite (#598) runs only INTERACTION_SPECS, by default in the
@@ -13,7 +13,7 @@ const prTier = !goldens && !extended && !interaction && process.env.SCRIPTOSCOPE
 const browsers = (process.env.SCRIPTOSCOPE_RENDERING_BROWSERS ?? (extended ? 'chromium,firefox,webkit' : interaction ? 'firefox,webkit' : 'chromium')).split(',');
 export default defineConfig({
   globalSetup: './launch-preflight.mjs',
-  testDir: '.', testMatch: goldens ? 'goldens.spec.mjs' : interaction ? [...INTERACTION_SPECS] : '*.spec.mjs', testIgnore: goldens ? [] : ['goldens.spec.mjs', ...(prTier ? RELEASE_ONLY_SPECS : [])],
+  testDir: '.', testMatch: goldens ? 'goldens.spec.mjs' : interaction ? [...INTERACTION_SPECS] : '*.spec.mjs', testIgnore: goldens ? [] : ['goldens.spec.mjs', ...(prTier ? releaseOnlySpecs(browsers) : [])],
   ...(prTier ? { grepInvert: builtTwinGrepInvert() } : {}),
   updateSnapshots: process.env.SCRIPTOSCOPE_UPDATE_GOLDENS === '1' ? 'all' : 'none',
   snapshotPathTemplate: '{testDir}/goldens/{arg}{ext}', fullyParallel: false, workers: 1,

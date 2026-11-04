@@ -15,8 +15,11 @@
 //    matrix.spec.mjs also keeps its in-test source/built pixel comparison for
 //    all 18 themes, and the gates job runs the installed-package consumer test.
 //
-// 2. Specs that assert nothing in Chromium. frame-pass-through-perf.spec.mjs is
-//    gated only in WebKit and reports in Chromium (5+ minutes per PR run).
+// 2. Timing specs gated only in WebKit. frame-pass-through-perf.spec.mjs (HPT36)
+//    spends 5+ minutes on timing trials whose ceilings apply only in WebKit. Its
+//    functional HP20 check (the region clip is a path at 1280 × 800, no size
+//    fallback) also runs on every PR in frame-pass-through.spec.mjs. The skip
+//    applies only when WebKit is not among the selected browsers.
 //
 // Set SCRIPTOSCOPE_RENDERING_BUILT=all to run the full bounded inventory locally.
 import { readdirSync, readFileSync } from 'node:fs';
@@ -34,9 +37,24 @@ export const RELEASE_ONLY_SPECS = Object.freeze([
 const dir = fileURLToPath(new URL('.', import.meta.url));
 const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+const specFiles = () => readdirSync(dir).filter(name => name.endsWith('.spec.mjs'));
+
+/** A renamed spec must not silently drop out of either list. */
+function assertListed(names, specs) {
+  const missing = names.filter(name => !specs.includes(name));
+  if (missing.length) throw new Error(`pr-tier.mjs names specs that do not exist: ${missing.join(', ')}`);
+}
+
+/** Spec files the bounded profile ignores for the selected browsers. */
+export function releaseOnlySpecs(browsers) {
+  assertListed(RELEASE_ONLY_SPECS, specFiles());
+  return browsers.includes('webkit') ? [] : [...RELEASE_ONLY_SPECS];
+}
+
 /** Spec files whose built twins still run on PRs. */
 export function builtKeptSpecs() {
-  const specs = readdirSync(dir).filter(name => name.endsWith('.spec.mjs'));
+  const specs = specFiles();
+  assertListed(BUILT_SMOKE_SPECS, specs);
   return specs.filter(name => BUILT_SMOKE_SPECS.includes(name) || readFileSync(dir + name, 'utf8').includes('fidelity-assertion')).sort();
 }
 
