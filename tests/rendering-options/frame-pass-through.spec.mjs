@@ -51,6 +51,19 @@ for (const mode of MODES) {
     });
   }
 
+  // HP20 at the corpus's largest path, without HPT36's timing trials: the PR tier
+  // skips frame-pass-through-perf.spec.mjs in Chromium (pr-tier.mjs), so this keeps
+  // its functional half on every PR. A size-based fallback to box must fail here.
+  test(`${mode}: HP20 region clip applies at 1280 × 800 (no size fallback to box)`, async ({ page, servers }) => {
+    await page.setViewportSize({ width: 1600, height: 1200 });
+    await boot(page, servers, mode);
+    for (const hit of ['box', 'region']) {
+      await page.evaluate(async hit => { const f = window.__fpt; f.reset(); f.manager(); await f.add('A', { slug: 'dolphin-som', w: 1280, h: 800, left: 10, top: 10, hit }); }, hit);
+      expect((await state(page, 'A')).hitEffective, `${hit} mode is effective`).toBe(hit);
+    }
+    expect(await page.evaluate(() => getComputedStyle(window.__fpt.layers('A').L2).clipPath.startsWith('path(')), 'the region clip is a path (HP20)').toBe(true);
+  });
+
   test(`${mode}: HPT2 windows-95 negative control: every sampled box point hits the window`, async ({ page, servers }) => {
     await boot(page, servers, mode);
     await page.evaluate(async fx => { const f = window.__fpt; f.manager(); await f.add('W', { slug: fx.slug, type: fx.type }); }, NEGATIVE);

@@ -1,10 +1,11 @@
 // The interaction contract suite (#598, release tier): the specs where browser
 // engines genuinely differ on pointer capture, sub-pixel pointer coordinates and
-// focus. Chromium already runs them in the bounded shards on every PR. The release
-// gate (release-gate.yml) runs this list again under Firefox and WebKit at DPR 1
-// as required jobs (`npm run test:rendering:interaction`,
-// SCRIPTOSCOPE_RENDERING_SUITE=interaction). The PR tier is Chromium-only; the
-// extended matrix covers every spec in every engine.
+// focus. Chromium runs them in the bounded shards on every PR (pr-tier.mjs decides
+// which built twins and report-only specs wait for the release tier). The release
+// gate (release-gate.yml) requires that the extended matrix listed and ran each
+// spec in this list in Firefox and WebKit at DPR 1. The PR tier is Chromium-only.
+// `npm run test:rendering:interaction` (SCRIPTOSCOPE_RENDERING_SUITE=interaction)
+// runs just this list in Firefox and WebKit locally.
 //
 // This is the single list. The config, the npm script and the release gate's
 // per-spec execution check all read it.

@@ -1,15 +1,20 @@
 import { defineConfig } from '@playwright/test';
 import { INTERACTION_SPECS } from './interaction-specs.mjs';
+import { releaseOnlySpecs, builtTwinGrepInvert } from './pr-tier.mjs';
 const goldens = process.env.SCRIPTOSCOPE_RENDERING_GOLDENS === '1';
 const extended = process.env.SCRIPTOSCOPE_RENDERING_PROFILE === 'extended';
 // The interaction suite (#598) runs only INTERACTION_SPECS, by default in the
 // engines the bounded Chromium shards do not cover.
 const interaction = process.env.SCRIPTOSCOPE_RENDERING_SUITE === 'interaction';
 if (interaction && (goldens || extended)) throw new Error('SCRIPTOSCOPE_RENDERING_SUITE=interaction runs the bounded profile only');
+// The bounded PR profile leaves built-mode twins and report-only specs to the
+// release tier (pr-tier.mjs). SCRIPTOSCOPE_RENDERING_BUILT=all opts back in.
+const prTier = !goldens && !extended && !interaction && process.env.SCRIPTOSCOPE_RENDERING_BUILT !== 'all';
 const browsers = (process.env.SCRIPTOSCOPE_RENDERING_BROWSERS ?? (extended ? 'chromium,firefox,webkit' : interaction ? 'firefox,webkit' : 'chromium')).split(',');
 export default defineConfig({
   globalSetup: './launch-preflight.mjs',
-  testDir: '.', testMatch: goldens ? 'goldens.spec.mjs' : interaction ? [...INTERACTION_SPECS] : '*.spec.mjs', testIgnore: goldens ? [] : ['goldens.spec.mjs'],
+  testDir: '.', testMatch: goldens ? 'goldens.spec.mjs' : interaction ? [...INTERACTION_SPECS] : '*.spec.mjs', testIgnore: goldens ? [] : ['goldens.spec.mjs', ...(prTier ? releaseOnlySpecs(browsers) : [])],
+  ...(prTier ? { grepInvert: builtTwinGrepInvert() } : {}),
   updateSnapshots: process.env.SCRIPTOSCOPE_UPDATE_GOLDENS === '1' ? 'all' : 'none',
   snapshotPathTemplate: '{testDir}/goldens/{arg}{ext}', fullyParallel: false, workers: 1,
   timeout: extended ? 180_000 : 90_000, expect: { timeout: 10_000 }, retries: 0,
