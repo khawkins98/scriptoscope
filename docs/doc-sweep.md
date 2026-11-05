@@ -14,11 +14,11 @@ git log --oneline <last-doc-commit>..HEAD
 
 Categorise each commit:
 - **Public API addition** — new attribute, event, method, option.
-- **Public API deletion** — option you removed (must come out of README).
+- **Public API deletion** — remove it from its authoritative reference and any affected recipes.
 - **False-start + revert** — shipped then reverted within the same day (deserves a LEARNINGS entry on *why* the first try was wrong).
 - **Decision-churn** — same knob flipped twice; needs a LEARNINGS supersede pointer.
 - **Internal refactor** — no doc impact, skip.
-- **External pitch change** — README opener / North Star.
+- **External pitch change** — README opener or project background.
 
 ### 2. Grep each context doc for stale knob names
 
@@ -31,13 +31,13 @@ done
 - **LEARNINGS hits** → mark with `> ⚠️ Superseded by <date> — <new entry name>` blockquote pointing forward. **Never delete LEARNINGS entries** — they're the historical record. Mark and move on.
 - **Other docs** → delete the stale text.
 
-### 3. For each new public API, verify it appears in
+### 3. Update the authoritative home for the affected reader task
 
-- README's attribute table (`README.md` near line 130) OR the API table near line 180 — consumers must be able to discover it.
-- `docs/integration-edge-cases.md` if it changes how a consumer integrates (lifecycle, focus, modals, drag, resize).
-- `docs/interaction.md` if it changes what a user can do with a window or control, or adds, removes or changes an event, key binding or opt-out.
-- `CLAUDE.md` only if a future Claude session needs it in the 5-min onboarding. Most APIs do NOT belong here; only load-bearing patterns + chokepoints do.
-- The README's prose summary (if one exists) is **drift bait** — consider deleting recaps that duplicate the table.
+- Markup and hosted-helper contracts belong in [decorate a page](./decorate-a-page.md); lower-level recipes belong in [runtime API](./runtime-api.md). Update the existing explanation before adding another.
+- Update [npm integration](./npm-consumer.md), [integration edge cases](./integration-edge-cases.md) or [interaction](./interaction.md) only when the change affects that document’s task. Do not copy every API into every guide.
+- The README is orientation, one working starter, material adoption limitations and routes to the next task. Change it when those change; new APIs do not automatically warrant a README entry.
+- `CLAUDE.md` holds essential contributor instructions, not a second API catalog. Keep detailed change history in the changelog and decision records.
+- Verify claims against exports, source or executable examples. Remove duplicate/outdated explanations, fix moved links and check `llms.txt` discovery pointers. A new review date alone does not verify a claim.
 
 ### 4. For each decision-churn series, ONE LEARNINGS entry
 
@@ -52,8 +52,8 @@ Pattern: user reports symptom → first fix maps to "delete the offending behavi
 ### 6. Drift-prone numeric claims
 
 Bundle size, lockdown property count, test count, "supports N themes." Either:
-- Replace with a "currently N (see `<file>`)" pointer that auto-stales loudly, or
-- Accept that they'll drift and revisit each sweep. Until `npm run audit:doc-claims` exists, this sweep is the gate.
+- Prefer a link to the authoritative manifest or inventory when the exact count does not help the reader, or
+- Verify and update the number in the same change when the task needs it. Avoid adding “currently” as a substitute for verification.
 
 ### 7. Internal DOM stamps audit
 

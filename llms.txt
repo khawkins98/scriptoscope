@@ -1,59 +1,38 @@
 # Scriptoscope
 
-> A web-native re-implementation of Apple's Mac OS 8 Appearance Manager. Period Mac window-types are HTML attributes; the chrome paints into a `<canvas>` from the original `cicn` / `ppat` / `Colr` resources Kaleidoscope read in 1998. Install the ESM runtime with `npm install @khawkins98/scriptoscope`, or use the hosted GitHub Pages example without a build step. Theme archives are separate inputs hosted by the consumer; the demo includes eighteen vintage schemes.
+> A browser runtime for classic Mac Kaleidoscope themes. Chrome paints into canvas;
+> page content and native form controls remain real HTML. Themes are separate
+> original `.sit` / `.rsrc` archives decoded client-side.
 
-For applications, import from `@khawkins98/scriptoscope` and `@khawkins98/scriptoscope/declarative`, load a self-hosted theme and explicitly promote native DOM elements. For a page without a build step, use the hosted stylesheet and page example with `data-scriptoscope-*` markup. Native form controls stay real (form submission, keyboard, a11y preserved); chrome is canvas. Schemes load from their original `.sit` / `.rsrc` binary archives, decoded in-browser. Live demo: <https://khawkins98.github.io/scriptoscope/>.
+## Choose the reader task
 
-## Start here
+- [README](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/README.md): orientation, one complete hosted starter and adoption limits.
+- [Decorate a page](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/decorate-a-page.md): hosted example helper, markup vocabulary, picker/retheme, dropped schemes, modal recipe and vendoring. `mountExplicitPage` is a demo helper, not a package mount export.
+- [Use npm in an application](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/npm-consumer.md): install, acquire a first-party theme, run the included Vite/TypeScript example, deploy at a nested URL, attach controls and clean up owned resources.
+- [Render and manage windows](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/runtime-api.md): renderer-only entry, owned raster loading, imperative windows, native controls, measured display preparation and button composition.
+- [Integration edge cases](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/integration-edge-cases.md): layout, CSS, lifecycle, framework and SSR integration.
+- [Interaction reference](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/interaction.md): gestures, keyboard/touch behavior, events and targets.
+- [Author a scheme](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/authoring-a-scheme.md): create and validate a new Kaleidoscope resource fork.
+- [Port a scheme](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/porting-a-kaleidoscope-scheme.md): add an existing scheme with provenance.
 
-- **Choose one setup:** plain HTML or a quick try → the hosted starter in README / install.html; an app with an existing build and a need for versioned dependencies/self-hosting → the npm integration guide. npm is optional. Both use the same renderer/theme format. The hosted helper owns page orchestration; npm consumers explicitly attach/clean up DOM and host themes.
-- [npm integration guide](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/npm-consumer.md): install with npm, run the included examples/npm app, acquire a first-party theme, use base-aware asset URLs and manage owned theme/window/control lifetimes. Use this for applications with a build step.
-- [README](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/README.md): consumer pitch + 5-minute setup + CDN paths + full `data-scriptoscope-*` attribute vocabulary + the example host's `mountExplicitPage()` options and handle API. This is the canonical integration reference.
-- [Live demo](https://khawkins98.github.io/scriptoscope/): the canonical consumer page; every documented feature exercised. View source = the recipe.
-- [Live diagnostic / per-scheme inspector](https://khawkins98.github.io/scriptoscope/diagnostic.html): every cicn / ppat / icon resource in each scheme, plus rendered windows for visual verification.
-- [Themes manifest (JSON)](https://khawkins98.github.io/scriptoscope/themes-manifest.json): the catalog of bundled themes with author + year + license metadata. Pass to `mountExplicitPage({ themes: THEMES })` for the picker + auto-cycle.
+## Live examples and API sources
 
-## Integration patterns + edge cases
+- [Interactive demo](https://khawkins98.github.io/scriptoscope/showcase.html).
+- [Theme gallery](https://khawkins98.github.io/scriptoscope/) and [manifest](https://khawkins98.github.io/scriptoscope/themes-manifest.json): available slugs, labels and attribution.
+- [Diagnostic inspector](https://khawkins98.github.io/scriptoscope/diagnostic.html): per-scheme resources and render inspection.
+- [Public runtime exports](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/src/index.ts) and [declarative exports](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/src/declarative/index.ts): verify API names here; avoid duplicating a drifting export list in this discovery file.
+- [Example host source](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/demo/explicit-host.mjs): finite source selection and application-owned attach/detach, theme replacement and disconnect. It does not automatically discover later inserted controls.
 
-- [Integration edge cases](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/integration-edge-cases.md): the long-form companion to README. Read when something is slightly off — widget gating (`data-scriptoscope-widgets`), positioning (Posture B in-flow vs absolute), auto-resize + user-resize handoff, host CSS lockdown + class inheritance, shadow-DOM scoping, internal stamps, framework integration notes (React/Vue/Svelte/Astro/SSR).
-- [Interaction reference](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/interaction.md): what users can do with windows and controls (activation, moving, resizing, widgets, scroll bars, controls, modals), every event with its target and detail, keyboard equivalents, touch and browser differences.
-- [Architecture decision: consumption layer (ADR-0001)](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/adr/0001-consumption-architecture.md): why `data-scriptoscope-*` attributes + Shadow DOM + canvas decoration. Read for "why does it work this way?" questions.
+## Contributor context
 
-## Common recipes (in README)
+Runtime implementers must start with the [implementer brief](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/spec/engine/IMPLEMENTER-BRIEF.md)
+and their assigned safe family specification. Its read scope overrides other
+reading suggestions here; unresolved rules become spec questions.
 
-- **Five-minute hosted setup** (no build step): tag elements + load the stylesheet and page example. <https://raw.githubusercontent.com/khawkins98/scriptoscope/main/README.md#five-minute-setup>
-- **Theme switching at runtime**: `<div data-scriptoscope-theme-picker>` populated from `mountOptions.themes` + `handle.retheme(slug)`. <https://raw.githubusercontent.com/khawkins98/scriptoscope/main/README.md#theme-switching-at-runtime>
-- **Bring your own theme (drop `.sit` / `.rsrc`)**: `attachThemeDropZone()` decodes in-browser; `handle.registerTheme(ref, theme)` makes it switchable. <https://raw.githubusercontent.com/khawkins98/scriptoscope/main/README.md#bring-your-own-theme--drop-a-sit--rsrc-and-see-it-render>
-- **Themed modal pattern**: `handle.openModal(wrap, { returnFocusTo })` — focus trap (including shadow-DOM chrome), Esc + backdrop, listens for `scriptoscope:close`. Same section as BYO above.
-- **Author-credit byline on retheme**: listen for `retheme` event + look up the entry from the themes manifest. See `demo/index.html` (search for `powers-credit`) for the live recipe.
-
-## Library API surface (cheat sheet)
-
-- **Public exports from `@khawkins98/scriptoscope` (the bare entry)**: `loadTheme`, `loadKaleidoscopeScheme`, `renderWindow`, `composeWindowChrome`, `PixelBuffer`, `loadCicnBuffer`, `rasterizeText`, `VERSION`, plus debug helpers.
-- **Public exports from `@khawkins98/scriptoscope/declarative` (the declarative entry)**: explicit promotion primitives — `ScriptoscopeWindow`, `promoteButton`, `promoteControl`, `promoteField`, `promoteTabs`, `promoteIcon`, `promoteThemePicker`, their `restore*` counterparts, `createThemeResolver` / `createOwnedThemeResolver`, `attachThemeDropZone`, `openModal`, `parseWindowAttrs`, `parseButtonAttrs`, plus type exports. There is no mount/scan export (`mountDeclarative` was removed in #491); the page-level host `mountExplicitPage` is an example helper in `demo/explicit-host.mjs`, served at `https://khawkins98.github.io/scriptoscope/explicit-host.mjs`.
-- **CDN URLs**: `<script type="module">import { mountExplicitPage } from 'https://khawkins98.github.io/scriptoscope/explicit-host.mjs'</script>` + `<link rel="stylesheet" href="https://khawkins98.github.io/scriptoscope/scriptoscope.css">`. Themes at `https://khawkins98.github.io/scriptoscope/themes/<slug>/scheme.sit` (or `.rsrc`). Manifest at `https://khawkins98.github.io/scriptoscope/themes-manifest.json`.
-- **Example-host handle methods** (`mountExplicitPage`): `attach({controls, buttons})`, `detach(...)`, `whenReady()`, `disconnect()`, `retheme(slugOrUrl)` → `Promise<void>`, `registerTheme(ref, theme)`, `openModal(wrap, options)` → `{ close() }`, `stats` (live counts).
-- **Example-host handle events** (handle.addEventListener): `ready`, `retheme`, `promoteError`, `unmounted`. (Four events, NOT `promoted` — see DOM-bubbling events below.)
-- **DOM-bubbling events** — fired on the runtime-inserted host element (the original consumer element is REMOVED at promote time; listen on a stable ancestor like `document.body`, NOT the original element which is detached). All bubble: `scriptoscope:close` (library; composed; fires BEFORE teardown when a window is unmounted, by the close widget or a direct `ScriptoscopeWindow.unmount()` call; not on `disconnect()`, which uses `restoreOriginalElement()`), `scriptoscope:userresize` (library; `detail = { w, h }` content size, after a grow-box resize), and from the example host `scriptoscope:promoted` (`detail = { kind, host }`) and `scriptoscope:promoteError` (`detail = { kind, el, cause }`, fired on the original element, so listen on an ancestor). Full table: `docs/interaction.md` §8.
-- **`handle.stats` shape**: `{ windows, buttons, controls, tabs, fields }` — five fields, all numbers.
-- **`ThemeEntry` shape** (for the `themes` option): `{ slug: string, name?: string, author?: string, year?: number, source?: 'scheme.rsrc' | 'scheme.sit' }`. Older manifests use `label?: string` (a parsed combined string); the picker still accepts it, but new consumers should use `name` + `author` + `year` directly.
-- **Window-types** (`data-scriptoscope-window-type`, default `document-window`): full set in `tools/theme-loader/window-recipes.mjs`. Common: `document-window`, `dialog`, `alert`, `movable-modal`, `movable-alert`, `titled-utility-window`, `side-floating-utility-window`, `no-title-utility-window`, `popup-window`. Collapsed (window-shade) variants ship art for: `collapsed-document-window`, `collapsed-titled-utility`, `collapsed-side-utility`, `collapsed-no-title-utility` — use these directly when you want the boot-shaded look in a scheme that has the art (most don't; double-click the title-bar at runtime to shade any window regardless of its boot-type).
-- **Container-level layout attribute**: `data-scriptoscope-cascade` on a container opts descendant promoted windows into a Mac-OS-classic stagger layout (each window absolute-positioned at a cumulative offset from the container's top-left, later windows on top). Defaults: 32x28 px step; override via `-step-x` / `-step-y` / `-base-x` / `-base-y` on the same container. Per-window `-x` / `-y` always wins. The library answer to "scatter a bunch of windows like a real desktop without writing per-window position math."
-- **Internal DOM stamps the runtime SETS** (consumers should NOT set these in SSR output — promotion skips elements that already carry them): `data-scriptoscope-promoted`, `data-scriptoscope-theme-picker-promoted`, `data-scriptoscope-tabs-promoted`, `data-scriptoscope-field-promoted`, `data-scriptoscope-icon-promoted`, `data-scriptoscope-switcher-wired`, `data-scriptoscope-current-state` (`"active"`/`"inactive"`, on the inner `.scriptoscope-window`), `data-scriptoscope-theme` (slug, on each host), `data-scriptoscope-placeholder` (on the hidden flow-slot reservation div inserted on drag handoff), `data-scriptoscope-modal-open` (on a wrap passed to `handle.openModal`).
-
-## Project context (when answering "why" questions)
-
-- [CLAUDE.md (project guide)](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/CLAUDE.md): architecture overview + working norms. The 5-minute onboarding for a Claude session; read this if you're operating on the repo.
-- [LEARNINGS.md](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/LEARNINGS.md): historical log of decisions + gotchas. Append-only with `> ⚠️ Superseded` blockquotes pointing forward. Useful for "why does this work the way it does?" — entries are dated. Recent entries cover the Schemes Folder window-type churn, the grow-box resize feedback loop, the two false-starts pattern, and the doc-sweep recipe.
-- [Project history](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/history.md): the v1 → v2 → v3 arc plus the "Dead ends — don't relitigate these" list. Read before proposing structural changes.
-- [Doc-sweep recipe](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/doc-sweep.md): for keeping docs in sync after heavy iteration days.
-
-## Optional
-
-- [CONTRIBUTING](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/CONTRIBUTING.md): how to land changes + port a new Kaleidoscope scheme into the corpus.
-- [CHANGELOG](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/CHANGELOG.md): release notes.
-- [Porting a Kaleidoscope scheme](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/porting-a-kaleidoscope-scheme.md): adding a new theme to the corpus.
-- [Theme bundle layout](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/theme-bundle-layout.md): the `themes/<slug>/` directory structure each bundle ships.
-- [Compositor spec](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/spec/compositor-spec.md): the authoritative window-chrome model — for compositor-level work, not consumer integration.
-- [Apple Appearance Manager primary source](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/spec/apple-primary-source.md): the kThemeBrush*, kThemeWindowType* enum tables Kaleidoscope schemes were authored against.
-- [License (MIT)](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/LICENSE): library code. Bundled third-party material (font glyphs, sit-wasm) keeps its own terms — see README's License section for details.
+- [CONTRIBUTING](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/CONTRIBUTING.md): setup, checks and contribution rules.
+- [CLAUDE.md](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/CLAUDE.md): contributor orientation and working norms.
+- [Project background](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/project-background.md): preservation, attribution, research boundaries and work tracking.
+- [Project history](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/history.md) and [LEARNINGS](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/LEARNINGS.md): historical decisions; verify applicability before using old advice.
+- [Doc sweep](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/doc-sweep.md): update the authoritative home for the affected task.
+- [Changelog](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/CHANGELOG.md): versioned release and migration information.
+- [License](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/LICENSE): project code is MIT; third-party material retains its own terms and per-bundle provenance.

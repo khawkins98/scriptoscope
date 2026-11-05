@@ -126,6 +126,17 @@ The corpus (18 bundles): `1138`, `1984`, `1990`, `animals`, `apple-lisa`, `apple
 - **Prototype-mode commit cadence.** Batch into bigger commits; delete non-critical tests; skip non-critical PRs; commit directly to the working branch. Commit messages follow Conventional Commits with a detailed body, **no `Co-Authored-By:` line**.
 - **Doc sweep after heavy iteration days.** See [`docs/doc-sweep.md`](./docs/doc-sweep.md) — run after any 5+ commit day to keep the four context docs (this file + LEARNINGS + README + integration-edge-cases) synced with code reality. Heavy days drift docs fast; the sweep is ~20 minutes and prevents every future session paying 5-10 minutes of "doc says X, code says Y" reconciliation.
 
+## Documentation maintenance
+
+Identify the reader and task before editing docs. Update the existing authoritative
+home instead of appending another account. README owns orientation, one starter
+and adoption limits; `docs/decorate-a-page.md` owns hosted markup/helper details;
+`docs/runtime-api.md` owns lower-level recipes; `docs/npm-consumer.md` owns the
+application lifecycle. Verify changed claims against code or executable examples,
+keep historical status in release/decision records, and update only affected
+reader paths. Remove duplication, repair moved links (including `llms.txt`), and
+confirm the reader can still finish the task. See [doc sweep](./docs/doc-sweep.md).
+
 ## Pointers into `docs/`
 
 - `docs/spec/README.md` — index of every primary-source decode under `docs/spec/` (citation chain: corpus → Scheme Factory → Apple → kDEF231 → kDEF182). Start there when chasing "what does id/field/address X mean?".
