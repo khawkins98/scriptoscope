@@ -1,3 +1,4 @@
+import { parsePackResult } from './npm-pack-result.mjs';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
@@ -99,4 +100,14 @@ test('artifact verification rejects changed bytes and escaping filenames', async
     await writeFile(join(dir, 'release.json'), JSON.stringify({ ...metadata, filename: '../candidate.tgz' }));
     await assert.rejects(() => verifyCandidate(dir), /inside/);
   } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test('npm pack identity supports npm 11 arrays and npm 12 keyed results', () => {
+  const packed = { name: packageName, filename: 'candidate.tgz', integrity: 'sha512-test' };
+  for (const result of [[packed], { [packageName]: packed }]) {
+    assert.deepEqual(parsePackResult(JSON.stringify(result)), packed);
+  }
+  for (const result of [[], {}, [packed, packed], { error: { code: 'E401' } }]) {
+    assert.throws(() => parsePackResult(JSON.stringify(result)));
+  }
 });

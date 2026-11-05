@@ -1,3 +1,4 @@
+import { parsePackResult } from './npm-pack-result.mjs';
 // Release artifact/registry checks. Publishing itself lives in the manual workflow.
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -118,7 +119,7 @@ async function main(command, directory = '.tmp/npm-release') {
     validateRelease(manifest, await json(join(root, 'package-lock.json')), await json(join(root, 'examples/npm/package.json')),
       await readFile(join(root, 'src/renderer.ts'), 'utf8'), process.env.RELEASE_TAG);
     await mkdir(directory, { recursive: true });
-    const [packed] = JSON.parse(execFileSync('npm', ['pack', '--json', '--ignore-scripts', '--pack-destination', directory], { cwd: root, encoding: 'utf8' }));
+    const packed = parsePackResult(execFileSync('npm', ['pack', '--json', '--ignore-scripts', '--pack-destination', directory], { cwd: root, encoding: 'utf8' }));
     const metadata = { name: packed.name, version: packed.version, filename: packed.filename,
       integrity: integrity(await readFile(join(directory, packed.filename))), sha: process.env.RELEASE_SHA };
     assert(/^[a-f0-9]{40}$/.test(metadata.sha), 'A full source commit is required');
@@ -140,7 +141,7 @@ async function main(command, directory = '.tmp/npm-release') {
   await waitForRegistry(candidate);
   const target = join(directory, 'registry');
   await mkdir(target, { recursive: true });
-  const [packed] = JSON.parse(execFileSync('npm', ['pack', `${packageName}@${candidate.version}`, '--json', '--ignore-scripts',
+  const packed = parsePackResult(execFileSync('npm', ['pack', `${packageName}@${candidate.version}`, '--json', '--ignore-scripts',
     '--registry', registry, '--pack-destination', target], { encoding: 'utf8' }));
   const downloaded = join(target, packed.filename);
   assert.equal(integrity(await readFile(downloaded)), candidate.integrity, 'Downloaded npm artifact differs');
