@@ -1,3 +1,4 @@
+import { parsePackResult } from '../../scripts/npm-pack-result.mjs';
 import { rootExports, rendererExports, declarativeExports, sharedHostExports } from './fixture/public-exports.mjs';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -174,7 +175,7 @@ try {
     tarball = join(workspace, 'candidate.tgz');
     await copyFile(suppliedTarball, tarball);
   } else {
-    const [packed] = JSON.parse(command(npm, ['pack', '--json', '--ignore-scripts', '--pack-destination', workspace], root));
+    const packed = parsePackResult(command(npm, ['pack', '--json', '--ignore-scripts', '--pack-destination', workspace], root));
     tarball = join(workspace, packed.filename);
     // Simulate stale demo/loader output and a consumer's downloaded sample.
     // Packing must be unaffected; clean CI alone would not catch a broad files list.
@@ -182,7 +183,7 @@ try {
     const probes = ['dist/demo', 'dist/pages-loader', 'examples/npm/public/themes'].map(path => join(root, path, probeName));
     try {
       for (const path of probes) { await mkdir(dirname(path), { recursive: true }); await writeFile(path, 'not package content\n', { flag: 'wx' }); }
-      const [withGeneratedAssets] = JSON.parse(command(npm, ['pack', '--dry-run', '--json', '--ignore-scripts'], root));
+      const withGeneratedAssets = parsePackResult(command(npm, ['pack', '--dry-run', '--json', '--ignore-scripts'], root));
       assert.deepEqual(withGeneratedAssets.files, packed.files, 'Generated demo/loader/theme assets leaked into the package');
       assert.equal(withGeneratedAssets.integrity, packed.integrity, 'Generated output changed the tarball bytes');
       record.packHistoryIsolation = { excluded: probes.map(path => relative(root, path)), identicalIntegrity: true };
