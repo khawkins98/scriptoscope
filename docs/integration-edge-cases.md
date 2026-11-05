@@ -335,7 +335,7 @@ the retired `mountDeclarative` scanner (#491) is gone. With the example host,
 button call `await handle.attach({controls: [input]})` (or `{buttons: [...]}`), and
 call `handle.detach(...)` before moving or removing it. Disconnect before replacing
 the root. See the README's
-[explicit page host section](../README.md#explicit-page-host-options) and
+[explicit page host section](./decorate-a-page.md#explicit-page-host-options) and
 [`demo/EXPLICIT-HOST.md`](../demo/EXPLICIT-HOST.md).
 
 ## Framework integration notes
