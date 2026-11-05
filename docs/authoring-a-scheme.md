@@ -9,7 +9,20 @@ recipe mechanics, [visual design](./authoring-visual-design.md) for art decision
 and [AI art routes](./authoring-art-with-ai.md) when choosing an art tool.
 The [folder guide](../authoring/README.md) describes what to commit.
 
+| Your task | Read next |
+|---|---|
+| Build and preview the example | [Quick start](#2-quick-start) |
+| Make your first scheme | [Workflow](#4-the-workflow), referring to the five concepts as needed |
+| Find encoders, control IDs or checks | [Toolkit and reference](#5-the-toolkit-toolstheme-author) onwards |
+| Import an existing scheme instead | [Porting guide](./porting-a-kaleidoscope-scheme.md) |
+
+The workflow owns commands and acceptance steps. Frame mechanics and visual
+judgment live in their linked references; keep scheme-specific decisions in its
+brief and exact-build native observations in its `classic/` record.
+
 ## 1. What you are making
+
+Use the repository [development prerequisites](../CONTRIBUTING.md) and run all commands from its root.
 
 A scheme is a resource fork: entries have a four-character **type**, signed
 numeric **id**, optional name and bytes. The important types are:
@@ -32,7 +45,7 @@ the family. A successful load alone does not establish a complete scheme.
 npm install
 npm run author -- authoring/schemes/scriptoscope
 npm run dev
-# open http://localhost:5173/authoring-preview.html
+# open /authoring-preview.html?scheme=/authoring/schemes/scriptoscope/scheme.rsrc
 ```
 
 `author` runs `buildScheme()`, serializes the resources, reloads them through
@@ -69,11 +82,10 @@ cuts that template into cells: fixed pieces, repeating growers, a title plate
 and optional ornaments. Use [`frameLayout()`](./authoring-exotic-frames.md#8-framelayout-and-windowlayout)
 for explicit named cells; `windowLayout()` is the simpler rounded-frame helper.
 
-The main codes are 1 (fixed), 8/11 (repeat to fill space), 5/6 (title plate/caps),
-10 (fixed ornament that can drop), and 12 with 13/14 (whole tiles plus filler).
-These are behaviors, not drawing commands. A grower repeats its source pixels;
-putting part of a building in it repeats that part across the window.
-See [R1–R12](./authoring-exotic-frames.md#1-cell-codes-rules-r1r12) before designing an unusual edge.
+Cells describe fixed art, repeated material, title plates/caps and optional
+ornaments. A grower repeats source pixels rather than interpreting illustration.
+Use the [cell-code reference](./authoring-exotic-frames.md#1-cell-codes-rules-r1r12)
+to choose behavior before painting an unusual edge.
 
 Keep the source compact: store one material period and repeat it. Reserve
 fixed cells for distinctive silhouettes. Check `layout.minWidthForTitle(px)`;
@@ -298,6 +310,8 @@ for the resources that enable each control-panel option.
 
 ## 5. The toolkit (`tools/theme-author/`)
 
+The remaining sections are reference for a scheme already following the workflow.
+
 Start at [`index.js`](../tools/theme-author/index.js) and the chosen scheme's
 `buildScheme()`. Encoders and drawing helpers document their own inputs;
 round-trip tests check them against the community corpus. The main groups are:
@@ -344,12 +358,11 @@ sizes make centered dots easier. Verify state masks and glyph alignment.
 - **Tab panes:** `textPixel` and `bgPixel` must not sample the same colour.
 - **Menus:** same-id `cinf` supplies fill/text samples; test in classic.
 - **Desktop:** `ppat` must be opaque and power-of-two; prefer system colours.
-- **Window widgets:** author rectangle sizes/positions inside fixed cells.
-  Normal/pressed masks must match. Generate `-14330` with `stripLayout` and
-  `pressedStripFrom`; cumulative widths determine offsets. Classic utilities
-  use their own `-14298`. Web document and titled-utility windows use the
-  document strip; side-titled forms also try `-14338`. Corresponding utility
-  pieces must remain compatible. See [R24](./authoring-exotic-frames.md#5-pressed-widgets-r24).
+- **Window widgets:** keep authored rectangles in fixed cells, match normal and
+  pressed masks, and generate pressed strips with `stripLayout` /
+  `pressedStripFrom`. Document and utility forms have different resource lookup
+  and offsets; follow [R24](./authoring-exotic-frames.md#5-pressed-widgets-r24)
+  and test each layout rather than duplicating strip rules here.
 
 ### 6.4 Reuse a family from another scheme
 

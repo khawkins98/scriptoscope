@@ -1,37 +1,37 @@
-# sit-wasm — decode StuffIt `.sit` (and BinHex/MacBinary/Compact Pro) in the browser
+# sit-wasm — decode classic Mac archives
 
-A small WebAssembly build of [munbox](https://github.com/idolpx/munbox) (MIT) that decodes
-classic-Mac archives **entirely client-side** — bytes in, forks out, no server, no filesystem.
-Built for [scriptoscope](https://github.com/khawkins98/scriptoscope) (the Kaleidoscope-runtime project)
-to accept a dropped Kaleidoscope `.sit` theme, but the module is self-contained and dependency-free:
-a standalone "decode StuffIt in the browser" tool that, as far as we could find, didn't otherwise
-exist. Separable on purpose — it could become its own package/repo with no changes. (Origin note:
-the test below compares against scriptoscope's "corpus" — its set of bundled themes — but the
-module itself has no scriptoscope dependency.)
+A self-contained WebAssembly wrapper around [munbox](https://github.com/idolpx/munbox)
+(MIT). It accepts bytes and returns data/resource forks in browsers or Node, without
+a server or filesystem. Scriptoscope loads it lazily for archive conversion.
 
 ## Install
 
+Use the local package from a Scriptoscope checkout:
+
 ```sh
-npm install stuffit-wasm   # (or copy this folder — it's dependency-free)
+npm install /absolute/path/to/scriptoscope/tools/sit-wasm
 ```
 
-The build output `dist/munbox.{mjs,wasm}` is **committed**, so consumers never need Emscripten —
-only rebuilding does. Runs in the browser and in Node; the WASM instantiates once on first call.
+Its package name is `stuffit-wasm`. You can also copy this directory and import
+`index.mjs` directly. The committed `dist/munbox.mjs` and `dist/munbox.wasm` remove
+the need for Emscripten unless you rebuild. This example does not assume registry
+publication or an independently deployed CDN package.
 
 ## API
 
 ```js
 import { decodeArchive, stuffItResourceFork } from 'stuffit-wasm';
 
-// Every fork of every entry:
-const entries = await decodeArchive(bytes); // bytes: Uint8Array | ArrayBuffer
-//  → [{ name, type, creator, forkType /* 0=data, 1=resource */, bytes: Uint8Array }, ...]
-//  `type`/`creator` are u32 OSType codes (e.g. 'APPL' → 0x4150504C), NOT strings.
-
-// Convenience: the largest resource fork — for classic-Mac files that keep their payload there
-// (e.g. Kaleidoscope schemes). Throws if the archive has no resource fork.
+const entries = await decodeArchive(bytes); // Uint8Array or ArrayBuffer
+// [{ name, type, creator, forkType, bytes }]
 const fork = await stuffItResourceFork(bytes);
 ```
+
+`forkType` is 0 for data and 1 for resource. `type`/`creator` are unsigned OSType
+numbers, not strings. `stuffItResourceFork` selects the largest nonempty,
+non-`Icon` resource fork and throws if none exists. This is a compatibility
+selection policy, not an independently reviewed source-choice oracle; use
+`decodeArchive` when you need explicit entry selection.
 
 ### Node
 
@@ -40,20 +40,23 @@ import { readFileSync } from 'node:fs';
 import { decodeArchive } from 'stuffit-wasm';
 
 const entries = await decodeArchive(readFileSync('scheme.sit'));
-for (const e of entries) {
-  console.log(e.name, e.forkType === 1 ? 'rsrc' : 'data', e.bytes.length);
+for (const entry of entries) {
+  console.log(entry.name, entry.forkType, entry.bytes.length);
 }
 ```
 
 ### Browser (`<input type="file">`)
 
+Serve a page beside the copied module, keeping its `dist/` directory in place:
+
 ```html
 <input type="file" id="f">
 <script type="module">
-  import { stuffItResourceFork } from 'https://esm.sh/stuffit-wasm'; // or your bundler / local path
-  document.getElementById('f').addEventListener('change', async (ev) => {
-    const buf = new Uint8Array(await ev.target.files[0].arrayBuffer());
-    const fork = await stuffItResourceFork(buf); // → Uint8Array of the resource fork
+  import { stuffItResourceFork } from './index.mjs';
+  document.getElementById('f').addEventListener('change', async event => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const fork = await stuffItResourceFork(await file.arrayBuffer());
     console.log('resource fork:', fork.length, 'bytes');
   });
 </script>
@@ -61,10 +64,9 @@ for (const e of entries) {
 
 ### Locating the `.wasm`
 
-`index.mjs` loads `dist/munbox.wasm` relative to `dist/munbox.mjs`, so keep them together (a
-bundler that fingerprints assets — Vite, etc. — handles this automatically). If you serve the
-`.wasm` from a different path, override the Emscripten `locateFile` hook (see `index.mjs`'s
-`createMunbox({ … })` call).
+Keep `dist/munbox.wasm` beside `dist/munbox.mjs`; the wrapper instantiates it once
+on first use. A bundler may relocate these assets together. For a custom WASM
+location, change the Emscripten `locateFile` hook in `index.mjs`'s factory call.
 
 ## Coverage
 
@@ -84,54 +86,35 @@ decoded rather than discarding them, so a trailing over-run is harmless.
 
 ## Rebuild
 
-Either with a local Emscripten SDK:
+From this directory with a local [Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html):
 
 ```sh
-source ~/emsdk/emsdk_env.sh   # install: https://emscripten.org/docs/getting_started/downloads.html
-./build.sh                    # → dist/munbox.mjs + dist/munbox.wasm  (~70 KB wasm)
+source ~/emsdk/emsdk_env.sh
+./build.sh
 ```
 
-Or via docker, with no local emsdk install required:
+Or use Docker:
 
 ```sh
 docker run --rm -v "$(pwd):/src" -w /src emscripten/emsdk:latest bash build.sh
 ```
 
-`build.sh` invokes `emcc -O2` over the vendored `munbox/lib/**` + `shim.c`. Key flags (see
-`build.sh` for the full set): `-sSTACK_SIZE=5MB` (munbox's decoders, and our chunked reads, want
-more than the 64 KB default WASM stack — too small a stack silently corrupts memory on wasm32),
-`-sFILESYSTEM=0` (the in-memory API needs no FS), `-sALLOW_MEMORY_GROWTH=1` + `-sINITIAL_MEMORY=32MB`,
-and `-sMODULARIZE=1 -sEXPORT_ES6=1 -sEXPORT_NAME=createMunbox -sENVIRONMENT=web,node` (an ES-module
-factory that runs in both the browser and Node — the latter is what the test uses).
+[build.sh](./build.sh) owns compiler inputs/flags. Preserve its 5 MB stack,
+32 MB initial/growable memory, filesystem-free ES-module factory and browser/Node
+support when changing the build; a too-small wasm32 stack can corrupt decoder memory.
 
 ## What's vendored, and our patches
 
-`munbox/` holds the minimal buildable subset of upstream munbox plus three small,
-upstream-able patches:
-1. a spurious `<threads.h>` include that broke Apple-clang builds,
-2. classic-SIT folder markers wrongly counting against `num_files` (single-file-in-a-folder
-   archives extracted nothing),
-3. classic-SIT folder SUB-ENTRIES wrongly counting against `num_files` (multi-file-in-a-folder
-   archives — typical for Kaleidoscope schemes wrapped with ReadMe / Icon / sidecars — only
-   extracted the first nested file).
-
-See [`munbox/PATCHES.md`](munbox/PATCHES.md) for the diffs, provenance, and meta-lesson on what
-`num_files` actually counts in classic SIT! (root entries, not files-in-tree). munbox is MIT —
-see [`munbox/LICENSE`](munbox/LICENSE).
+[munbox/PATCHES.md](./munbox/PATCHES.md) owns upstream provenance and the clang
+include/folder-count fixes; [munbox/LICENSE](./munbox/LICENSE) retains munbox's MIT
+terms. The first-party wrapper has its own [MIT license](./LICENSE).
 
 ## Layout
 
-```
-index.mjs     public API: decodeArchive / stuffItResourceFork (JS over the packed buffer)
-index.d.ts    TypeScript types
-package.json  name "stuffit-wasm", exports, files (MIT)
-LICENSE       MIT — covers the first-party files here (munbox/ is separately MIT)
-shim.c        C entry point: decode → one packed [count]{name,type,creator,forkType,len,bytes} buffer
-build.sh      emcc build → dist/
-dist/         committed munbox.mjs + munbox.wasm (no Emscripten needed to consume)
-munbox/       vendored upstream subset + LICENSE + PATCHES.md
-sit-wasm.test.mjs   Node test: decodes a real .sit byte-identical to a known fork
-```
-
-> **License:** MIT — see [`LICENSE`](LICENSE). The vendored `munbox/` is separately MIT
-> ([`munbox/LICENSE`](munbox/LICENSE)).
+| File | Purpose |
+| --- | --- |
+| `index.mjs` / `index.d.ts` | Public wrapper / types |
+| `shim.c` / `build.sh` | Packed in-memory bridge / WASM build |
+| `dist/` | Committed generated ES module and WASM |
+| `munbox/` | Vendored subset, license and patch record |
+| `sit-wasm.test.mjs` | Archive/fork regression tests, included in repository `npm test` |

@@ -4,6 +4,8 @@ An original reference based on the Scriptoscope site's maker mark and editorial
 palette. Chamfered corners carry layered brass rails around charcoal enamel;
 the ivory title plaque is recessed, with bevelled widgets and square controls.
 The mark and chunky segmented progress use the six brand colours.
+For a new scheme, follow the [authoring workflow](../../../docs/authoring-a-scheme.md);
+this page locates the reference assets and its own review records.
 
 ```sh
 npm run author -- authoring/schemes/scriptoscope --sheet --palette

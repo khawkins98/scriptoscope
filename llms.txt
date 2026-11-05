@@ -7,13 +7,16 @@
 ## Choose the reader task
 
 - [README](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/README.md): orientation, one complete hosted starter and adoption limits.
-- [Decorate a page](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/decorate-a-page.md): hosted example helper, markup vocabulary, picker/retheme, dropped schemes, modal recipe and vendoring. `mountExplicitPage` is a demo helper, not a package mount export.
+- [Decorate a page](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/decorate-a-page.md): picker/retheme, dropped schemes, modal recipe, shell styling and vendoring. `mountExplicitPage` is a demo helper, not a package mount export.
 - [Use npm in an application](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/npm-consumer.md): install, acquire a first-party theme, run the included Vite/TypeScript example, deploy at a nested URL, attach controls and clean up owned resources.
 - [Render and manage windows](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/runtime-api.md): renderer-only entry, owned raster loading, imperative windows, native controls, measured display preparation and button composition.
 - [Integration edge cases](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/integration-edge-cases.md): layout, CSS, lifecycle, framework and SSR integration.
 - [Interaction reference](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/interaction.md): gestures, keyboard/touch behavior, events and targets.
 - [Author a scheme](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/authoring-a-scheme.md): create and validate a new Kaleidoscope resource fork.
 - [Port a scheme](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/porting-a-kaleidoscope-scheme.md): add an existing scheme with provenance.
+
+- [Hosted helper and markup reference](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/hosted-reference.md): attributes, options, handle members, ownership and completion.
+- [Documentation hub](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/index.md): task paths across consumer and contributor docs.
 
 ## Live examples and API sources
 

@@ -1,5 +1,11 @@
 # 0.7.0 pre-launch: installation and migration
 
+> Historical release record for the 0.7.0 transition. Branch names, candidate
+> status and gate observations below describe that release work; they are not
+> current installation instructions. Use the [npm tutorial](../npm-consumer.md),
+> [hosted reference](../hosted-reference.md) and [changelog](../../CHANGELOG.md)
+> for an application integrating the maintained release.
+
 **0.7.0** is a pre-launch release (GitHub release `v0.7.0`; no npm
 publication). `v2` is an internal development branch label, not public release
 2.0 or a 1.0 threshold, which [#168](https://github.com/khawkins98/scriptoscope/issues/168)

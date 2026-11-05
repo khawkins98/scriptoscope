@@ -1,207 +1,142 @@
 # Browser contracts and reviewed image goldens
 
-`npm ci` installs the exact Playwright package in the lockfile. For a native local
-contract run, install its browser with `npx playwright install chromium`, then run
-`npm run test:rendering`. The command builds the public library and production demo first and compares
-it with the source entry through separate static/Vite servers. It exercises every
-corpus theme, the bounded option cases, source-art and synthetic slice/ring oracles,
-label ink, value endpoints, actual promoted DOM, keyboard focus, and grid/flex
-window-part bounds at native/2× scale. Missing themed art is recorded explicitly;
-native/CSS fallback controls are compared as DOM screenshots, not invented canvases.
+Use [the contributor workflow](../../docs/contributor-workflow.md#choose-the-validation-for-your-change)
+to choose checks. This page owns browser execution, CI coverage, golden review
+and failure artifacts. Goldens compare Scriptoscope against reviewed prior output;
+they are not original Kaleidoscope captures or a complete fidelity certificate.
 
-`npm run test:rendering:extended` runs the full valid case inventory in Chromium
-at DPR1 and the bounded inventory at Chromium DPR2, Firefox and WebKit DPR1.
-Install those browsers with `npx playwright install chromium firefox webkit`.
-`SCRIPTOSCOPE_RENDERING_BROWSERS=chromium` narrows a local extended run. The explicit
-**Extended rendering matrix** workflow runs all four projects. This is broader
-option coverage, not proof of period rendering fidelity for every combination.
+## Run locally
 
-The workflow's `browsers` input defaults to `all`; select `firefox`, `chromium`,
-or `webkit` for a focused diagnostic rerun. Every configured engine first launches
-and opens a page in global setup, so a broken browser environment fails before
-the matrix. The extended container uses UID 1001, matching the Actions-mounted
-home directory and [Playwright's container CI example](https://playwright.dev/docs/ci#via-containers).
-Firefox rejects a root process with a home directory owned by another user.
-The Chromium-only golden workflow does not require this Firefox launch change.
+```sh
+npm ci
+npx playwright install chromium
+npm run test:rendering
+```
 
-CI uses the immutable Playwright Linux image named in the workflows and the
-matching exact npm version. The same image is available locally:
+The runner builds public source/production paths and tests bounded cases, actual
+DOM/CSS and focused independent assertions. For the full valid inventory in
+Chromium DPR1 plus bounded Chromium DPR2/Firefox/WebKit DPR1:
+
+```sh
+npx playwright install chromium firefox webkit
+npm run test:rendering:extended
+```
+
+`SCRIPTOSCOPE_RENDERING_BROWSERS=chromium` narrows local extended runs. The
+**Extended rendering matrix** workflow accepts `browsers=all` (default), `chromium`,
+`firefox` or `webkit` for diagnostic reruns. Global setup launches each configured
+engine before tests; a broken browser environment fails rather than dropping it.
+The extended container uses UID 1001 so Firefox can use the Actions-mounted home.
+
+## Record and verify goldens
+
+Use the immutable Linux/amd64 image pinned by `container.mjs` and the workflows:
 
 ```sh
 npm run test:rendering:container -- contracts
-npm run test:rendering:container -- record  # unreviewed candidates
+npm run test:rendering:container -- record
 npm run test:rendering:container -- verify
 ```
 
-The helper selects Linux/amd64, uses an isolated anonymous `node_modules` volume,
-and removes its container after the run. It writes generated builds, test results
-and candidate goldens into the current checkout; use an isolated checkout for
-review. Docker must have enough available memory; the helper never stops unrelated
-containers. An isolated copy without `.git` can supply `SCRIPTOSCOPE_GIT_COMMIT`.
+Docker is required. The helper uses an anonymous dependency volume, removes its
+own container and writes generated builds/results/candidates into the checkout.
+Use an isolated checkout with enough memory; it never stops unrelated containers.
+An isolated copy without `.git` may declare `SCRIPTOSCOPE_GIT_COMMIT`, which is
+provenance rather than a substitute for measured Git identity.
 
-Golden recording and verification are separate commands:
+`npm run test:rendering:goldens` verifies without changing expectations;
+`npm run test:rendering:goldens:update` records candidates. The **Record rendering
+golden candidates** workflow uploads uncommitted candidates: default `mode=record`
+records then verifies, while `mode=verify` only compares. Its optional
+`negative_probes=true` demonstrates missing-manifest/image and one-pixel failures,
+restores expected bytes and verifies them again. Recording is never approval.
 
-- `npm run test:rendering:goldens:update` explicitly records Linux/amd64 candidates.
-- `npm run test:rendering:goldens` verifies reviewed files and fails if a manifest
-  or image is missing. It never creates or changes expected images.
-- The **Record rendering golden candidates** workflow uploads candidates for
-  review without committing them. Its default `mode=record` records then verifies;
-  `mode=verify` compares committed images without recording. Optional
-  `negative_probes=true` checks missing manifest/image and one-pixel mutation
-  failures, restores exact expected bytes, then verifies the restored sheet.
+The manifest records exact case/page inventory and gates browser/Playwright,
+platform, fonts, source archives and display zoom. Git/bundle hashes are provenance
+so ordinary changes remain comparable. Contact sheets keep bounded page sizes;
+collapsed-window pages have a separate declared scope. Missing files, input drift
+or a changed pixel fail. Review candidates against their source evidence and
+[known limits](./KNOWN-LIMITS.md), separately from interaction correctness.
 
-All 70 bounded cases are captured in two independent contact-sheet pages per
-corpus theme (at most 35 cases each), yielding 36 controls PNGs. A third page adds two collapsed managed windows
-(document and side utility) and two directly rendered collapsed utilities with
-the close widget pressed (top and side title axes) per theme, for 54 PNGs in total. Each page gets
-its own browser context, limiting retained DOM and capture size. The manifest
-records the exact per-page case inventory.
-The manifest gates browser/Playwright versions, platform, fonts, archive hashes,
-case inventory and display zoom. Commit and built-bundle hashes are provenance
-only, so ordinary code changes still compare against the approved images.
+## Failure artifacts
 
-CI compares the [reviewed seed images](./goldens/REVIEW.md) exactly on every
-code-changing PR, alongside the independent browser contracts. Missing images,
-manifest/input drift and even one changed pixel fail verification. Updates remain
-an explicit candidate-and-review operation. Image equality is a regression signal;
-the [known limits](./KNOWN-LIMITS.md) distinguish source-backed requirements from
-acknowledged mismatches, unverified appearances and interaction gaps.
-
-Compact JSON observations are always uploaded from `test-results/rendering-evidence`,
-including executed case status/dimensions and actual golden-run environment and
-provenance. They survive successive contract/golden commands. Observed unavailable
-output is not an independent expected-availability oracle. Detailed screenshots,
-traces and diffs are uploaded only for failures; optional negative-probe artifacts
-are retained separately even when their expected failures make the proof succeed.
-
-Failures retain exact case/options metadata, raw source/output PNGs, DOM screenshots
-and traces under `test-results/rendering-options`, with an HTML report under
-`playwright-report/rendering-options`. Golden mismatches also include Playwright's
-expected/actual/diff images. Artifact failures never replace the original error.
-There are no automatic retries or baseline updates in verification.
+Compact execution observations accumulate under `test-results/rendering-evidence`.
+Detailed failed case/options, PNGs, DOM screenshots and traces go to
+`test-results/rendering-options`; the HTML report is in
+`playwright-report/rendering-options`. Golden failures include expected/actual/diff.
+The [failure archive](./README.md#preserved-failed-runs) preserves separate failed
+attempts before another run clears normal output. Artifact preservation failures
+must not replace the primary failure. There are no automatic retries or baseline
+updates in verification. Optional negative-probe artifacts remain separate.
 
 ## CI sharding (#576)
 
-CI runs the bounded contracts as seven parallel jobs in the same container,
-with gates and goldens in their own jobs. `SCRIPTOSCOPE_RENDERING_PART` splits
-the bounded inventory in two: `matrix` is `matrix.spec.mjs` alone, run as two
-`--shard=i/2` jobs, and `rest` is every other spec, run as five `--shard=i/5`
-jobs. Unset, the config runs both, as locally. The required check
-**Gates + build + browser contracts** is the aggregate. Each shard writes a
-Playwright JSON report (`SCRIPTOSCOPE_RENDERING_JSON_REPORT`) and its own
-`rendering-evidence` tree. The aggregate does three things:
+The required PR check is **Gates + build + browser contracts**. The PR tier is
+Chromium-only, with gates, engine diff, builds and installed-package checks,
+bounded rendering shards and exact reviewed Linux goldens. `matrix.spec.mjs`
+runs two shards; other specs run five. `SCRIPTOSCOPE_RENDERING_PART` selects
+`matrix` or `rest`; unset runs both locally. Each shard emits a JSON report and
+its own evidence tree.
 
-- `node tests/rendering-options/shards.mjs parity` checks that every test in the
-  unsharded `--list` inventory (no part set) ran exactly once across all seven
-  jobs, and that nothing else ran.
-- `shards.mjs evidence` merges the observation trees in run order, with the later
-  writer winning as in a serial run. It also concatenates the shard
-  `requirements/execution.json` records under one commit identity.
-- `test:requirements --require-execution` then validates the merged record.
+The aggregate uses `shards.mjs parity` to require the unsharded inventory exactly
+once with no extras, merges observations and assertion executions under one commit,
+and runs `test:requirements -- --check-issues --require-execution`. Missing,
+stale or failed registered source/built assertions do not count as execution.
 
-The extended workflow shards each project three ways and runs the same parity
-check. Its WebKit jobs restore and save Mesa's shader cache (`actions/cache`,
-keyed on the image digest). Linux WebKit renders with Mesa llvmpipe and stalls
-rendering for 0.5-2 s on every shader it hasn't compiled before, so a cold cache
-made the first showcase loads stall (LEARNINGS 2026-11-05). The cache changes
-timing only, never pixels. Playwright shards by test count and keeps a file's tests that share a
-worker in one shard, so the balance between shards is approximate. Coverage
-does not depend on it.
-
-The matrix has its own jobs because count balance fails for it. It has one
-test per theme, each comparing source and built pixels for the whole case list,
-so its 18 tests took about 400 s, as long as roughly 160 ordinary tests. With
-five count-balanced shards, the whole file landed in shard 1 (12.4 min against
-5.5–8 min for the others). The file runs in `parallel` describe mode, so its
-tests are separate shard groups. With `workers: 1` they still run one at a
-time in one worker. Its tests share only the worker-scoped `servers` fixture,
-and each writes its own `contracts/<theme>` observation, so splitting it
-changes neither behaviour nor evidence. When adding shards, check
-the per-shard durations in the `rendering-shard-report-*` artifacts first.
+Extended CI shards each project three ways with the same parity check. Sharding
+changes execution scheduling, not the required denominator. Check durations before
+changing shard layout; a file's shared-worker tests form one shard group. WebKit's
+Mesa shader cache is a timing optimization keyed to the image digest, not a pixel
+baseline or reason to relax coverage.
 
 ## What the PR tier leaves to the release tier
 
-The bounded profile that CI runs on every PR skips two kinds of test. Both still
-run in the extended matrix, which the release gate requires. The lists live in
-[`pr-tier.mjs`](./pr-tier.mjs), which the config reads.
+[`pr-tier.mjs`](./pr-tier.mjs) is authoritative for bounded-profile exclusions.
+Most built-mode twins and WebKit-gated HPT36 timing trials run only in the
+extended tier. Specs registering fidelity assertions retain required modes;
+`BUILT_SMOKE_SPECS` and the all-theme matrix retain production coverage. HP20's
+functional region-path check still runs on PRs. A renamed or missing registered
+spec fails configuration rather than silently shrinking coverage.
 
-- **Built-mode twins.** Most specs run each test against the source modules and
-  again against the built bundle. Both share the decoder, resolver and
-  compositor, so the built twin only catches packaging differences, and it was a
-  third of PR browser time. On PRs a built twin still runs when its spec
-  registers `fidelity-assertion` annotations
-  (`test:requirements -- --require-execution` needs both modes of every
-  registered assertion) or is in `BUILT_SMOKE_SPECS` (the production demo bundle
-  and the public explicit-host entry). `matrix.spec.mjs` keeps its source/built
-  pixel comparison for all 18 themes, and the gates job runs the installed
-  package consumer contract.
-- **WebKit-gated timing.** `frame-pass-through-perf.spec.mjs` (HPT36) spends
-  5+ minutes on timing trials whose ceilings apply only in WebKit, so the bounded
-  profile skips it unless WebKit is selected. Its functional HP20 check (the
-  region clip is a path at 1280 × 800, no size fallback to box) runs on every PR
-  in `frame-pass-through.spec.mjs`.
+Use `SCRIPTOSCOPE_RENDERING_BUILT=all npm run test:rendering` for every bounded
+built twin locally. The container forwards this variable; parity uses the same
+configuration as execution.
 
-`SCRIPTOSCOPE_RENDERING_BUILT=all npm run test:rendering` runs the full bounded
-inventory locally (`npm run test:rendering:container` forwards it). The
-aggregate job's `--list` uses the same config, so shard parity still compares
-like with like. A spec named in either list that no longer exists fails config
-load, so a rename cannot silently drop its coverage.
+The **Release gate** additionally requires extended browser projects, interaction
+coverage, pinned goldens, decoded strict theme lint, the package consumer, pinned
+Scene verification and runtime size trend. It runs manually, weekly on main,
+for in-repository `release/*` PRs and as an exact-commit tag check. A red scheduled
+run blocks release, not ordinary PR merging. Never require **Release gate** in
+ordinary PR branch protection: skipped jobs can look green without running.
+[Release instructions](../../docs/contributor-release.md) own exact-SHA dispatch,
+tag, registry and Pages order; a PR merge preview does not authorize tagging a
+different commit.
 
 ## Firefox and WebKit interaction contracts (#598)
 
-The specs listed in [`interaction-specs.mjs`](./interaction-specs.mjs) are where
-engines genuinely differ on pointer capture, sub-pixel pointer coordinates and
-focus: `window-pointer-drag`, `growbox-zero-delta`, `growbox-zone`, `posture-b`,
-`transformed-ancestors`, the `frame-pass-through*` specs of #597 (hit-regions
-§9.8; HPT36's WebKit budget is gated only in that engine) and the rest of the
-list. They ran on every PR until the maintainer moved them to the release tier
-(#598, DECISIONS #14). The PR tier is Chromium-only, and Chromium still runs these
-specs on every PR in the bounded shards (source mode, plus built where pr-tier.mjs
-keeps it).
+[`interaction-specs.mjs`](./interaction-specs.mjs) is the single interaction-spec
+list shared by configuration and CI. Release **Interaction contract coverage
+(firefox, webkit)** validates extended shard reports: every listed test ran once,
+and every interaction file listed and executed at least one test in both
+`firefox-dpr1` and `webkit-dpr1`, with source/built coverage. Renamed/empty specs
+fail. The extended timeout is 180 seconds per test versus bounded 90 seconds.
 
-In the release tier, the extended matrix runs every spec, these included, in
-source and built modes in `firefox-dpr1` and `webkit-dpr1`. A separate
-**Interaction contracts (firefox)/(webkit)** job used to run the list again in
-both engines; it was removed because it repeated the extended run (about 25
-minutes of WebKit per release run). The release gate's **Interaction contract
-coverage (firefox, webkit)** job, required by the aggregate, now reads the
-extended Firefox and WebKit shard reports. It lists the extended inventory for
-those two engines and runs `shards.mjs parity` with
-`--require-projects firefox-dpr1,webkit-dpr1 --require-files <list>`: every listed
-test ran exactly once, and each interaction spec file listed and ran at least one
-test in each engine. A renamed or emptied spec fails rather than passing as
-"nothing listed, nothing ran". Failures upload with the extended shards. These
-specs now run under the extended profile's 180 s per-test timeout instead of the
-bounded 90 s.
-
-Locally, `npm run test:rendering:interaction` builds the library and demo, then
-runs the list in Firefox and WebKit (`SCRIPTOSCOPE_RENDERING_SUITE=interaction`;
-`SCRIPTOSCOPE_RENDERING_BROWSERS` narrows or widens the engines). The list file is
-the only place the spec set is named: the config, the npm script and the CI
-check all read it.
+For focused local diagnosis, `npm run test:rendering:interaction` builds the
+library/demo and runs that list in Firefox and WebKit.
+`SCRIPTOSCOPE_RENDERING_BROWSERS` narrows or widens its engines. These specs run
+in bounded Chromium on PRs as permitted by `pr-tier.mjs`; CI does not repeat the
+same Firefox/WebKit list after already validating extended execution.
 
 ## Current coverage boundaries
 
-Source/built parity uses the same semantic decoder, resolver, compositor and text
-rasterizer. It can catch packaging differences while both paths share a fidelity
-error. The explicit 20px push/bevel ink oracle checks clipping and placement against
-an input glyph mask, not original font correctness. Source-art cards are candidates,
-not actual resource-selection traces or a complete glyph oracle.
-
-Unavailable themed output is recorded honestly, but the matrix does not yet have
-an independently reviewed availability inventory. A shared new null result can
-escape parity; the reviewed smoke goldens catch its visual change, while an
-extended-only absence needs a separate availability contract.
-
-Native select keyboard focus, selection, replacement and disabled skipping have
-focused System 7/Windows 95 checks. Generic focus probes and state-render cases do
-not exhaust button activation, check/radio grouping, slider drag/keyboard changes
-or tab navigation. Window fixtures cover representative grid/flex layout, scale
-and shadow behavior, not the complete window-management lifecycle.
-
-See the [fidelity plan](../../docs/spec/fidelity-verification-plan.md) and
-[epic #221](https://github.com/khawkins98/scriptoscope/issues/221) for independent
-truth, actual selection provenance and requirement-level verification work.
+Parity shares the decoder, resolver, compositor and text rasterizer, so both
+paths can share a fidelity error. Input glyph-mask checks do not establish
+original fonts. Source-art cards are candidates, not selection traces; recorded
+nulls are not independent expected availability. The separate
+[finite availability contract](../control-availability/README.md) covers only its
+reviewed cases. Window, focus and control probes are bounded rather than exhaustive.
+Use [KNOWN-LIMITS.md](./KNOWN-LIMITS.md) and the
+[fidelity plan](../../docs/spec/fidelity-verification-plan.md) for remaining scope.
 
 ## Independent #459 regressions
 

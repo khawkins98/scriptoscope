@@ -98,8 +98,8 @@ allocation correction and migration of the scene to `diagnostic.html`.
 The `*.spec.mjs` files in this directory are `node:test` suites driven by
 Playwright's library API, not Playwright Test specs, so neither
 `tests/rendering-options/playwright.config.mjs` nor CI runs them. They are
-manual, maintainer-run checks; `npm run test:visual-baselines` runs the seven
-that start their own isolated Vite server. Each is described below.
+manual, maintainer-run checks; `npm run test:visual-baselines` runs the suite list in package.json. Each owns an
+isolated Vite server; the table below routes focused checks.
 
 Status on `v2` at 2026-10-22 (Chromium from the locked Playwright, macOS): passing
 `boot-affordance`, `window-promotion`, `mobile-layout`; **failing**
@@ -115,7 +115,7 @@ and built modes.
 
 ## Boot-affordance smoke test
 
-Install the locked development dependencies and Chromium:
+Install dependencies/Chromium once, then run a selected Node-driven suite:
 
 ```sh
 npm ci
@@ -123,69 +123,41 @@ npx playwright install chromium
 node --test --experimental-strip-types tests/visual-baselines/boot-affordance.spec.mjs
 ```
 
-The smoke test starts an isolated Vite server on an available port and closes it
-and every browser after the run, including failed assertions. To check an existing
-dev server or production preview instead, pass its full landing-page URL in `BASE`:
-
-```sh
-BASE=http://localhost:4173/scriptoscope/ node --test --experimental-strip-types tests/visual-baselines/boot-affordance.spec.mjs
-```
+These suites close owned Vite/browser processes even on failure. For the boot
+smoke, `BASE=http://localhost:4173/scriptoscope/` targets an existing preview
+instead. Shared setup does not make these part of required Playwright Test CI.
 
 ## Atomic window promotion
 
-```sh
-node --test --experimental-strip-types tests/visual-baselines/window-promotion.spec.mjs
-```
-
-Uses the locked Playwright installation above and an isolated Vite server.
-The test delays chrome preparation across painted frames and checks that the
-original content, inherited styles, focus, and following sibling stay intact.
-It also exercises first-render and content-fit failures, retry, and unmount.
+`window-promotion.spec.mjs` delays chrome preparation across painted frames and
+checks original content, inherited styles, focus and sibling layout. It also
+checks first-render/content-fit failures, retry and unmount.
 
 ## Mobile demo layout
 
-```sh
-node --test --experimental-strip-types tests/visual-baselines/mobile-layout.spec.mjs
-```
-
-Uses the same Playwright setup and an isolated server. At 320px and
-390px mobile viewports it checks four showcase schemes, the upload modal,
-OFF → Restore chrome, and the personal blog's locally scrolling code. Page
-width and visible window bounds must fit without scaling the chrome canvases.
+`mobile-layout.spec.mjs` checks 320px and 390px mobile viewports across four
+showcase schemes, the upload modal, OFF → Restore chrome and locally scrolling
+blog code. Page width and visible windows must fit without scaling chrome canvases.
 
 ## Automatic control-template sizing
 
-```sh
-node --test --experimental-strip-types tests/visual-baselines/control-template-size.spec.mjs
-```
-
-Uses the Playwright setup above. Exercises the actual Windows 95 source
-art, full centered label pixels, all 18 schemes' state geometry, explicit heights,
-and showcase buttons/select interaction. Diagnostic Scene controls request fixed
-heights and therefore do not cover this automatic-sizing path.
+`control-template-size.spec.mjs` checks real source art, centered labels, corpus
+state geometry and showcase controls. Fixed-height diagnostic Scenes do not cover
+automatic sizing.
 
 ## Control fill and shell styling
 
-```sh
-node --test --experimental-strip-types tests/visual-baselines/control-background-sample.spec.mjs tests/visual-baselines/window-shell-style.spec.mjs
-```
-
-Uses the locked Playwright dependency and isolated Vite servers. The fill test compares rendered
-interiors with original cinf background samples and checks state/base fallback
-metadata. The shell test checks computed styles and actual frame/canvas bounds
-for Windows 95 and System 7, including stretched grid/flex hosts and print.
+`control-background-sample.spec.mjs` compares interiors with original cinf samples
+and checks state/base metadata. `window-shell-style.spec.mjs` checks computed
+styles/frame bounds, stretched grid/flex hosts and print. These retain separate
+pixel and DOM obligations.
 
 ## Source-backed default rings
 
-```sh
-node --test --experimental-strip-types tests/visual-baselines/control-ring.spec.mjs
-```
-
-Checks all 18 corpus state footprints/source corners and full default-label ink,
-plus independent coordinate sentinels for square corners, overlapping masked
-bands, repeat modes, pressed-state selection, and transparent margins. Explicit
-face heights remain caller-controlled; the ring adds four pixels per side.
-
-These ring snapshots are reviewed regression evidence, not a complete control
-fidelity claim. General face geometry and pattern composition remain tracked in
-[#218](https://github.com/khawkins98/scriptoscope/issues/218).
+`control-ring.spec.mjs` checks corpus footprints/corners, full label ink and
+independent coordinate sentinels for masked/overlapping bands, repeat modes,
+pressed selection and margins. Explicit face height remains caller-controlled;
+ring allocation adds four pixels per side. Regression snapshots do not establish
+complete fidelity; [#218](https://github.com/khawkins98/scriptoscope/issues/218)
+retains broader face/pattern limits. The independent diagnostic-hash contracts
+have their own [scope record](./diagnostic-hash.md).

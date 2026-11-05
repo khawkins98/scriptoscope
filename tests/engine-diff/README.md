@@ -1,48 +1,35 @@
 # Engine diff gate
 
-`run.mjs` renders the `cases.mjs` matrix in Node and compares each cell's trace
-digest with the baselines at the base commit. The rules are in the header of
-`run.mjs`. Commands:
+This gate renders finite window-chrome and scroll-bar cells in Node and compares
+trace digests with committed baselines. [run.mjs](./run.mjs) owns the checking
+rules. It is a regression gate, not original-pixel evidence.
 
 ```sh
-npm run engine-diff                                     # head vs its own committed baselines
-node tests/engine-diff/run.mjs --check --base-commit <sha> [--declared f,g | --declared-from-diff]
-npm run engine-diff:write                               # re-seed baselines/ after blessing
-node tests/engine-diff/run.mjs --dump <family>/<slug>/<cell key>
+npm run engine-diff
+node tests/engine-diff/run.mjs --check --base-commit <sha> --declared <family>
+npm run engine-diff:write
+node tests/engine-diff/run.mjs --dump <family>/<slug>/<cell-key>
 ```
 
-CI runs `--check --base-commit <merge-base>` for every pull request: `ci.yml`
-for PRs into `main` that touch code, and `v2-docs.yml` for every PR into `main`, docs-only PRs included. The PR body's `engine-diff: <family>[, ...]`
-lines declare which families may change.
+The write command re-seeds baselines only after review of the intended change.
+CI checks against the PR merge-base in `ci.yml` and `v2-docs.yml`, including
+applicable docs-only PRs. All PRs target `main`; `v2` is a retired branch name.
 
 ## What a v2 → main release PR must declare
 
-> **Historical framing (2026-10-30).** This section was written for release PRs
-> from the `v2` integration branch. `v2` is retired and every PR now targets
-> `main` directly ([DECISIONS #1](../../docs/v2/DECISIONS.md)), so each PR
-> declares every changed family (rule 1) and blesses every changed, added or
-> removed cell in `expected/<family>.json` relative to its merge-base with
-> `main` (rule 2; see the header of `run.mjs`). Only rule 2's accumulation of
-> entries across v2 PRs, and the warning about pruning them before a release,
-> are historical. Rules 3 and 4 still apply to any PR: a family with no
-> baseline at the base takes the seed path and must be declared, and a changed
-> `cases.mjs` also runs the base's copy.
+This retained anchor now describes any focused PR to `main`:
 
-A release PR is judged against its merge-base with `main`. `main` carries the
-window and scroll-bar baselines, so v2's changes since the last sync to main are
-judged all at once:
+1. Declare each changed or newly seeded family in the PR body as
+   `engine-diff: <family>[, ...]`.
+2. Bless every changed, added or removed cell relative to the merge-base in
+   `expected/<family>.json`, with the final digest and cited family rule. Do not
+   prune expectations still needed for comparison with that base.
+3. A family with no baseline at the base takes the seed path and must be declared.
+4. When `cases.mjs` changed, CI also runs the base's cases against the head runtime;
+   expected entries must cover every change observed by that base harness.
 
-1. `engine-diff: <family>` for every family that has a cell changed on v2 since
-   the last main sync.
-2. `expected/<family>.json` at the v2 head must bless the final digest of every
-   such cell relative to main. Entries therefore accumulate across the v2 PRs
-   between releases. Pruning "inert" entries on v2 before a release makes the
-   release PR fail.
-3. A family added on v2 that main has no baseline for (for example a future
-   slider family) takes the seed path and must be declared.
-4. If `cases.mjs` changed since main, main's `cases.mjs` also runs, in a child
-   process on the head runtime. Every cell it sees change must be covered by an
-   expected entry that blesses a change from main's digest.
+The former instruction to accumulate expectations across successive `v2` releases
+is historical. [Integration decisions](../../docs/v2/DECISIONS.md) own branch policy.
 
 ## Limits
 

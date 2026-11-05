@@ -1,6 +1,6 @@
 # docs/archive/ — done work, parked for history
 
-Documents in this folder describe **work that is complete**. They are kept (not deleted) because the design rationale, alternatives weighed, and lessons learned are sometimes still informative when revisiting the same problem space — but they should NOT be mistaken for active project state.
+Documents in this folder are **historical records**, including completed work, parked investigations and superseded integration notes. They are kept (not deleted) because the design rationale, alternatives weighed, and lessons learned are sometimes still informative when revisiting the same problem space — but they should NOT be mistaken for active project state.
 
 ## What lives here
 
@@ -34,3 +34,7 @@ Documents in this folder describe **work that is complete**. They are kept (not 
 | `2026-05-28-css-emitter-spike.md` | ADR-0001 §Gating spike (3 rounds, retired) | Decision 1 retired; lessons in LEARNINGS 2026-05-28 |
 | `golden-reference-todo.md` | Backlog item, blocked on trustworthy ground truth | Tracked in [#190](https://github.com/khawkins98/aaron-ui/issues/190) |
 | `overnight-coherence-review.md` | One-shot citation-coherence pass for 2026-05-29/30 overnight | Methodology folded into LEARNINGS 2026-05-30 |
+
+For current instructions use the [documentation task index](../index.md). Do not
+turn a historical record into a second current API reference. Preserve original
+claims and add a superseding route when needed.

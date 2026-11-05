@@ -77,7 +77,7 @@ The hosted `mountExplicitPage` helper selects the page’s sources once and owns
 their theme and lifetime. It is an example orchestration layer, separate from
 the package’s explicit promotion primitives. Dynamically inserted controls need
 `handle.attach(...)`; use `detach(...)` before removing them and `disconnect()`
-when disposing the page. See the [handle reference](https://github.com/khawkins98/scriptoscope/blob/main/docs/decorate-a-page.md#explicit-page-host-options)
+when disposing the page. See the [handle reference](https://github.com/khawkins98/scriptoscope/blob/main/docs/hosted-reference.md#explicit-page-host-options)
 for the exact contracts.
 
 The hosted files follow the deployed demo. For a reproducible application, use
@@ -98,7 +98,7 @@ including the lazy decoder chunks and your chosen theme archives.
   dimensions; auto-captured bounds include the frame. Transparent parts of
   supported frames pass input through by default. Use `data-scriptoscope-hit="box"`
   when the full rectangular host should take input. Details live in the
-  [markup reference](https://github.com/khawkins98/scriptoscope/blob/main/docs/decorate-a-page.md#the-full-data-scriptoscope--vocabulary).
+  [markup reference](https://github.com/khawkins98/scriptoscope/blob/main/docs/hosted-reference.md#the-full-data-scriptoscope--vocabulary).
 - **Classic behavior is deliberate:** hover does not invent artwork the scheme
   never supplied. Native controls retain form and keyboard behavior, but your
   application still needs accessibility review. The [interaction reference](https://github.com/khawkins98/scriptoscope/blob/main/docs/interaction.md)
@@ -136,6 +136,8 @@ for local setup and checks. Runtime implementers must start with the
 and their assigned safe family spec. Its read scope takes precedence over broad
 repository exploration. [Project background](https://github.com/khawkins98/scriptoscope/blob/main/docs/project-background.md)
 explains the preservation goal, history and evidence boundaries.
+
+Browse the [documentation hub](https://github.com/khawkins98/scriptoscope/blob/main/docs/index.md) for the complete task map.
 
 For integration help from an agent, [llms.txt](https://github.com/khawkins98/scriptoscope/blob/main/llms.txt)
 provides task-specific entry points. Feature proposals and work in progress live

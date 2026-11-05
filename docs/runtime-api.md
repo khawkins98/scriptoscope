@@ -77,7 +77,7 @@ their parent markup. `disconnect()` does not dispose a registered borrowed theme
 its owner releases it after its last consumer finishes.
 
 `interactiveButton(theme, options)` and its `onClick` option remain available,
-but the returned themed element is now an actual `HTMLButtonElement` with
+and the returned themed element is an actual `HTMLButtonElement` with
 `type="button"`. Native click, Space, Enter, focus and disabled-fieldset behavior
 apply, including programmatic `.click()`. Enter activation can occur on keydown;
 do not depend on the former pointerup/keyup callback timing, wrapper spans or
@@ -256,3 +256,51 @@ coordinate limits and automatic/foreign-manager boundaries.
 
 
 For the complete application lifecycle, start with the [npm integration guide](./npm-consumer.md). For declarative markup and the hosted helper, see [decorate a page](./decorate-a-page.md).
+
+## Guarded promotion and restoration
+
+A custom host owns the source selection, attempt signal, theme generation and
+completion policy. The root and declarative entries export
+`promoteGuardedButton(source, theme, signal, canCommit)` and
+`promoteGuardedControl(source, theme, signal, canCommit)`, returning
+`Promise<HTMLElement | null>`. Controls support native checkbox/radio/range/select.
+The synchronous predicate must be side-effect-free and require a live host,
+current attempt/theme and containment in the owned root. False releases pending
+preparation without insertion; a thrown value rejects after releasing preparation.
+Signal and parent-location checks still apply.
+
+Await `ScriptoscopeWindow.promote(source, { manager, theme, signal })` before
+recording success. Use `restoreOriginalElement()` to restore live children without
+a user-close event, or `unmount()` for close semantics. Cancel pending work when
+source or ancestor ownership changes; removal/reparenting cancels preparation.
+
+After a successful guarded button refresh, transfer focus as appropriate and
+call `disposePromotedButtonFace(source, previousFace)` to release only the old
+face. A failed refresh retains the preceding face. Controls replace/dispose their
+old faces internally. A revoked preparation predicate does not disable an already
+committed face; it stays synchronized until replacement or teardown.
+
+Abort before calling `restoreButton`, `restoreControl`, `restoreField` or
+`restoreTabs`. Restore functions are idempotent, preserve live native nodes and
+values, and roll back only still-owned mutations. Tabs cancel pending selection
+commits and return face focus to the native tab; repeated promotion retains the
+rollback baseline. Release faces/windows before disposing their theme/resolver.
+Registered themes/base chains are borrowed. The [hosted ownership reference](./hosted-reference.md#ownership-and-completion)
+defines the example helper's completion/error policy; custom hosts must choose
+and document their own policy.
+
+## Managed window state
+
+`WindowManager.applyState(host, state, signal?)` returns a promise for its chrome
+commit. `ManagedWindowState` has optional `width`, `height`, `z` and `collapsed`;
+width/height are content dimensions and numeric values must be finite. Omitted
+fields retain their values. Title-widget callbacks are not invoked. Native content
+stays attached, z-only updates avoid repainting, and focus advances above restored
+z values. Position uses `setPosition(host, x, y)`; content-only changes can await
+`refreshScrollbars(host)` after attachment.
+
+Render failure rejects while preserving committed geometry. Removed hosts,
+aborted calls and superseded preparation are no-ops; a later render-affecting
+operation can supersede a pending call. This does not change activation policy.
+See [interaction callbacks](./interaction.md#callbacks-imperative) for state
+inspection and change notifications.

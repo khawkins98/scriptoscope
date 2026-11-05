@@ -1,3 +1,5 @@
+> Design record: the proposal below retains its original scope and terminology. Use [current task guides](docs/index.md) and [integration decisions](docs/v2/DECISIONS.md) for released behavior and current work policy.
+
 # PRD — Scriptoscope
 
 A Mac OS Appearance-style window manager + theme engine for the web.
