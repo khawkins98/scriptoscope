@@ -1,5 +1,11 @@
 # 0.7.0 pre-launch: installation and migration
 
+> Historical release record for the 0.7.0 transition. Branch names, candidate
+> status and gate observations below describe that release work; they are not
+> current installation instructions. Use the [npm tutorial](../npm-consumer.md),
+> [hosted reference](../hosted-reference.md) and [changelog](../../CHANGELOG.md)
+> for an application integrating the maintained release.
+
 **0.7.0** is a pre-launch release (GitHub release `v0.7.0`; no npm
 publication). `v2` is an internal development branch label, not public release
 2.0 or a 1.0 threshold, which [#168](https://github.com/khawkins98/scriptoscope/issues/168)
@@ -19,7 +25,7 @@ npm run preview:demo
 
 Open the printed local `/scriptoscope/` URL. The public Pages site serves the
 `main` build, which matches the latest release when it is cut. For self-hosting, copy the runtime chunks, CSS, helper modules and themes
-from the **same demo build**, following [vendoring](../../README.md#vendoring-if-you-dont-want-a-third-party-cdn-dependency).
+from the **same demo build**, following [vendoring](../decorate-a-page.md#vendoring-if-you-dont-want-a-third-party-cdn-dependency).
 Do not mix the old deployment with the new example helper.
 
 To try the library in a separate npm consumer, run `npm run build`, then
@@ -71,7 +77,7 @@ disposes them after the last consumer disconnects. Native source identity, form
 association and live values remain owned by the browser/application. Checkables
 may move into a carrier while promoted; do not depend on their parent markup.
 See [explicit host migration](../../EXPLICIT-HOST-API.md), the
-[native-control example](../../README.md#native-form-control-migration-070-484)
+[native-control example](../runtime-api.md#attach-native-form-controls)
 and [owned-theme lifecycle](owned-theme-api.md).
 
 Tabs and whole-header/list-column composition now use engine drivers

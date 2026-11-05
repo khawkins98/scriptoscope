@@ -1,63 +1,69 @@
 # Diagnostic tooling
 
-Tools for inspecting how the TypeScript compositor turns a theme's `wnd#` recipe
-+ cicn into a rendered window — so we can debug in absolute terms ("output spot
-X came from slice Y via mode Z") instead of eyeballing screenshots.
+Use placement diagnostics to identify which recipe slice painted a region.
+For a consumer integration problem, start with [integration edge cases](./integration-edge-cases.md).
+For a new corpus bundle, follow [porting](./porting-a-kaleidoscope-scheme.md).
 
-Everything is built on **`ComposedChrome.placement`**: `composeWindowChrome`
-records, for every slice it draws, the cicn SOURCE rect, the render MODE
-(`fixed` / `stretch` / `tile` / `scale` / `collapse` / `stamp`), the
-part code + role, and the OUTPUT rect(s) it produced (one per tile repeat).
+`ComposedChrome.placement` records source rectangles, part codes/roles, render
+modes and output rectangles. These tools explain the current renderer's output;
+they do not independently prove original Kaleidoscope fidelity.
 
 ## In the browser — the slice inspector
 
-`npm run dev`, open a theme's **"slice inspector"** foldout (under the diagnostic
-strip). It renders the document window at 2× with two-way lookup:
+Run `npm run dev`, open `/diagnostic.html?dev=1`, choose a scheme and expand its
+slice inspector. Select a source slice to highlight its output regions, or hover
+the rendered window to identify the slice beneath the pointer. Edge filters
+isolate top, bottom, left, right or widget placements. A tiled slice can produce
+many regions; a scaled slice produces a differently sized destination.
 
-- **Forward** — the list shows every slice (source-crop thumbnail + edge + part
-  code + role + src coords + usage). Hover/click a slice → it highlights EVERY
-  output region that slice produced on the window. A tiled slice lights up N
-  boxes; a stretched one shows a single wide box; a stamped widget, one box.
-  Filter by edge (top/bottom/left/right/widget).
-- **Inverse** — hover anywhere on the rendered window → a readout names the slice
-  under the cursor: `@150,3 → top p8 side-fill · tile · src 46,0 1×20`.
-
-Use it to say, e.g., "that top-right area is `p8` side-fill tiled, but it should
-be the `p6` title region" — pointing at exact slices.
+Record the scheme, window type/state, size, part code, source and output rect
+when reporting a discrepancy. A screenshot alone often hides the relevant
+allocation decision.
 
 ## Headless — Node CLIs (no browser)
 
-Run `npm run build` first (the CLIs import the built compositor from `dist/`).
+Build the runtime and generate local theme derivatives before these file-based
+tools; they read `themes/<slug>/theme.json` and decoded PNGs:
+
+```sh
+npm run build
+node scripts/extract-scheme.mjs 1138
+npm run diag:render -- 1138 --title Hello --w 178 --h 98
+npm run diag:audit -- 1138
+```
+
+See [bundle derivatives](./theme-bundle-layout.md#what-npm-run-buildthemes-produces-locally-gitignored)
+for the full bake pipeline. Rebuild after runtime/source changes.
 
 ### `npm run diag:render -- <slug> [windowType] [flags]`
-Renders one window with the REAL compositor and writes
-`themes/<slug>/diag/<windowType>.png` + `.json` (the full placement map), and
-prints a slice table. Flags: `--w N --h N` (content size), `--title T` /
-`--plate N` (title-plate width; no DOM here to rasterize, so `--title` estimates
-it). Default window type = `document-window`.
 
-```
-npm run diag:render -- 1138 --title Hello --w 178 --h 98
-npm run diag:render -- evolution wnd--14328
-```
+A slug is required. The default type is the document window when available,
+otherwise the first renderable recipe. Flags:
 
-The `.png` is readable directly (no browser); the `.json` is the placement map
-for scripting. `themes/*/diag/` is git-ignored (regenerable).
+| Flag | Meaning |
+|---|---|
+| `--w N`, `--h N` | Content dimensions; defaults 240×120 |
+| `--title T` | Estimate title width at six pixels per character; no browser glyph rasterization |
+| `--plate N` | Explicit bare title width; recipe margins are added by layout |
+
+Writes `themes/<slug>/diag/<windowType>.png` and `.json` (including placement)
+and prints a slice table. These outputs are gitignored. The CLI handles recipe
+windows, not built-in procedural-frame schemes; use the browser for those.
+It is not a substitute for DOM/CSS or font testing.
 
 ### `npm run diag:audit -- [slug]`
-Renders every theme's window types and checks placement invariants, printing
-warnings in absolute terms (`theme · window · edge · slice`). Exits non-zero on
-warnings, so it can gate CI. Checks:
 
-- **coverage** — each edge's output rects tile it with no internal gaps (catches
-  the "chrome doesn't reach the edge" class).
-- **code→mode** — `p0` stays fixed (corner); `p18` is scale; widget refs
-  (`1–4`) aren't stretched (stretching smears the baked widget).
-- **widgets** — every top rectList widget is stamped or sits in a fixed segment.
-- **mega-tile** — no slice tiled an implausible number of times.
+Omit the slug to inspect all locally baked themes. The audit checks edge
+coverage, code-to-mode expectations, widget placement and excessive tile counts.
+It exits nonzero on warnings. It does **not** compare reference screenshots or
+establish independent decoder correctness. Interpret a warning against the
+relevant contract before treating it as a runtime defect.
 
 ## Files
-- `src/composeChrome.ts` — `placement` model + `partRole`.
-- `scripts/render-window.mjs`, `scripts/audit-placement.mjs`, `scripts/diag-lib.mjs`
-  (shared minimal PNG codec + cicn loader + window resolver).
-- `demo/diagnostic.html` — `sliceInspector()`.
+
+| Concern | Home |
+|---|---|
+| Placement output | [`src/composeChrome.ts`](../src/composeChrome.ts) and delegated engine families |
+| Render/audit entrypoints | [`render-window.mjs`](../scripts/render-window.mjs), [`audit-placement.mjs`](../scripts/audit-placement.mjs) |
+| File-based PNG and window helpers | [`diag-lib.mjs`](../scripts/diag-lib.mjs) |
+| Interactive inspector | [`demo/diagnostic.html`](../demo/diagnostic.html) |

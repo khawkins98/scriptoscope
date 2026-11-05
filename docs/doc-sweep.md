@@ -1,80 +1,128 @@
-# Doc-sweep recipe
+# Documentation maintenance
 
-A checklist for "I've shipped 5+ commits in 24 hours, sync the docs before the next session loads stale context."
+Keep active instructions accurate and easy to find. Use this policy for routine
+code changes, release preparation and larger editorial sweeps. The
+[task index](./index.md) routes readers; the [documentation map](./documentation-map.json)
+classifies the whole repository without turning the README into a catalog.
 
-The four context docs loaded into every Claude session — `CLAUDE.md`, `LEARNINGS.md`, `README.md`, `docs/integration-edge-cases.md` — and the consumer-facing [`docs/interaction.md`](./interaction.md) drift fast in prototype mode. False starts, knob churns, and reverted attributes leave lying comments and stale examples behind. Run this sweep after any heavy iteration day; it takes ~20 minutes and prevents every future session paying 5-10 minutes of "doc says X, code says Y" reconciliation.
+## Editorial policy
+
+1. **Name the reader and result.** A page should answer one coherent question or
+   support one task. Use [Diátaxis](https://diataxis.fr/compass/) to distinguish
+   tutorials, how-to guides, reference and explanation. Apply the distinction
+   where it helps; do not create empty quadrants or a file for every heading.
+2. **Update one authoritative home.** Replace the existing explanation instead
+   of appending a second account. Guides may show the subset needed for a task;
+   exhaustive options and edge cases belong in reference. README owns orientation,
+   one working starter, material adoption limits and routes onward.
+3. **Verify changed claims.** Check public exports, commands, source and executable
+   examples. Preserve prerequisites, lifetimes, cleanup, compatibility limits,
+   accessibility caveats and third-party terms. Remove obsolete behavior from
+   active guides; record uncertainty when verification is incomplete.
+4. **Keep records in context.** Historical plans, experiments, original observations,
+   evidence, provenance and generated inventories are not prose to shorten for
+   appearance. Preserve original claims, inputs and limitations. Add a route or
+   dated superseding note rather than rewriting a record into current instructions.
+   Source-derived contracts require their own spec/review process; editorial work
+   must not change engine rules or weaken evidence requirements. When generated
+   documentation needs updating, use its existing source or generator.
+5. **Review for subtraction and navigation.** Classify paragraphs as keep, move,
+   merge, delete or verify. Move material only to serve an identified need. Repair
+   inbound links and anchors, including `llms.txt` and package documentation.
+   Prefer manifest/source links over repeated counts or rolling status summaries.
+6. **Test the reader's path.** Can a new reader choose a setup, run the complete
+   example, find an advanced option and discover the relevant limits? Report
+   README and total documentation changes, including new files. Word budgets are
+   review signals; successful tasks and preserved contracts determine quality.
+
+Runtime implementers follow their [brief](./spec/engine/IMPLEMENTER-BRIEF.md) and
+assigned allowed paths. This policy, the index and audit tool grant no extra
+reading scope. Repository-wide documentation audits are for documentation
+maintainers, not an implementer onboarding step.
 
 ## The recipe
 
 ### 1. Enumerate the deltas
 
+Review `git log --oneline <last-doc-commit>..HEAD` and the code diff. Identify public
+API changes, integration behavior, user interactions and changed setup/deployment
+requirements. Internal refactors need documentation only when a documented
+contract or contributor task changes.
+
+### 2. Find the affected home
+
+Use the [task index](./index.md). Hosted setup goes in the page guide; attributes
+and host methods in the hosted reference; application ownership in the npm guide;
+user gestures/events in interaction; framework/layout constraints in integration;
+commands and release steps in the contributor workflow. New APIs do not
+automatically warrant a README entry.
+
+Search those specific active documents for removed names. Historical occurrences
+are records, not necessarily errors. Preserve LEARNINGS entries and add a dated
+superseding pointer when a later decision changes their applicability.
+
+### 3. Update the contract and its affected examples
+
+Check example imports, attributes, option names and teardown against the public
+implementation. Update the task guide only when its recipe changes. Update agent
+and contributor instructions only when their essential workflow changes.
+The maintained documentation home does not replace the technical authority of
+source, public declarations or an adopted spec. Resolve disagreements through
+the project's authority and review rules; record uncertainty rather than changing
+a contract to make the prose convenient.
+For new internal DOM stamps, maintain the integration reference so SSR consumers
+can distinguish native sources from runtime-owned hosts.
+
+### 4. Verify discovery and distribution
+
+Check moved-page links, heading anchors and inbound links; retain short pointer
+pages where useful. Repository docs linked from the published README must use
+repository URLs unless they actually ship in the npm package. Verify package
+links and runnable examples with the [package-consumer check](../tests/package-consumer/README.md)
+when their paths or code change. Run only the other checks relevant to the edit.
+
+For a repository-wide sweep:
+
 ```sh
-git log --oneline <last-doc-commit>..HEAD
+node scripts/docs-audit.mjs --check --base origin/main
 ```
 
-Categorise each commit:
-- **Public API addition** — new attribute, event, method, option.
-- **Public API deletion** — option you removed (must come out of README).
-- **False-start + revert** — shipped then reverted within the same day (deserves a LEARNINGS entry on *why* the first try was wrong).
-- **Decision-churn** — same knob flipped twice; needs a LEARNINGS supersede pointer.
-- **Internal refactor** — no doc impact, skip.
-- **External pitch change** — README opener / North Star.
+The audit checks classification coverage and preserved record bodies, reports
+active-page budget warnings and counts all documentation, including added pages.
+It does not validate links, execute examples or verify factual/engine correctness.
+Classify new documentation in the map's existing family or add an explicit rule.
+Do not raise a budget simply to hide a warning: first check reader need, duplication
+and whether the page should be a reference.
 
-### 2. Grep each context doc for stale knob names
+### 5. Review the result
 
-```sh
-for term in <deleted-knob-1> <deleted-knob-2> <reverted-attr>; do
-  grep -n "$term" CLAUDE.md LEARNINGS.md README.md docs/integration-edge-cases.md docs/interaction.md
-done
-```
+Check the complete task path after editing. Report verified behavior, unresolved
+facts and any navigation cost. Put release changes in CHANGELOG and implementation
+work status in its tracker, not in repeated prose across guides. Record a false
+start or decision chain in LEARNINGS only when the rationale is reusable; one
+entry per lesson is more useful than one per intermediate patch.
 
-- **LEARNINGS hits** → mark with `> ⚠️ Superseded by <date> — <new entry name>` blockquote pointing forward. **Never delete LEARNINGS entries** — they're the historical record. Mark and move on.
-- **Other docs** → delete the stale text.
+## Reusable editing brief
 
-### 3. For each new public API, verify it appears in
+> Identify this document's reader and task. Verify affected claims against the
+> implementation or executable examples. Update the authoritative home rather
+> than append another account. Keep the starter complete, move exhaustive detail
+> to useful reference, and remove repetition and obsolete active instructions.
+> Preserve prerequisites, cleanup, material limits, contracts and historical
+> evidence. Check links and reader tasks. Report total documentation change and
+> unresolved facts; a shorter README alone does not establish improvement.
 
-- README's attribute table (`README.md` near line 130) OR the API table near line 180 — consumers must be able to discover it.
-- `docs/integration-edge-cases.md` if it changes how a consumer integrates (lifecycle, focus, modals, drag, resize).
-- `docs/interaction.md` if it changes what a user can do with a window or control, or adds, removes or changes an event, key binding or opt-out.
-- `CLAUDE.md` only if a future Claude session needs it in the 5-min onboarding. Most APIs do NOT belong here; only load-bearing patterns + chokepoints do.
-- The README's prose summary (if one exists) is **drift bait** — consider deleting recaps that duplicate the table.
+## Method and credits
 
-### 4. For each decision-churn series, ONE LEARNINGS entry
+This policy applies the curated [documentation-refactoring skill collection](https://github.com/khawkins98/documentation-refactoring/tree/89f138f293e863d64537d91e31fdcf71ed25da1c/skills).
+Its specialist perspectives come from Daniele Procida's Diátaxis and GitHub's
+documentation writer (structure), Samuel Berthe's docs structure audit (navigation),
+Leonardo Flores / Softaworks (audience and prose), Google (maintenance), and
+Anthropic's coauthoring workflow (fresh-reader checking). Conventional Commits and
+dmythro's contribution guidance inform the companion contribution skill.
 
-Don't write one entry per pick — write one entry showing *why* the chain happened. Example: "Schemes Folder window-type went movable-modal → titled-utility-window → document-window in 24h. Period correctness ceded to runtime-supported behavior because the themed scrollbar only renders on document-window."
-
-The lesson is the chain, not each link.
-
-### 5. For each false-start + revert, ONE LEARNINGS entry on the misread
-
-Pattern: user reports symptom → first fix maps to "delete the offending behavior" → revert → real fix adds a side-channel (placeholder element, opt-in attribute, lifecycle event). Future Claude will make the same mistake on a different feature if the entry isn't there.
-
-### 6. Drift-prone numeric claims
-
-Bundle size, lockdown property count, test count, "supports N themes." Either:
-- Replace with a "currently N (see `<file>`)" pointer that auto-stales loudly, or
-- Accept that they'll drift and revisit each sweep. Until `npm run audit:doc-claims` exists, this sweep is the gate.
-
-### 7. Internal DOM stamps audit
-
-Search the diff for new `data-scriptoscope-*` attributes the runtime sets on hosts. Each one belongs in `docs/integration-edge-cases.md`'s "Internal stamps" list so SSR consumers know to strip them.
-
-### 8. Demo-vs-docs sync
-
-Read every `data-scriptoscope-window-type=` line in `demo/index.html`. If the README or `integration-edge-cases.md` describes the demo's window-type choices, those descriptions MUST match. Mismatches are the most common form of doc rot.
-
-### 9. Comments on the demo windows
-
-The `<article>` HTML comments in `demo/index.html` often carry the rationale for the chosen attributes. If you changed an attribute, did you also update the comment above the article? Stale rationale comments mislead the next reader more than missing ones.
-
-## When this matters most
-
-- **The day after** a heavy iteration session — context is freshest, errors easiest to spot.
-- **Before a Claude session that will touch the same area** — you'll hit the stale doc within minutes.
-- **Before merging a long-running branch** — same shape, different timeline.
-
-## The meta-principle
-
-When a consumer footgun keeps recurring (no close hook → MutationObserver hack; type-as-hint → ambiguous; hand-rolled focus trap → a11y bug), the right answer is *promoting the consumer's workaround into a library primitive*. The widgets-opt-in + `openModal` helper + `scriptoscope:close` event triplet (commits af2a106-onward) all came from this pattern. Step 3 of this recipe — "does a NEW API addition warrant a LEARNINGS entry on what consumer-side workaround it deletes" — is the trigger.
-
-That's the half of the answer the maintainer asked about on 2026-05-31: "incorporate some of the learnings here into… either the documentation or ensuring the code behaves in ways that just works." The other half is exactly this sweep.
+The [source records](https://github.com/khawkins98/documentation-refactoring/blob/89f138f293e863d64537d91e31fdcf71ed25da1c/SOURCES.md)
+identify reviewed revisions, credits and reuse/license boundaries. This local
+policy is independently written for Scriptoscope; no upstream skill text or
+reference table is vendored here. Applying the methods does not install skills
+or expand any contributor's allowed reading scope.

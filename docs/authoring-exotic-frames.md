@@ -3,7 +3,7 @@
 Use this reference when a plain rounded frame is insufficient. Start with the
 [workflow](./authoring-a-scheme.md#4-the-workflow), then build explicit cells with
 `frameLayout()`. Rules below distinguish decoded behavior, web limitations and
-native observations. The detailed sources are the [compositor spec](./spec/compositor-spec.md)
+native observations. R1–R30 are reference entries, not extra steps to perform on every build. The detailed sources are the [compositor spec](./spec/compositor-spec.md)
 and [window-widget reference](./spec/engine/window-widgets.md).
 
 ## A. The geometry model in one paragraph (the thing everything else follows from)
@@ -176,10 +176,13 @@ shadow RGB one pixel right, ignoring mask bits. Equal colours disable shadow;
 otherwise it draws at +1,+1. Set samples after painting each state. See R25 for
 popups.
 
-**R28. Title rows matter.** The web clamps font size to `A.top−6` within 8–13 px;
-baseline comes from `T4.bottom−4`. Put T4 on the actual bar rows with at least
-17 px height (`frameLayout` enforces this). Visible plate art must also fit the
-letters; a tall rectangle cannot rescue a short painted plate.
+**R28. Title rows matter.** Put T4 on the actual bar rows and leave room in the
+painted plate as well as the rectangle. `frameLayout` requires at least 17 px
+for its title rows; this authoring check is not a universal browser font-size
+formula. The [title-fit contract](./spec/engine/window-title-fit.md) owns current
+web fitting and failure behavior. Review actual titles at narrow/wide sizes and
+in native Kaleidoscope; a tall transparent title rectangle cannot make a short
+painted plate readable.
 
 **R29. Window identities are canonical.** Use
 [`window-type-identities.js`](../tools/theme-loader/window-type-identities.js)

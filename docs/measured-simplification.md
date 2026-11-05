@@ -2,6 +2,11 @@
 
 Our optimization approach is **consolidation and specialization, guided by measurement and differential testing**. It pursues two separate outcomes: less production machinery to maintain, and less work during execution. Neither outcome proves the other.
 
+Use this guide to plan an optimization and evaluate its evidence. Start with the
+working loop; use the scorecards when reporting results. The
+[experiment register](./runtime-optimization-experiments.md) owns individual
+trial history, measured results and rejected approaches.
+
 ## Ask for it again
 
 > Pursue measured simplification for both performance and code bloat. Consolidate duplicated runtime mechanisms into a small shared core. Prepare inputs once at an established boundary, then use proven constraints to replace expensive general work with simpler arithmetic or bulk operations. Validate against the frozen implementation through the existing harness, including exact pixels, errors, callbacks and lifetimes. Measure complete public operations and count all production code, including adapters and compatibility paths. Prefer net deletion; justify any added code with measured gains. Report speed, size, scope and limitations separately.
@@ -23,7 +28,12 @@ Preparation is not permission to move validation, change asynchronous snapshot t
 
 Bind actual serialized fixture and asset bytes before comparing builds; a hash of the generator alone does not prove its outputs identical. Use fresh logically equivalent mutable state for each variant. Verify the actual owned browser executable, product/version and live user-agent separately; the installed browser application may not be the browser the tool launches. Syntax-check the exact browser evaluation payload, and check numerical admission and analysis against synthetic known contrasts before freezing the experiment.
 
-Counterbalanced order and multiple processes do not by themselves establish that two variants measured in one page have independent execution histories. An identical-baseline audit of the bevel protocol found a patterned ordinary workload second/first ratio of 0.820685, with simultaneous interval [0.727976, 0.925200], despite identical runtime bytes. That exceeded its preregistered reciprocal five-percent neutrality band. Slot contrasts remained inconclusive: a period effect alone does not prove an earlier counterbalanced candidate estimate biased or identify a JIT, cache or host mechanism.
+Counterbalanced order and multiple processes do not establish independent
+execution histories for variants measured in one page. An
+[identical-baseline audit](./runtime-optimization-experiments.md#identical-baseline-timing-audit-material-position-effect)
+found a material position effect. This did not establish that an earlier
+candidate estimate was biased, identify its host mechanism, or prove that fresh
+processes cure it. Validate the proposed isolation method independently.
 
 If controls drift or a method changes, preregister a bounded identical-artifact audit before making a new speed claim. Keep process/block units separate from batch counts, fix practical resolution and multiple-endpoint inference before data, and retain all planned records. Wide nonsignificant intervals are inconclusive, not evidence of neutrality. A fresh process per artifact is a next isolation hypothesis to validate, not a demonstrated cure.
 
@@ -45,10 +55,12 @@ A small code increase can be worthwhile for a substantial measured execution imp
 
 ## Examples already landed
 
-- [PR #493](https://github.com/khawkins98/scriptoscope/pull/493) consolidated eight private drawing executors into a shared CPU raster core. Including adapters and lifecycle repairs, it removed **161 noncomment production lines and 2,057 emitted JavaScript bytes**. It adopted two explicitly reviewed observation changes; no speedup was established.
-- [PR #494](https://github.com/khawkins98/scriptoscope/pull/494) replaced a header coverage scan with arithmetic over privately prepared integer rectangles. It added **seven physical source lines and 117 emitted JavaScript bytes**. Independent measurements across five Chrome processes found **20–47% less time** for the measured warm synthetic solid-body header calls at 64×12, 320×24 and 1280×64, with exact public behavior checks. That is a workload-specific execution gain, not a whole application speed claim.
-
-These demonstrate complementary results. Their timings must not be multiplied or generalized to unmeasured paths. Further specializations must earn their own evidence and full code-cost accounting.
+The [landed-results register](./runtime-optimization-experiments.md#landed-results)
+separates two examples: #493 removed duplicated CPU executors without establishing
+a speedup; #494 reduced time for named synthetic warm header calls while adding
+a small amount of code. Use that register for exact scope and counts. Do not
+multiply their timings or generalize them to whole applications or unmeasured
+paths; further specialization needs its own evidence and code-cost accounting.
 
 ## Guardrails
 

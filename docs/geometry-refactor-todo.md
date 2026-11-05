@@ -1,3 +1,5 @@
+> Dated planning record: status and implementation claims below apply to the recorded revision. This is not a current assignment list. Runtime implementers use the [brief](spec/engine/IMPLEMENTER-BRIEF.md) and assigned safe spec; spec writers consult [integration decisions](v2/DECISIONS.md).
+
 # Geometry & Wiring Refactor — Working TODO + Context
 
 *Listing-level narrative (registers, frame offsets, instruction excerpts) for this document lives in [`spec/engine/geometry-refactor-todo.evidence.md`](spec/engine/geometry-refactor-todo.evidence.md) — spec writers and verifiers only.*

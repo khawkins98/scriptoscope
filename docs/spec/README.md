@@ -16,25 +16,18 @@ your reference work. Use original evidence to write or verify listing-free famil
 specs; send implementers spec clarifications through the spec author, never
 verifier reports or original listings. Keep independent test authorship separate.
 
-**Current orientation (2026-10-24; branch note 2026-10-30):** October’s incremental
-decode-first v2 milestone is distinct from May’s v2/v3 resets. Its former `v2`
-integration branch was retired on 2026-10-30; all work now lands on `main`
-([DECISIONS #1](../v2/DECISIONS.md)). The package version is 0.9.0;
-not every family has migrated. Migration work is tracked in [issue #378](https://github.com/khawkins98/scriptoscope/issues/378);
-the [#459 batch](https://github.com/khawkins98/scriptoscope/issues/459) is complete. See
-[DECISIONS #8](../v2/DECISIONS.md) and, for integration owners/spec writers,
-the [amended PLAN](../v2/PLAN.md) (its §2 branch and integration rules are
-superseded by DECISIONS #1). The current implementation surface is
-`src/engine/qd/`, `resources/`, `state/`, `tables/`, `families/` and `trace.ts`
-under `src/engine/`; `composeChrome.ts` wraps the window driver. The tables below retain the
-source-reference catalogue; they are not an implementer reading list or an
-exhaustive current-family inventory.
+## Find current contracts
 
-The current bounded tab migration contract is
-[`engine/tab.md`](./engine/tab.md): source-derived body/pattern rules and explicit
-modern facade/transport policies. Its separate evidence appendix is for spec
-writers and verifiers only. The earlier tab-body investigations retain their
-historical bounded scope; whole native tab typography/device fidelity remains open.
+This is the source-reference catalog for spec writers and independent verifiers,
+not an implementer reading list or a release-status dashboard. Integration policy
+belongs in [DECISIONS](../v2/DECISIONS.md); published behavior and version changes
+belong in the [changelog](../../CHANGELOG.md). Read amendments before an older plan.
+
+The engine's listing-free family contracts live under `engine/`; their separate
+`*.evidence.md` appendices retain original listings and traces for spec writers
+and verifiers only. Runtime implementers receive the assigned safe contract through
+the brief above. Older investigations keep their recorded bounded scope; they
+do not establish full native typography, device or whole-engine fidelity.
 
 The **citation chain** (highest authority first):
 
@@ -90,7 +83,7 @@ kdef-binary-inventory.md     (1.8.2 + 2.3.1 extraction recipe)
 | `kdef231-code10-widgets.md` | Stub (split 2026-10-22). Keeps only the ledger-pinned `kdef.too-short-step` excerpt; the behaviour is in `engine/window-widgets.md`, the trace in `engine/window-widgets.evidence.md`. | Same as kdef231-reference.md |
 | `engine/window-widgets.md` | Implementer spec for the window recipe: part-code verdicts, the too-short step, the titled side, the layout cache, and the rect-list widget remap, draw and hit. Evidence: `engine/window-widgets.evidence.md`. | Same as kdef231-reference.md |
 | `engine/hit-regions.md` | Window structure/content regions (`wCalcRgns`) and the outer `wHit` classification for both the recipe compositor and the built-in frame: recipe structure regions are traced from the chrome template's mask, so transparent frame pixels answer `wNoHit` (#597). §9 is the web host policy: pass-through by `clip-path` for recipe windows, with the `data-scriptoscope-hit="box"` opt-out. Evidence: `engine/hit-regions.evidence.md`. | Same as kdef231-reference.md |
-| `engine/inactive-window-input.md` | Widget and grow presses on an inactive window (#614): no family reports a widget part for a window that is not drawn active (a press there is `wInDrag`), the built-in frame neither draws nor hits inactive widgets, and the Apple-side convention (`SelectWindow`/`DragWindow`, never `TrackGoAway`). §7 is the web policy for #614: pointer presses on an inactive window's widgets and grow box only activate it (narrowing DECISIONS #12), widget actions activate, last explicit `active` wins, Shift+wheel is horizontal only (all decided 2026-11-01; implementation pending). Evidence: `engine/inactive-window-input.evidence.md`. | Same as kdef231-reference.md; Inside Macintosh: Toolbox Essentials |
+| `engine/inactive-window-input.md` | Widget and grow presses on an inactive window (#614): no family reports a widget part for a window that is not drawn active (a press there is `wInDrag`), the built-in frame neither draws nor hits inactive widgets, and the Apple-side convention (`SelectWindow`/`DragWindow`, never `TrackGoAway`). §7 is the web policy for #614: pointer presses on an inactive window's widgets and grow box only activate it (narrowing DECISIONS #12), widget actions activate, last explicit `active` wins, Shift+wheel is horizontal only (recorded 2026-11-01; consult the family contract and release notes for adoption). Evidence: `engine/inactive-window-input.evidence.md`. | Same as kdef231-reference.md; Inside Macintosh: Toolbox Essentials |
 | `kdef-faithfulness-ledger.md` | Every deliberate divergence from the binary, with owner-approved intent. The accountability mechanism. | Manual |
 
 ## Per-concern decodes (deep dives)

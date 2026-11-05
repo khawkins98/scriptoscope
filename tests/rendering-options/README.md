@@ -1,141 +1,66 @@
 # Control rendering matrix
 
-This harness exercises the public runtime across all 18 shipped schemes. Shared,
-Node-importable `cases.mjs` describes supported options; `browser.mjs` invokes the
-public compositors or real declarative scanner. It contains no copied slicing or
-resource-selection implementation. The page loads the consumer stylesheet too:
-raw canvas comparison alone misses shadows, native-input synchronization and host
-layout defects.
+Use this harness to reproduce browser rendering and interaction defects across
+the bundled themes. `cases.mjs` defines finite public input combinations;
+`browser.mjs` calls public compositors and explicit DOM promotion. The page loads
+the consumer stylesheet because canvas equality misses layout, native-input and
+focus defects. Shared source/built output is a regression signal, not independent
+proof of original Kaleidoscope fidelity.
 
 ## Run and review
 
-The companion browser runner supplies these commands. [CI and golden workflow
-details](./CI.md) cover the pinned container, exact comparisons and failure artifacts:
+For a native local run:
 
 ```sh
 npx playwright install --with-deps chromium
 npm run test:rendering
-npm run test:rendering:extended
 ```
 
-The bounded run uses all 18 themes in Chromium at DPR 1, comparing source and built
-public entry points where the PR tier keeps built mode ([`pr-tier.mjs`](./pr-tier.mjs);
-`SCRIPTOSCOPE_RENDERING_BUILT=all` runs every built twin). The extended run uses all cases in Chromium at DPR 1 plus
-bounded cases in Chromium at DPR 2, Firefox and WebKit at DPR 1 (install those
-browsers first). See the runner's configuration for selection and artifact paths.
-`npm run test:rendering:interaction` runs only the pointer and focus interaction
-specs in [`interaction-specs.mjs`](./interaction-specs.mjs) under Firefox and WebKit.
-The release gate requires that the extended matrix ran each of them in both engines
-before every release ([details](./CI.md#firefox-and-webkit-interaction-contracts-598)).
-These checks do not claim original-engine fidelity from agreement with ourselves.
+The command builds the library/demo and runs the bounded Chromium profile.
+[CI.md](./CI.md) owns extended/interaction runs, pinned Linux golden recording,
+verification, shard parity and failure artifacts. Read [KNOWN-LIMITS.md](./KNOWN-LIMITS.md)
+before interpreting pixels or approving new golden candidates. Runtime implementers
+may execute assigned independent checks but must not read their sources/oracles.
 
-The separate golden workflow is explicit:
-
-```sh
-npm run test:rendering:goldens
-npm run test:rendering:goldens:update
-# Cross-platform entry to the exact Linux/amd64 environment:
-npm run test:rendering:container -- record
-npm run test:rendering:container -- verify
-```
-
-CI now compares the 36 [reviewed Linux sheets](./goldens/REVIEW.md) exactly on
-code-changing PRs. A missing manifest/image or changed pixel fails verification.
-Updates create candidates for review; they do not automatically bless current
-output. Browser/font, DPR, source and runtime provenance accompany the seed and
-every executed page. Read the [known limits](./KNOWN-LIMITS.md): regression-image
-approval is separate from historical fidelity and interaction correctness.
-
-Interactive contact sheets show ordered case IDs, requested options via metadata, actual
-control output, and decoded source-art candidates. Source canvases use labeled
-integer magnification for inspection; their backing pixels remain untouched.
-The separate 12px label probe is an input aid, **not** the renderer's resolved
-font-size/colour/placement oracle. Explicit tiny controls may deliberately clip
-text; treating every small output as a failure would contradict the public API.
+Contact sheets show case IDs/options, output and decoded source-art candidates.
+The magnified source display does not change backing pixels. The label probe is
+an input aid, not a resolved font/placement oracle; explicit tiny controls may
+clip labels by caller request.
 
 ## Button lifecycle checks
 
-`button-lifecycle.spec.mjs` exercises native identity/form actions, consumer style
-ownership, focus after enclosing-window teardown, replacement listener disposal,
-insertion-observer cancellation and held real archive/image work in source and
-built public paths. Moved sources remain consumer-owned; a connected source moved
-within the mount retries under its current parent/theme at most once per frame. The actual showcase
-No Theme → System 7 → No Theme flow is covered by `button-showcase.spec.mjs`.
-These are web lifecycle assertions; they do not certify historical button pixels
-or add tab/text-field restoration to the contract.
+`button-lifecycle.spec.mjs` checks native identity/form actions, style ownership,
+focus, replacement disposal and cancelled/held work in source/built paths.
+`button-showcase.spec.mjs` checks the showcase's No Theme → System 7 → No Theme
+flow. These contracts neither certify historical pixels nor extend restoration
+to tabs/text fields. Moved consumer-owned sources retry under their current
+parent/theme at most once per frame.
 
 ## Grow-box hit zone (#524)
 
-`growbox-zone.spec.mjs` drives the showcase Schemes Folder window in source
-(Vite demo) and production (`dist/demo`) modes for windows-95 and beos-r503,
-which ship no grow-box resource, and apple-platinum-2, which does (control).
-It locates the vertical scrollbar's down arrow only from the visible scrollbar
-element (arrow at its end, length equal to bar thickness) and never reads the
-grow-box button. Clicks 2 px from the arrow's far end and at its centre must
-each scroll the content without resizing the window, handing the in-flow host
-off to absolute positioning or dispatching `scriptoscope:userresize`. The
-far-end click catches a corner clearance a few px short, which the centre
-click alone misses. A drag from the window's bottom-right corner pixel must
-still resize it.
-
-The showcase has no horizontal window scrollbar, so a second case drives
-imperative `WindowManager` windows on the harness page (source and built) with
-one overflowing axis: windows-95, beos-r503, evolution and apple-platinum-2,
-vertical-only and horizontal-only, at scale 1 and 2. Both end-arrow points
-must hit the scrollbar and scroll. These are interaction checks for a
-compatibility policy (the window scrollbars are an app-layer overlay) and
-make no fidelity claim.
+`growbox-zone.spec.mjs` checks that scrollbar end-arrow clicks scroll without
+resizing, absolute-position handoff or a userresize event, while corner drags
+still resize. It covers showcase source/production paths, absent/present grow-box
+art and imperative single-axis overflow at scales 1/2. This is the app-layer
+scrollbar compatibility policy, not a native-fidelity claim.
 
 ## Posture B on the showcase (#536)
 
-`posture-b.spec.mjs` checks the in-flow layout contract (CLAUDE.md "Declarative
-layout model", `docs/integration-edge-cases.md` "How positioning works") on the
-real showcase, in source (Vite demo) and production (`dist/demo`) modes. In-flow
-hosts (Schemes Folder, Controls, "Use it on your page") have their inline
-`position` cleared, so the Controls window keeps its consumer
-`position: relative`. Host equals outer chrome, there is no ancestor `min-height`
-pin, and the heavy cards' `max-height: 280px` bounds the painted chrome (#541).
-A real pointer drag on Controls hands it off to absolute: the chrome follows the
-pointer exactly, and one chrome-sized `[data-scriptoscope-placeholder]` holds its
-grid cell, so the sibling window and the section below do not move. Choosing
-No theme, then a tile, remounts the runtime, and a second tile repaints every
-window.
-
-The showcase's card cascade is opt-in demo code and positions the cards
-absolutely, so the in-flow checks skip them. Layout persistence is demo consumer
-code (`demo/explicit-layout.mjs`, after #491), so its round trip runs in source
-mode only. It checks that in-flow windows persist no `x`/`y` and stay in flow on
-reload, and that a dragged window is restored as absolute at its position. A
-companion `test.fail` pins #558: a reload grows short auto-sized windows. Remove
-the marker when #558 is fixed.
+`posture-b.spec.mjs` checks in-flow hosts, consumer positioning, outer-chrome
+bounds, pointer handoff and the chrome-sized flow placeholder on real source
+and production showcases. Layout persistence belongs to the example host and is
+checked in source mode; the expected-failure marker for #558 retains the reload
+growth defect rather than relaxing it. See [positioning](../../docs/integration-edge-cases.md)
+for the consumer contract. The demo's opt-in absolute card cascade is separate.
 
 ## Showcase settle signal (#565)
 
-Showcase specs wait for `#powers.scriptoscope-ready` and may act at once; no
-spec needs its own animation wait. `mountExplicitPage` (`demo/explicit-host.mjs`)
-adds the class, removes `data-scriptoscope-loading`, lifts the boot `inert` and
-fires `ready` only after every window's boot reveal (a 180 ms clip-path
-animation) has finished. Reveals that stop advancing do not hold ready back. A
-document that is hidden when the wait starts, or becomes hidden during it,
-finishes them at once. Otherwise they are finished once the wait has lasted
-360 ms, twice the reveal. This covers a background tab, an off-screen iframe
-and a reveal paused by other code. A reveal cancelled by other code ends the
-wait. With `prefers-reduced-motion: reduce` no reveal starts, and a retheme
-does not replay the reveal.
-
-`showcase-ready-settled.spec.mjs` guards this in source and built modes. Its
-init script stretches the reveal tenfold, so a ready signal that does not wait
-fails on every run. When the class lands, no window animation may be
-unfinished, the bottom of every on-screen window must hit what it hits once
-the page is settled, and a real click right away must land on a window. Three
-cases stop the reveal's clock: they play it at 1 %, pause it, or set its
-playback rate to 0, which `finish()` rejects, so the boot cancels that reveal.
-They require ready within 1 s of the last reveal starting, every reveal
-finished or cancelled, and no window still clipped. A third case reports the document hidden only while a
-`visibilitychange` event is being dispatched, so it can pass only through the
-event handler, and requires that event to finish the reveals. A reduced-motion
-case checks that no reveal starts. These are interaction checks on demo code
-and make no fidelity claim.
+Showcase tests wait for `#powers.scriptoscope-ready` before acting. The host clears
+loading/inert state only after boot reveals finish or are boundedly cancelled;
+hidden-document and reduced-motion paths must not leave readiness blocked.
+`showcase-ready-settled.spec.mjs` stretches, pauses and stops reveal clocks and
+checks immediate real clicks and geometry in source/built modes. It guards demo
+interaction, not historical rendering.
 
 ## Coverage inventory
 

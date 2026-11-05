@@ -1,6 +1,6 @@
 # Authored schemes
 
-Start with the [authoring guide](../docs/authoring-a-scheme.md) and
+To create a new scheme, follow the [authoring guide](../docs/authoring-a-scheme.md) and
 [brief template](./concept-brief-template.md). Scriptoscope Reference Native Theme is the worked reference
 implementation, separate from the community corpus in `themes/`; corpus
 rendering gates do not cover authored schemes. Scheme checks discover new
@@ -30,6 +30,5 @@ semi-transparent alpha. Copying an example's source does not transfer its review
 or VM proof. Update identity and credits, regenerate previews and validate your
 own final bytes.
 
-The reference demonstrates branded frame recipes, geometric artwork and control-family
-builders. `preview-layouts/` holds HTML fragments for `?layout=`, including the
+Use the [reference scheme folder](./schemes/scriptoscope/README.md) to locate its frame and control-family builders. `preview-layouts/` holds HTML fragments for `?layout=`, including the
 narrow/wide stress layout.

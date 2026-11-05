@@ -1,6 +1,6 @@
 # AI-assisted art for authored schemes
 
-Use AI to explore composition or propose constrained pixels. The
+Use this optional tool-selection reference to choose an output for an authoring task. AI can explore composition or propose constrained pixels. The
 [authoring workflow](./authoring-a-scheme.md#4-the-workflow) owns build and
 validation; no external art service is required to build the examples.
 
@@ -36,24 +36,21 @@ model names and speed rankings are not part of a reproducible scheme build.
 ## 3. The image route
 
 Supply the [brief](../authoring/concept-brief-template.md), geometry SVG, target
-outer size and title/widget reservations. Ask for a complete composition and
-save the selected image and exact prompt under `concept/`.
+outer size and title/widget reservations. Save the selected composition and
+exact prompt under `concept/`.
 
-An image model may invent its own grid, soft edges or painted transparency.
-Measure the resulting scale and try extracting the actual illustration before
-asking a model to redraw it. `npm run paint-over` is an initial sampling route;
-use explicit masks and a source-derived palette if voting loses important detail.
-Record crops, sampling, masks, palette changes and any repairs so extraction can
-be repeated. Thin rays or glyphs may need final-grid drawing.
+Models can invent a grid, soft edges or painted transparency. Measure the scale
+and extract distinctive illustration before redrawing it. The
+[paint-over workflow](./authoring-a-scheme.md#43-paint-over-the-concept) gives the
+sampling command; the brief records crop, scale, masks, palette and repairs.
+Use explicit masks/source-derived palettes when voting loses important detail.
+Keep approved assets stable when adding unrelated ones.
 
-For an existing geometric brand mark, use its source geometry and colours. The
-[reference theme](../authoring/schemes/scriptoscope/concept/brief.md) uses its AI
-concept for composition, then builds the site mark, rules and repeats in code.
-
-Keep alpha binary: values 1–127 have hidden-swatch meaning in the encoder.
-Apply hidden colour samples in code after import. Preserve approved crops and
-palettes when adding another asset. Compare the rendered window with the concept
-crop at equal outer widths, preserving aspect ratios.
+Use original source geometry for an existing brand mark, rather than a generated
+approximation. Keep imported alpha at 0/255: values 1–127 mean hidden swatches
+to the encoder. Apply actual hidden samples after import. Compare concept/live
+art at equal outer widths, preserving aspect ratios; see the
+[visual checklist](./authoring-visual-design.md#4-review-checklist).
 
 ## Validation and experiment history
 

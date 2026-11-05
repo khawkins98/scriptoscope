@@ -1,3 +1,5 @@
+> Experiment record: retain the inputs, measurements and limitations at their recorded revisions. These results are not general speed guarantees. For a new optimization task, start with [measured simplification](measured-simplification.md).
+
 # Runtime optimization experiments
 
 Use [measured simplification](measured-simplification.md): identify code or work that can disappear, charge every replacement, then verify behavior and complete public-operation cost. A negative result applies to its inspected scope, not every possible implementation.

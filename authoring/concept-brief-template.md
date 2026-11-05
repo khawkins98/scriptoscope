@@ -1,6 +1,6 @@
 # <Scheme name> — concept brief
 
-Copy to `schemes/<slug>/concept/brief.md`. Record design decisions here; keep
+Copy to `authoring/schemes/<slug>/concept/brief.md` from the repository root. Record design decisions here; keep
 build hashes and tested native states in `classic/README.md`. Adjust relative
 links for the destination folder.
 

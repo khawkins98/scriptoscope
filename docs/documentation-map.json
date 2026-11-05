@@ -1,0 +1,26 @@
+{
+  "schema": 1,
+  "description": "First matching rule owns each Markdown document and llms.txt. Budgets prompt editorial review; preserveBody retains existing record text while allowing navigation notes. The task hub is docs/index.md. This map grants no reading scope to runtime implementers.",
+  "rules": [
+    { "match": "^(README|CLAUDE|CONTRIBUTING|AGENTS)\\.md$|^llms\\.txt$", "kind": "orientation", "audience": "users and contributors; role restrictions apply", "reviewWords": 1400 },
+    { "match": "^CHANGELOG\\.md$|^LEARNINGS\\.md$|^docs/history\\.md$|^docs/v2/DECISIONS\\.md$", "kind": "history", "audience": "maintainers; implementer brief controls access" },
+    { "match": "^PRD\\.md$|^docs/(geometry-refactor-todo|runtime-optimization-experiments)\\.md$", "kind": "record", "audience": "maintainers and independent reviewers", "preserveBody": true },
+    { "match": "^docs/(index|research/README|superpowers/README|tracking/README|v2/README|archive/README|spec/README)\\.md$", "kind": "navigation", "audience": "role-specific readers as stated on each index", "reviewWords": 2500 },
+    { "match": "^docs/spec/engine/.*\\.evidence\\.md$|^docs/research/|^docs/tracking/|^v2-lanes/", "kind": "evidence", "audience": "spec writers and independent verifiers only", "preserveBody": true },
+    { "match": "^docs/spec/", "kind": "specification", "audience": "implementers only for expressly assigned safe paths; other material spec writers/verifiers only" },
+    { "match": "^docs/(scene-codex|kaleidoscope-asset-catalog)\\.md$", "kind": "generated-reference", "audience": "theme authors and maintainers; regenerate from the named tool" },
+    { "match": "^docs/(scene-slot-spec|generated-name-compatibility|push-allocator-compatibility)\\.md$", "kind": "specification", "audience": "maintainers and contract reviewers" },
+    { "match": "^docs/(archive|adr|superpowers)/|^docs/v2/(PLAN|owned-raster-transport-plan)\\.md$", "kind": "record", "audience": "maintainers; not current consumer instructions", "preserveBody": true },
+    { "match": "^docs/hosted-reference\\.md$|^docs/interaction\\.md$|^docs/authoring-exotic-frames\\.md$|^docs/contributor-fidelity\\.md$", "kind": "reference", "audience": "consumers, scheme authors or fidelity contributors as titled", "reviewWords": 4500 },
+    { "match": "^docs/[^/]+\\.md$|^docs/v2/(integration-release-notes|owned-theme-api|raster-asset-consumers)\\.md$", "kind": "guide", "audience": "users and contributors as stated on the page", "reviewWords": 2200 },
+    { "match": "^EXPLICIT-HOST-API\\.md$|^demo/EXPLICIT-HOST\\.md$", "kind": "compatibility-route", "audience": "readers of old hosted API links", "reviewWords": 1200 },
+    { "match": "^authoring/.*/(classic/README|concept/brief)\\.md$", "kind": "design-record", "audience": "scheme authors", "preserveBody": true },
+    { "match": "^authoring/.*\\.md$", "kind": "authoring-guide", "audience": "scheme authors", "reviewWords": 2200 },
+    { "match": "^themes/.*\\.md$|^demo/assets/.*\\.md$|^tools/sit-wasm/munbox/PATCHES\\.md$|^tests/decoder-fixtures/.*\\.md$", "kind": "provenance", "audience": "redistributors and reviewers", "preserveBody": true },
+    { "match": "^tests/.*/(REVIEW|SOURCE-EVIDENCE|EVIDENCE|ORIGINALS|CANDIDATES)\\.md$|^tests/(rendering-options/native-dom-contract|visual-baselines/diagnostic-hash|reference-captures/animals-state-proposal)\\.md$", "kind": "evidence", "audience": "independent reviewers; implementers must not inspect oracle/review material", "preserveBody": true },
+    { "match": "^tests/.*\\.md$", "kind": "verification-guide", "audience": "test authors and reviewers; implementers may run assigned checks but not inspect independent sources", "reviewWords": 3000 },
+    { "match": "^tools/runtime-spike/README\\.md$", "kind": "experiment-guide", "audience": "maintainers and independent reviewers", "reviewWords": 1500 },
+    { "match": "^tools/runtime-spike/|^tools/listener-closure-handoff\\.md$", "kind": "experiment-record", "audience": "maintainers and independent reviewers", "preserveBody": true },
+    { "match": "^tools/(performance|sit-wasm)/README\\.md$", "kind": "tool-guide", "audience": "maintainers", "reviewWords": 1800 }
+  ]
+}
