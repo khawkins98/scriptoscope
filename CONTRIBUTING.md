@@ -8,9 +8,15 @@ Thanks for your interest in contributing to Scriptoscope.
 
 - **Runtime implementers:** read [`docs/spec/engine/IMPLEMENTER-BRIEF.md`](./docs/spec/engine/IMPLEMENTER-BRIEF.md) **first**, then the assigned listing-free [`engine/<family>.md`](./docs/spec/engine/) spec and only the brief's allowed paths. Its exhaustive read scope, isolation, independent-test and review-material restrictions govern every instruction below. Run assigned independent checks without opening their source or oracle data. If a spec is ambiguous or disagrees with legacy code, record a spec question in your own lane notes and stop on that item; do not resolve it from evidence. The brief forbids history, LEARNINGS and the general spec index as implementer reading.
 - **Spec writers and independent verifiers:** use the role-gated [`spec index`](./docs/spec/README.md) and original source evidence to establish or verify behavioural rules. Send implementers only listing-free spec clarifications through the spec author; never hand them verifier reports or oracle data. Spec, independent tests and implementation retain separate ownership.
-- **Consumers:** start with the [`README`](./README.md) integration examples. For code orientation, `src/composeChrome.ts` is a facade over `src/engine/families/window.ts`; the control facades delegate migrated scroll-bar, slider, progress, push/default, checkable and tab paths to engine drivers. The engine's `qd/`, `resources/`, `state/`, `tables/` and `trace.ts` support those drivers; remaining families still need incremental migration.
+- **Consumers:** start with the [`README`](./README.md) setup choices and [npm integration guide](./docs/npm-consumer.md). For code orientation, `src/composeChrome.ts` is a facade over `src/engine/families/window.ts`; the control facades delegate migrated scroll-bar, slider, progress, push/default, checkable and tab paths to engine drivers. The engine's `qd/`, `resources/`, `state/`, `tables/` and `trace.ts` support those drivers; remaining families still need incremental migration.
 
 For integration policy, use [`docs/v2/DECISIONS.md`](./docs/v2/DECISIONS.md), especially decisions #1 and #8 (both superseded on 2026-10-30 where they name `v2` as the integration branch). Spec writers/verifiers and integration owners may consult [`PLAN.md`](./docs/v2/PLAN.md) for the architecture and release criteria, reading its 2026-10-22 amendment before the original single-release proposal; its §2 branch and integration rules are superseded (2026-10-30) by DECISIONS #1 and this guide. Implementers use the brief and their assigned lane instead.
+
+## Documentation changes
+
+Use the [documentation maintenance policy](./docs/doc-sweep.md#editorial-policy)
+for README, guides and references. Choose the reader and task before writing;
+update the authoritative document instead of adding another summary to README.
 
 ## Your first code contribution
 
@@ -509,7 +515,7 @@ Docs and LEARNINGS rot. The faster the project moves, the faster they rot. Stale
 
 **What to review, in order:**
 
-1. **[`README.md`](./README.md)** — does the lede still describe the project accurately? Is the status sentence current? Are linked URLs alive?
+1. **[`README.md`](./README.md)** — does the lede still describe the project accurately? Do the setup choices, starter and adoption limits match the release? Are linked URLs alive?
 2. **[`PRD.md`](./PRD.md)** — does §Phased delivery match what's shipped vs. open? Are §Success criteria still the right targets? Are tracker issue links current?
 3. **[`LEARNINGS.md`](./LEARNINGS.md)** — each entry: is this still true? Is it superseded by a later entry? If superseded, add a "**Superseded YYYY-MM-DD by [other entry]**" header at the top of the stale entry — *don't delete it*; the historical record matters.
 4. **[`docs/`](./docs/) artifacts** — each spec/architecture/spike doc: does it still describe how the system works? If a spec has drifted from implementation, either fix the spec (preferred) or update the implementation to match (when the spec was right).
