@@ -100,7 +100,11 @@ Playwright JSON report (`SCRIPTOSCOPE_RENDERING_JSON_REPORT`) and its own
 - `test:requirements --require-execution` then validates the merged record.
 
 The extended workflow shards each project three ways and runs the same parity
-check. Playwright shards by test count and keeps a file's tests that share a
+check. Its WebKit jobs restore and save Mesa's shader cache (`actions/cache`,
+keyed on the image digest). Linux WebKit renders with Mesa llvmpipe and stalls
+rendering for 0.5-2 s on every shader it hasn't compiled before, so a cold cache
+made the first showcase loads stall (LEARNINGS 2026-11-05). The cache changes
+timing only, never pixels. Playwright shards by test count and keeps a file's tests that share a
 worker in one shard, so the balance between shards is approximate. Coverage
 does not depend on it.
 

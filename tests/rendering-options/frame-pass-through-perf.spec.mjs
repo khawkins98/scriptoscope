@@ -1,12 +1,22 @@
 // #597 HPT36 (docs/spec/engine/hit-regions.md §9.3 HP20): hit-test and frame cost of
 // the region clip at the corpus's largest path (dolphin-som document-window,
 // content 1280 × 800), against a same-run `hit: 'box'` baseline (no clip).
-// WebKit is gated (median elementFromPoint ≤ 3.0 ms; frame p95 ≤ baseline + 3 ms).
+// WebKit is gated (median elementFromPoint ≤ 3.0 ms; hover frame p95 ≤ baseline + 3 ms;
+// drag frame p95 ≤ baseline + one 60 Hz frame, DRAG_P95_OVER_BASELINE_MS below).
 // Chromium and Firefox report only. The release-to-next-frame time (HP49 clip restore) is
 // reported in every engine, never gated. Every engine records the runner identity and
 // both medians, so a slow runner can be told apart from a regression.
 import os from 'node:os';
 import { test, expect, MODES, boot, state, settle } from './frame-pass-through-fixture.mjs';
+
+// The drag ceiling is one 60 Hz frame over the same-run box baseline, not 3 ms
+// (hit-regions.md HPT36, DECISIONS #16). The clip is suspended during a captured
+// drag (HP49), so region and box drag the same pixels, and CI WebKit draws with
+// Mesa llvmpipe, whose frame pacing is not a GPU's. Over 14 release runs the
+// region-minus-box drag p95 ranged −3 to +4 ms (one +5 ms runner), so +3 ms
+// failed about one run in four with no change in code. A dropped frame still fails.
+const HOVER_P95_OVER_BASELINE_MS = 3;
+const DRAG_P95_OVER_BASELINE_MS = 1000 / 60;
 
 const runner = () => ({ platform: process.platform, arch: process.arch, cpu: os.cpus()[0]?.model ?? 'unknown', cpus: os.cpus().length,
   memoryGB: Math.round(os.totalmem() / 2 ** 30), ci: !!process.env.CI, runnerName: process.env.RUNNER_NAME ?? null, runnerOs: process.env.RUNNER_OS ?? null });
@@ -72,13 +82,13 @@ for (const mode of MODES) {
       releaseToFrameMs: med(runs[hit].map(r => r.releaseToFrameMs)), trials: runs[hit] });
     const results = { box: summary('box'), region: summary('region') };
     const observation = { browserName, browserVersion: browser.version(), mode, runner: runner(), baseline: results.box, region: results.region,
-      gate: browserName === 'webkit' ? 'gated' : 'report-only', ceilings: { medianMs: 3.0, p95OverBaselineMs: 3 }, statistic: `median of ${TRIALS} interleaved trials` };
+      gate: browserName === 'webkit' ? 'gated' : 'report-only', ceilings: { medianMs: 3.0, hoverP95OverBaselineMs: HOVER_P95_OVER_BASELINE_MS, dragP95OverBaselineMs: DRAG_P95_OVER_BASELINE_MS }, statistic: `median of ${TRIALS} interleaved trials` };
     info.annotations.push({ type: 'observation', description: JSON.stringify(observation) });
     await info.attach('hpt36.json', { body: JSON.stringify(observation, null, 2), contentType: 'application/json' });
     console.log(`HPT36 ${JSON.stringify(observation)}`);
     if (browserName !== 'webkit') return;
     expect(results.region.median, 'WebKit median elementFromPoint (ms), median of trials').toBeLessThanOrEqual(3.0);
-    expect(results.region.hoverP95, 'WebKit hover p95 vs baseline (medians of trials)').toBeLessThanOrEqual(results.box.hoverP95 + 3);
-    expect(results.region.dragP95, 'WebKit drag p95 vs baseline (medians of trials)').toBeLessThanOrEqual(results.box.dragP95 + 3);
+    expect(results.region.hoverP95, 'WebKit hover p95 vs baseline (medians of trials)').toBeLessThanOrEqual(results.box.hoverP95 + HOVER_P95_OVER_BASELINE_MS);
+    expect(results.region.dragP95, 'WebKit drag p95 vs baseline (medians of trials)').toBeLessThanOrEqual(results.box.dragP95 + DRAG_P95_OVER_BASELINE_MS);
   });
 }

@@ -1,5 +1,48 @@
 # Learnings
 
+## 2026-11-05 — Why WebKit stops running rAF after boot in CI, and the HPT36 drag ceiling
+
+Follow-up to the 2026-11-04 entry below, which worked around the stall without
+explaining it.
+
+- **Cause: cold Mesa shader cache.** Playwright's Linux WebKit (WPE) paints with
+  Skia on Mesa llvmpipe (software GL; the runner has no GPU). Every shader
+  program it has not compiled yet stalls rendering updates, and so rAF, for
+  0.5–2 s while the main thread sits idle. Mesa keeps compiled programs in
+  `$HOME/.cache/mesa_shader_cache`, which is empty in every CI job
+  (`HOME=/github/home`). Measured on real `ubuntu-24.04` runners in the pinned
+  image, 37 fresh containers:
+  - the first 2–3 showcase loads per container stalled (up to 1.6 s with
+    tracing on), and later loads ran at 100–200 ms;
+  - deleting only the Mesa cache brought the stalls back (up to 2 s);
+  - `MESA_SHADER_CACHE_DISABLE=true` made 53 of 54 loads stall;
+  - the first load of a theme new to the container stalled even when warm.
+    That matches run 41867122386, where the failing test was the shard's
+    first `evolution` showcase.
+- **Ruled out:** fontconfig (prebuilt cache; `fc-cache` was a no-op), page
+  visibility (always visible and focused), our own boot work (blocking picker
+  decoding didn't help, and the main thread was idle), and general CPU
+  starvation (Chromium on the same runners never exceeded 171 ms).
+  `WEBKIT_SKIA_ENABLE_CPU_RENDERING=1` or reduced motion removed the stalls.
+- **Users:** not affected. Safari draws with Core Animation/Metal on a GPU.
+  Native macOS WebKit's worst gap after ready was 131 ms. Only GPU-less Linux
+  WebKitGTK/WPE sees it, and only as jank.
+- **What we changed:** contracts still never wait on a rAF pass (#654).
+  `rendering-extended.yml` now carries the Mesa cache across runs with
+  `actions/cache` (WebKit projects only), keyed on the image digest. It changes
+  timing only, never pixels.
+- **HPT36 drag ceiling.** A flake survey ran the extended matrix four times on
+  one commit (fe36562c). The only intermittent failure was HPT36's WebKit drag
+  p95 (28 ms against a 27 ms limit). Over 14 release runs, region-minus-box
+  drag p95 spread from −3 to +4 ms (+5 on one slow runner). The clip is
+  suspended during a captured drag (HP49), so the two modes drag the same
+  pixels, and llvmpipe frame pacing is not a GPU's. The +3 ms ceiling sat
+  inside that noise. It is now one 60 Hz frame (DECISIONS #16); a dropped frame
+  still fails. Hover p95 (17 ms in both modes in every run) and the 3 ms
+  hit-test ceiling (measured 0.7–1.5 ms) are unchanged.
+- **Treat rAF as unbounded in WebKit CI,** and treat millisecond timings there
+  as measurements of the CI machine's software renderer, not of Safari.
+
 ## 2026-11-04 — Release-gate flakes: rAF latency, wheel animation, inert boot
 
 Three intermittent release-gate failures, none caused by the code under test
