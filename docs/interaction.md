@@ -2,7 +2,7 @@
 
 What a user can do with a Scriptoscope window and its controls, and what a consumer can hook or opt out of. Every statement here was checked against the code on `main` (`src/interactive.ts`, `src/declarative/`, `src/controls.ts`, `demo/explicit-host.mjs`, `demo/explicit-layout.mjs`) and, where one exists, against a browser contract in `tests/rendering-options/`. Where the code and an older doc disagree, this page follows the code.
 
-For layout, CSS and lifecycle gotchas see [integration-edge-cases.md](./integration-edge-cases.md). For the attribute vocabulary see the [README](../README.md#the-full-data-scriptoscope--vocabulary).
+For layout, CSS and lifecycle gotchas see [integration-edge-cases.md](./integration-edge-cases.md). For the attribute vocabulary see the [hosted reference](./hosted-reference.md#the-full-data-scriptoscope--vocabulary).
 
 **Contents**
 

@@ -334,8 +334,8 @@ the retired `mountDeclarative` scanner (#491) is gone. With the example host,
 `mountExplicitPage` captures its sources once; after inserting a native control or
 button call `await handle.attach({controls: [input]})` (or `{buttons: [...]}`), and
 call `handle.detach(...)` before moving or removing it. Disconnect before replacing
-the root. See the README's
-[explicit page host section](../README.md#explicit-page-host-options) and
+the root. See the
+[explicit page host reference](./hosted-reference.md#explicit-page-host-options) and
 [`demo/EXPLICIT-HOST.md`](../demo/EXPLICIT-HOST.md).
 
 ## Framework integration notes

@@ -2,7 +2,46 @@
 
 A checklist for "I've shipped 5+ commits in 24 hours, sync the docs before the next session loads stale context."
 
-The four context docs loaded into every Claude session — `CLAUDE.md`, `LEARNINGS.md`, `README.md`, `docs/integration-edge-cases.md` — and the consumer-facing [`docs/interaction.md`](./interaction.md) drift fast in prototype mode. False starts, knob churns, and reverted attributes leave lying comments and stale examples behind. Run this sweep after any heavy iteration day; it takes ~20 minutes and prevents every future session paying 5-10 minutes of "doc says X, code says Y" reconciliation.
+Consumer guides and references drift after API changes. Run this sweep after heavy iteration or before a release; start with the documents affected by the code change rather than expanding every context file.
+
+## Editorial policy
+
+Apply this policy in any project, including when an agent writes the draft:
+
+1. Name one primary reader and the task or question the page serves. Use
+   [Diátaxis](https://diataxis.fr/compass/) to distinguish a learning tutorial,
+   task-specific how-to, lookup reference and conceptual explanation.
+2. Keep README as orientation, one complete starter, adoption limits and routes.
+   Update the authoritative guide/reference for new detail; link instead of
+   repeating tables, examples or implementation status.
+3. Review each affected section as **keep, move, merge, delete or verify**.
+   Moving text is useful only when the destination serves an identifiable need.
+   Preserve prerequisites, cleanup, provenance and material limitations.
+4. Verify changed claims against public exports, source or executable examples.
+   Current guides describe released behavior; release notes and dated decision
+   records own change history. Record uncertainty rather than inventing facts.
+5. Check that a new reader can choose a setup, run its complete example, find
+   an advanced option and identify relevant limitations. Check links and anchors,
+   including links from agent discovery files and packed-package documentation.
+6. Report both README size and total documentation change in a cleanup review.
+   Word counts flag growth; successful reader tasks determine usefulness.
+
+### Canonical homes in this project
+
+| Information | Home |
+| --- | --- |
+| First working hosted page | README |
+| Complete npm application lifecycle | `docs/npm-consumer.md` and `examples/npm/` |
+| Hosted integration tasks | `docs/hosted-recipes.md` |
+| Attributes, page-host options and CDN paths | `docs/hosted-reference.md` |
+| Lower-level rendering and advanced API examples | `docs/runtime-api.md` |
+| Keyboard, pointer and event behavior | `docs/interaction.md` |
+| Integration constraints and troubleshooting | `docs/integration-edge-cases.md` |
+| Project rationale and historical roadmap | `docs/project-background.md` |
+| Release changes / implementation status | CHANGELOG / CONTRIBUTING and linked trackers |
+
+Keep these routes in `llms.txt` aligned when a home changes. Runtime implementers'
+role restrictions override general documentation-reading suggestions here.
 
 ## The recipe
 
@@ -14,17 +53,17 @@ git log --oneline <last-doc-commit>..HEAD
 
 Categorise each commit:
 - **Public API addition** — new attribute, event, method, option.
-- **Public API deletion** — option you removed (must come out of README).
+- **Public API deletion** — option you removed (remove from its authoritative reference and affected examples).
 - **False-start + revert** — shipped then reverted within the same day (deserves a LEARNINGS entry on *why* the first try was wrong).
 - **Decision-churn** — same knob flipped twice; needs a LEARNINGS supersede pointer.
 - **Internal refactor** — no doc impact, skip.
-- **External pitch change** — README opener / North Star.
+- **External pitch change** — README opener; rationale belongs in project background.
 
 ### 2. Grep each context doc for stale knob names
 
 ```sh
 for term in <deleted-knob-1> <deleted-knob-2> <reverted-attr>; do
-  grep -n "$term" CLAUDE.md LEARNINGS.md README.md docs/integration-edge-cases.md docs/interaction.md
+  rg -n "$term" README.md CLAUDE.md LEARNINGS.md docs/hosted-*.md docs/runtime-api.md docs/npm-consumer.md docs/integration-edge-cases.md docs/interaction.md
 done
 ```
 
@@ -33,11 +72,11 @@ done
 
 ### 3. For each new public API, verify it appears in
 
-- README's attribute table (`README.md` near line 130) OR the API table near line 180 — consumers must be able to discover it.
+- Its canonical reference: `docs/hosted-reference.md` for markup/page-host options, `docs/runtime-api.md` for lower-level APIs, or `docs/interaction.md` for behavior/events. Add a how-to only when a distinct task needs one. README changes only if setup choices, its starter or adoption limits change.
 - `docs/integration-edge-cases.md` if it changes how a consumer integrates (lifecycle, focus, modals, drag, resize).
 - `docs/interaction.md` if it changes what a user can do with a window or control, or adds, removes or changes an event, key binding or opt-out.
 - `CLAUDE.md` only if a future Claude session needs it in the 5-min onboarding. Most APIs do NOT belong here; only load-bearing patterns + chokepoints do.
-- The README's prose summary (if one exists) is **drift bait** — consider deleting recaps that duplicate the table.
+- Update the existing explanation rather than append another recap. Keep README and `llms.txt` as routes to the canonical reference.
 
 ### 4. For each decision-churn series, ONE LEARNINGS entry
 
@@ -52,8 +91,8 @@ Pattern: user reports symptom → first fix maps to "delete the offending behavi
 ### 6. Drift-prone numeric claims
 
 Bundle size, lockdown property count, test count, "supports N themes." Either:
-- Replace with a "currently N (see `<file>`)" pointer that auto-stales loudly, or
-- Accept that they'll drift and revisit each sweep. Until `npm run audit:doc-claims` exists, this sweep is the gate.
+- Prefer a link to the generated inventory or executable check over a manually repeated count.
+- If an exact count supports a reader decision, name its source and verify it in this sweep. A review date alone does not establish accuracy.
 
 ### 7. Internal DOM stamps audit
 
