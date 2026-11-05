@@ -24,7 +24,8 @@ classifies the whole repository without turning the README into a catalog.
    appearance. Preserve original claims, inputs and limitations. Add a route or
    dated superseding note rather than rewriting a record into current instructions.
    Source-derived contracts require their own spec/review process; editorial work
-   must not change engine rules or weaken evidence requirements.
+   must not change engine rules or weaken evidence requirements. When generated
+   documentation needs updating, use its existing source or generator.
 5. **Review for subtraction and navigation.** Classify paragraphs as keep, move,
    merge, delete or verify. Move material only to serve an identified need. Repair
    inbound links and anchors, including `llms.txt` and package documentation.
@@ -65,6 +66,10 @@ superseding pointer when a later decision changes their applicability.
 Check example imports, attributes, option names and teardown against the public
 implementation. Update the task guide only when its recipe changes. Update agent
 and contributor instructions only when their essential workflow changes.
+The maintained documentation home does not replace the technical authority of
+source, public declarations or an adopted spec. Resolve disagreements through
+the project's authority and review rules; record uncertainty rather than changing
+a contract to make the prose convenient.
 For new internal DOM stamps, maintain the integration reference so SSR consumers
 can distinguish native sources from runtime-owned hosts.
 
@@ -106,3 +111,18 @@ entry per lesson is more useful than one per intermediate patch.
 > Preserve prerequisites, cleanup, material limits, contracts and historical
 > evidence. Check links and reader tasks. Report total documentation change and
 > unresolved facts; a shorter README alone does not establish improvement.
+
+## Method and credits
+
+This policy applies the curated [documentation-refactoring skill collection](https://github.com/khawkins98/documentation-refactoring/tree/89f138f293e863d64537d91e31fdcf71ed25da1c/skills).
+Its specialist perspectives come from Daniele Procida's Diátaxis and GitHub's
+documentation writer (structure), Samuel Berthe's docs structure audit (navigation),
+Leonardo Flores / Softaworks (audience and prose), Google (maintenance), and
+Anthropic's coauthoring workflow (fresh-reader checking). Conventional Commits and
+dmythro's contribution guidance inform the companion contribution skill.
+
+The [source records](https://github.com/khawkins98/documentation-refactoring/blob/89f138f293e863d64537d91e31fdcf71ed25da1c/SOURCES.md)
+identify reviewed revisions, credits and reuse/license boundaries. This local
+policy is independently written for Scriptoscope; no upstream skill text or
+reference table is vendored here. Applying the methods does not install skills
+or expand any contributor's allowed reading scope.

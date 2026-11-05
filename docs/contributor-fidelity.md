@@ -187,4 +187,3 @@ existing clean-room boundaries, review tiers, exact-head readiness and required 
   mapping or unexplained difference. A finite result is not a general source rule:
   preserve strict defaults and unknown branches, and require a concrete next claim
   before adding more isolated cases.
-

@@ -99,4 +99,3 @@ verify the attestation on the actual published package.
 5. Tag `vX.Y.Z` on that commit and push the tag. The tag push does not re-run the matrix. It checks that the tagged commit has a successful release-gate run and links it in the run summary. If it fails, the tag went on the wrong commit or was pushed too early: delete the tag before creating a release, then go back to step 4.
 6. Create the GitHub release. Its notes link the green release-gate run from step 4 (as 0.7.0 linked its release CI) and include the size trend.
 7. Smoke-check the deployed Pages site.
-

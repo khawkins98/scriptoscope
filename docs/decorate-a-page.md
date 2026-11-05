@@ -51,7 +51,9 @@ change the defaults, set `--scriptoscope-dialog-background` (e.g. `#ffffff`) and
 </select>
 ```
 
-Selecting an option fires the existing `retheme()` flow; every promoted window flips chrome live.
+Selecting an option runs `retheme()` for windows and controls that follow the
+page theme. Authored `data-scriptoscope-theme` overrides keep their selected
+scheme instead of following page-level switches.
 
 ## Bring your own theme — drop a `.sit` / `.rsrc` and see it render
 

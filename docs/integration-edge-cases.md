@@ -60,8 +60,11 @@ The example host places descendant windows at successive offsets once at mount.
 Defaults are 32 px right and 28 px down; `-step-x`, `-step-y`, `-base-x` and
 `-base-y` configure them. Explicit per-window `-x` or `-y` wins. Nested cascade
 containers act independently. The helper reserves vertical space with
-`min-height` and sets `position: relative` only if needed; it does not continually
-reposition windows after user moves. See the [markup table](./hosted-reference.md#the-full-data-scriptoscope--vocabulary).
+`min-height` and sets every cascade container's inline `position` to `relative`
+while mounted, overriding fixed or absolute positioning from inline styles or
+classes. Use a separate outer wrapper when the cascade needs fixed or absolute
+page placement. It does not continually reposition windows after user moves.
+See the [markup table](./hosted-reference.md#the-full-data-scriptoscope--vocabulary).
 
 <a id="how-positioning-works-posture-b-2026-05-31"></a>
 

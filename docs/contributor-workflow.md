@@ -65,7 +65,7 @@ The extended/interaction procedures explain additional browser installation.
 | Verify archive hashes | `npm run lint:themes` |
 | Verify decoding and the strict baseline | `npm run lint:themes -- --strict` (add `--decoded` for the release check) |
 | Refresh a reviewed lint baseline after a relevant rule/renderer change | `npm run lint:themes -- --update` |
-| Inspect a rendered window / placement | `npm run diag:render` / `npm run diag:audit` |
+| Inspect a rendered window / placement | [Diagnostic prerequisites and complete example](./diagnostic-tooling.md#headless--node-clis-no-browser); the render CLI requires a scheme slug |
 | Check scene slots / regenerate the scene catalog | `npm run audit:scenes -- --check` / `npm run audit:scenes -- --write` |
 | Create a new scheme | [Authoring workflow](./authoring-a-scheme.md) |
 
@@ -87,6 +87,8 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 `fix(chrome): correct close-box placement`. Common types are `feat`, `fix`,
 `docs`, `chore`, `refactor`, `test`, `ci` and `build`. Use `!` or a
 `BREAKING CHANGE:` footer for breaking changes. Do not add a `Co-Authored-By:` line.
+Source attribution, copyright and required third-party notices are separate from
+commit trailers; retain those credits when using or adapting others' work.
 
 ## Pull requests
 
