@@ -466,8 +466,9 @@ Idle-runner callback measurements cannot establish cost under contention.
 During a captured frame drag or grow-box resize the clip is suspended for
 WebKit's rendering cost. A resize that finishes preparation during a newer frame
 drag keeps the clip suspended until that drag ends, then restores the latest
-committed region. HPT36 retains its WebKit limit of 3 ms above the same-run box
-frame-p95 baseline, using five interleaved trials; observations include runner
+committed region. HPT36 retains its WebKit limits over the same-run box frame-p95
+baseline (3 ms for hover, one 60 Hz frame for the drag, which runs with the clip
+suspended; DECISIONS #16), using five interleaved trials; observations include runner
 identity, individual trials and release-to-next-frame time. Other engines report
 these timings without a performance gate.
 

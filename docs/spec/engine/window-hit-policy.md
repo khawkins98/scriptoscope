@@ -84,8 +84,9 @@ and ordinary pointer cancellation remain as specified in HP49.
 
 ## Performance acceptance
 
-Retain HPT36's WebKit ceilings: median hit test at most 3 ms and hover/drag frame
-p95 at most same-run box baseline plus 3 ms. Chromium and Firefox remain
+Retain HPT36's WebKit ceilings: median hit test at most 3 ms, hover frame p95 at
+most same-run box baseline plus 3 ms, and drag frame p95 at most same-run box
+baseline plus one 60 Hz frame (DECISIONS #16; the clip is suspended during the drag). Chromium and Firefox remain
 report-only for this budget. Preserve the five alternating box/region trials,
 record individual trials, runner and browser identity, baseline and release
 cost. A failed run is evidence to investigate, not a reason to increase the

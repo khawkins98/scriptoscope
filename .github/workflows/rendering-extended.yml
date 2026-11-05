@@ -59,6 +59,24 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build:themes
+      # Linux WebKit draws with Skia on Mesa llvmpipe (software GL, no GPU on the
+      # runner) and compiles each shader program the first time a draw needs it,
+      # freezing rendering updates and rAF for 0.5-2 s. Mesa keeps the compiled
+      # programs under ~/.cache (HOME is /github/home in this container), which is
+      # empty in every fresh job, so the first showcase loads, and the first load of
+      # each new theme, stalled (LEARNINGS 2026-11-05). Carry the cache across runs.
+      # It changes timing only, never pixels. The key names the image digest so a
+      # new image (new Mesa) starts clean; each run saves under a fresh key and
+      # restores the newest one for its project and shard.
+      - name: Mesa shader cache (WebKit)
+        if: startsWith(matrix.project, 'webkit')
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mesa_shader_cache*
+          key: mesa-shaders-06a9939e-${{ matrix.project }}-${{ matrix.shard }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            mesa-shaders-06a9939e-${{ matrix.project }}-${{ matrix.shard }}-
+            mesa-shaders-06a9939e-${{ matrix.project }}-
       # Global setup still launches every selected browser before the slice runs.
       - run: |
           export SCRIPTOSCOPE_RENDERING_JSON_REPORT="$GITHUB_WORKSPACE/test-results/rendering-shard-report/report.json"
