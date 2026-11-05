@@ -509,11 +509,13 @@ Docs and LEARNINGS rot. The faster the project moves, the faster they rot. Stale
 
 **What to review, in order:**
 
-1. **[`README.md`](./README.md)** — does the lede still describe the project accurately? Is the status sentence current? Are linked URLs alive?
+1. **[`README.md`](./README.md)** — does the lede still describe the project accurately? Can a newcomer run the starter and find the relevant reference? Are linked URLs alive?
 2. **[`PRD.md`](./PRD.md)** — does §Phased delivery match what's shipped vs. open? Are §Success criteria still the right targets? Are tracker issue links current?
 3. **[`LEARNINGS.md`](./LEARNINGS.md)** — each entry: is this still true? Is it superseded by a later entry? If superseded, add a "**Superseded YYYY-MM-DD by [other entry]**" header at the top of the stale entry — *don't delete it*; the historical record matters.
 4. **[`docs/`](./docs/) artifacts** — each spec/architecture/spike doc: does it still describe how the system works? If a spec has drifted from implementation, either fix the spec (preferred) or update the implementation to match (when the spec was right).
 5. **This file** — does the contribution flow it describes still match how PRs actually get landed? Are the commit-message examples still representative?
+
+Use the [doc-sweep recipe](./docs/doc-sweep.md#3-update-the-authoritative-explanation) for the editorial policy: name the reader/task, update the authoritative home, replace rather than append, and preserve necessary prerequisites and limits. New public APIs do not automatically require README sections. Keep release status in the changelog and migration notes. Validate links and the reader's working path; report both README and total documentation changes.
 
 **Tactics for an honest cut-through:**
 

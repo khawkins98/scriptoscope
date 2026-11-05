@@ -9,7 +9,7 @@ For applications, import from `@khawkins98/scriptoscope` and `@khawkins98/script
 - **Choose one setup:** plain HTML or a quick try → the hosted starter in README / install.html; an app with an existing build and a need for versioned dependencies/self-hosting → the npm integration guide. npm is optional. Both use the same renderer/theme format. The hosted helper owns page orchestration; npm consumers explicitly attach/clean up DOM and host themes.
 - [npm integration guide](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/docs/npm-consumer.md): install with npm, run the included examples/npm app, acquire a first-party theme, use base-aware asset URLs and manage owned theme/window/control lifetimes. Use this for applications with a build step.
 - [README](https://raw.githubusercontent.com/khawkins98/scriptoscope/main/README.md): consumer pitch + 5-minute setup + CDN paths + full `data-scriptoscope-*` attribute vocabulary + the example host's `mountExplicitPage()` options and handle API. This is the canonical integration reference.
-- [Live demo](https://khawkins98.github.io/scriptoscope/): the canonical consumer page; every documented feature exercised. View source = the recipe.
+- [Live demo](https://khawkins98.github.io/scriptoscope/): the consumer landing page; use showcase.html to try schemes and install.html for copyable starters.
 - [Live diagnostic / per-scheme inspector](https://khawkins98.github.io/scriptoscope/diagnostic.html): every cicn / ppat / icon resource in each scheme, plus rendered windows for visual verification.
 - [Themes manifest (JSON)](https://khawkins98.github.io/scriptoscope/themes-manifest.json): the catalog of bundled themes with author + year + license metadata. Pass to `mountExplicitPage({ themes: THEMES })` for the picker + auto-cycle.
 
@@ -25,7 +25,7 @@ For applications, import from `@khawkins98/scriptoscope` and `@khawkins98/script
 - **Theme switching at runtime**: `<div data-scriptoscope-theme-picker>` populated from `mountOptions.themes` + `handle.retheme(slug)`. <https://raw.githubusercontent.com/khawkins98/scriptoscope/main/README.md#theme-switching-at-runtime>
 - **Bring your own theme (drop `.sit` / `.rsrc`)**: `attachThemeDropZone()` decodes in-browser; `handle.registerTheme(ref, theme)` makes it switchable. <https://raw.githubusercontent.com/khawkins98/scriptoscope/main/README.md#bring-your-own-theme--drop-a-sit--rsrc-and-see-it-render>
 - **Themed modal pattern**: `handle.openModal(wrap, { returnFocusTo })` — focus trap (including shadow-DOM chrome), Esc + backdrop, listens for `scriptoscope:close`. Same section as BYO above.
-- **Author-credit byline on retheme**: listen for `retheme` event + look up the entry from the themes manifest. See `demo/index.html` (search for `powers-credit`) for the live recipe.
+- **Author-credit byline on retheme**: listen for `retheme` event + look up the entry from the themes manifest. See `demo/showcase.html` (search for `powers-credit`) for the live recipe.
 
 ## Library API surface (cheat sheet)
 

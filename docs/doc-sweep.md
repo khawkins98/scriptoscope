@@ -2,7 +2,7 @@
 
 A checklist for "I've shipped 5+ commits in 24 hours, sync the docs before the next session loads stale context."
 
-The four context docs loaded into every Claude session — `CLAUDE.md`, `LEARNINGS.md`, `README.md`, `docs/integration-edge-cases.md` — and the consumer-facing [`docs/interaction.md`](./interaction.md) drift fast in prototype mode. False starts, knob churns, and reverted attributes leave lying comments and stale examples behind. Run this sweep after any heavy iteration day; it takes ~20 minutes and prevents every future session paying 5-10 minutes of "doc says X, code says Y" reconciliation.
+The core context docs — `CLAUDE.md`, `LEARNINGS.md`, `README.md`, `docs/integration-edge-cases.md` — and the consumer-facing [`docs/interaction.md`](./interaction.md) drift fast in prototype mode. False starts, knob churns, and reverted attributes leave lying comments and stale examples behind. Run this sweep after heavy iteration, reviewing the documents affected by the changes.
 
 ## The recipe
 
@@ -14,7 +14,7 @@ git log --oneline <last-doc-commit>..HEAD
 
 Categorise each commit:
 - **Public API addition** — new attribute, event, method, option.
-- **Public API deletion** — option you removed (must come out of README).
+- **Public API deletion** — option you removed (remove from current usage docs and examples).
 - **False-start + revert** — shipped then reverted within the same day (deserves a LEARNINGS entry on *why* the first try was wrong).
 - **Decision-churn** — same knob flipped twice; needs a LEARNINGS supersede pointer.
 - **Internal refactor** — no doc impact, skip.
@@ -31,13 +31,14 @@ done
 - **LEARNINGS hits** → mark with `> ⚠️ Superseded by <date> — <new entry name>` blockquote pointing forward. **Never delete LEARNINGS entries** — they're the historical record. Mark and move on.
 - **Other docs** → delete the stale text.
 
-### 3. For each new public API, verify it appears in
+### 3. Update the authoritative explanation
 
-- README's attribute table (`README.md` near line 130) OR the API table near line 180 — consumers must be able to discover it.
-- `docs/integration-edge-cases.md` if it changes how a consumer integrates (lifecycle, focus, modals, drag, resize).
-- `docs/interaction.md` if it changes what a user can do with a window or control, or adds, removes or changes an event, key binding or opt-out.
-- `CLAUDE.md` only if a future Claude session needs it in the 5-min onboarding. Most APIs do NOT belong here; only load-bearing patterns + chokepoints do.
-- The README's prose summary (if one exists) is **drift bait** — consider deleting recaps that duplicate the table.
+- Identify the affected reader and task before editing. Verify public names and behavior against exports, source and executable examples.
+- Update the existing home for that information: README's compact attribute/host reference, `docs/npm-consumer.md` for the package lifecycle, `docs/integration-edge-cases.md` for integration constraints, or `docs/interaction.md` for gestures and events. Specialist APIs belong in their linked contract; a public addition does **not** automatically need a new README section.
+- Replace an obsolete account rather than append another. Keep prerequisites, ownership rules, failure handling and material limitations next to the example they qualify. Link from other locations instead of repeating the explanation.
+- Keep release changes in CHANGELOG/migration notes, rationale in decision records, and historical lessons in LEARNINGS. `CLAUDE.md` carries only onboarding and load-bearing working rules.
+- Review the result as a newcomer: can they run the starter, choose an integration path, find an advanced option and understand its limitations? Check links and anchors, including `llms.txt` and the documentation shipped in the npm tarball.
+- Report README and total documentation growth when doing a cleanup; moving words into new files alone does not reduce maintenance.
 
 ### 4. For each decision-churn series, ONE LEARNINGS entry
 
@@ -51,9 +52,7 @@ Pattern: user reports symptom → first fix maps to "delete the offending behavi
 
 ### 6. Drift-prone numeric claims
 
-Bundle size, lockdown property count, test count, "supports N themes." Either:
-- Replace with a "currently N (see `<file>`)" pointer that auto-stales loudly, or
-- Accept that they'll drift and revisit each sweep. Until `npm run audit:doc-claims` exists, this sweep is the gate.
+Prefer a link to the live manifest, test inventory or authoritative source over a copied count. Keep an exact number only when it helps the reader decide or act, and verify it during the sweep. A new "currently" or date stamp does not make an unchecked claim accurate.
 
 ### 7. Internal DOM stamps audit
 
