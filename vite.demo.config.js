@@ -7,39 +7,19 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
 
-// The landing collage decodes StuffIt archives as soon as it starts, but the
-// library imports its decoder lazily, so the browser would only learn of that
-// chunk after the app chunk has run. Its name is hashed, so index.html cannot
-// name it: add its modulepreload here. The decoder's WASM is not preloaded,
-// because WebKit requests a fetch preload link a second time.
-function preloadLandingDecoder() {
-  let base = '/';
-  return {
-    name: 'preload-landing-decoder',
-    configResolved(config) { base = config.base; },
-    transformIndexHtml: {
-      order: 'post',
-      handler(_html, ctx) {
-        if (!ctx.bundle || ctx.path !== '/index.html') return;
-        const decoder = Object.values(ctx.bundle).find(output => output.type === 'chunk'
-          && output.facadeModuleId?.endsWith('/tools/sit-wasm/index.mjs'));
-        // Fail rather than publish a landing page that silently lost the preload.
-        if (!decoder) throw new Error('preload-landing-decoder: no chunk for tools/sit-wasm/index.mjs in the demo build; update or remove this plugin.');
-        return [{ tag: 'link', attrs: { rel: 'modulepreload', crossorigin: true, href: base + decoder.fileName }, injectTo: 'head' }];
-      },
-    },
-  };
-}
-
 export default defineConfig({
   root: 'demo',
-  plugins: [preloadLandingDecoder()],
   // GitHub Pages serves at /scriptoscope/ (the repo slug, post-2026-05-31 rename from
   // /aaron-ui/). Override via the env var if/when the repo is renamed again. The legacy
   // AARON_UI_BASE_PATH env var is kept as a fallback alias so any old CI / scripts /
   // bookmarks pointing at the prior naming keep building.
   base: process.env.SCRIPTOSCOPE_BASE_PATH ?? process.env.AARON_UI_BASE_PATH ?? '/scriptoscope/',
   publicDir: false,
+  // `vite preview` otherwise answers with `Vary: Origin`, which GitHub Pages does
+  // not send. WebKit sends `Origin` on a `crossorigin` font preload but not on the
+  // same-origin @font-face request, so under that header it fetches each preloaded
+  // font twice and reports the preload unused. Preview should measure what ships.
+  preview: { cors: false },
   // Same `@khawkins98/scriptoscope` alias as the dev config — keeps the prod bundle
   // using the same import path the landing models for consumers.
   resolve: {

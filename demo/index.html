@@ -26,11 +26,8 @@
       src: url('assets/fonts/cormorant-garamond-italic-latin.woff2') format('woff2');
       font-style: italic; font-weight: 400; font-display: swap;
     }
-    @font-face {
-      font-family: 'Charcoal 12';
-      src: url('assets/fonts/charcoal-12.woff') format('woff');
-      font-display: swap;
-    }
+    /* 'Charcoal 12' is declared once, in site-shell.css. A second rule here makes
+       Firefox download the file twice when the runtime loads the family. */
     :root { color-scheme: dark; background: #10100f; color: #f4f1e8; }
     * { box-sizing: border-box; }
     body { position: relative; margin: 0; font: 18px/1.45 'Times New Roman', Times, serif; -webkit-font-smoothing: antialiased; }

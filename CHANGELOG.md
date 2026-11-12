@@ -12,11 +12,15 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 - The landing page shows its first themed portrait windows sooner on a slow
   connection (#662). On the first load, and on a retry of a failed one, each
   window appears as soon as its own scheme has decoded instead of after all
-  five, and the demo build adds a `modulepreload` for the StuffIt decoder
-  chunk. The time to the last window is unchanged. A failed load still returns
+  five. The time to the last window is unchanged. A failed load still returns
   the whole collage to its plain HTML panels with the retry control, and a
-  retry now shows the loading progress again. Demo and demo build only; the
-  library is unchanged.
+  retry now shows the loading progress again. Demo only.
+- Demo pages declare the `Charcoal 12` face once. The landing, showcase,
+  install and diagnostic pages declared it both inline and in `site-shell.css`,
+  which made Firefox download the font twice. The hostile-CSS page no longer
+  preloads a font file that does not exist. `vite preview` of the demo no
+  longer sends `Vary: Origin`, which GitHub Pages does not send and which made
+  WebKit fetch each preloaded font twice (#662).
 - `loadTheme` and `loadOwnedTheme` request the lazy StuffIt decoder alongside the
   archive, instead of after its bytes arrive, when `source` names a file whose
   path (before any `?` or `#`) ends in `.sit`. Nothing else requests it early:
