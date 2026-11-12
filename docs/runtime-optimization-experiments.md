@@ -16,6 +16,12 @@ Use [measured simplification](measured-simplification.md): identify code or work
 
 Performance ranges describe the measured fixtures and hosts, not whole applications, cold starts, all browsers, memory, or historical-program fidelity. Counts from different studies need their stated scopes; source-line savings and execution savings are separate scores. The #497 verifier remained runtime-source blind, but accidentally saw author timing summaries during measurement; its fixed harness and analysis were unchanged and all samples retained.
 
+## Pending, not landed
+
+| Change | Evidence and limit |
+| --- | --- |
+| [#663](https://github.com/khawkins98/scriptoscope/pull/663) (open): StuffIt decoder requested alongside a named `.sit`; byte lookup tables for indexed `cicn`/`ppat` decode | **Decode.** Node 24, resource fork to raw theme without PNG encoding, all 18 themes, old and new interleaved, three 40-round runs: the paired new/old time ratio had medians 0.73, 0.67 and 0.65; fastest rounds fell from 652 to 371 ms, from 513 to 332 ms and from 262 to 174 ms (host load differed between runs). Themes with little indexed art did not change. Scope: genuine `Uint8Array` rasters only; other index containers, non-byte output, fractional sizes and short rasters keep the keyed path. Narrowing: the byte path copies each realized colour once per palette index, so a realizer that reuses or mutates its returned array, or returns a one-shot iterable, yields different pixels than before. **Prewarm.** Cold Chromium `loadTheme` with `source: 'scheme.sit'` under DevTools throttling saved 157–165 ms at 150 ms latency and 410–413 ms at 400 ms latency: about one request latency, because the decoder still shares a bandwidth-capped link with the archive. Scope: only a `source` whose path ends in `.sit`; the default cascade is unchanged and gains nothing. A named `.sit` that is missing or holds a raw fork still requests the decoder, and a WASM instantiation failure (two `console.error` lines, cached) can now occur at request time. **Limits.** All timing came from one heavily loaded host. Not measured: other browsers, real networks, a separately served `munbox.wasm`, PNG encoding, memory. |
+
 ## Rejected structural theories after #497
 
 These trials used the admitted production baseline corresponding to merged #497 (`240d0e1b5e7a8e574421b00383c96da43207360f`). Its production-only source archive excludes tests; a reconstructed subset tree must not be compared as though it were the full repository tree.

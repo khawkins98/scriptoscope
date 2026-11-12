@@ -54,3 +54,6 @@ export function loadOwnedKaleidoscopeScheme(
   input: Uint8Array | ArrayBuffer | Blob | string,
   options?: Omit<LoadKaleidoscopeSchemeOptions, 'encodeAssets'>,
 ): Promise<OwnedTheme>;
+
+/** Internal: begin loading the lazy StuffIt decoder ahead of a `.sit` download. Never throws or rejects. */
+export function prewarmStuffItDecoder(): void;
