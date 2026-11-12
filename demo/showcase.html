@@ -38,11 +38,8 @@
       src: local('Charcoal'), url('assets/fonts/virtue.woff') format('woff');
       font-display: swap;
     }
-    @font-face {
-      font-family: 'Charcoal 12';
-      src: url('assets/fonts/charcoal-12.woff') format('woff');
-      font-display: swap;
-    }
+    /* 'Charcoal 12' is declared once, in site-shell.css. A second rule here makes
+       Firefox download the file twice when the runtime loads the family. */
     :root { color-scheme: light; }
     /* Reset the page to a clean white sheet — the #powers section IS the page
        on this landing. No diagnostic-page slate-gray bg, no header chrome. */

@@ -8,7 +8,8 @@
   <link rel="stylesheet" href="scriptoscope.css">
   <link rel="stylesheet" href="./site-shell.css">
   <style>
-    @font-face { font-family: 'Charcoal 12'; src: url('./assets/fonts/charcoal-12.woff') format('woff'); font-display: swap; }
+    /* 'Charcoal 12' is declared once, in site-shell.css. A second rule here makes
+       Firefox download the file twice when the runtime loads the family. */
     @font-face { font-family: 'Charcoal'; src: local('Charcoal'), url('./assets/fonts/virtue.woff') format('woff'); font-display: swap; }
   </style>
   <script type="module" src="./install.mjs"></script>

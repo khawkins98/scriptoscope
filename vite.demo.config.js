@@ -15,6 +15,11 @@ export default defineConfig({
   // bookmarks pointing at the prior naming keep building.
   base: process.env.SCRIPTOSCOPE_BASE_PATH ?? process.env.AARON_UI_BASE_PATH ?? '/scriptoscope/',
   publicDir: false,
+  // `vite preview` otherwise answers with `Vary: Origin`, which GitHub Pages does
+  // not send. WebKit sends `Origin` on a `crossorigin` font preload but not on the
+  // same-origin @font-face request, so under that header it fetches each preloaded
+  // font twice and reports the preload unused. Preview should measure what ships.
+  preview: { cors: false },
   // Same `@khawkins98/scriptoscope` alias as the dev config — keeps the prod bundle
   // using the same import path the landing models for consumers.
   resolve: {
