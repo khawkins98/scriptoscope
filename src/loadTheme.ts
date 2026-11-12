@@ -4,7 +4,7 @@ import { displayRealizer, assertDisplayProfileChain, type DisplayProfile } from 
 import type { LoadedTheme } from './types.js';
 import { loadKaleidoscopeScheme, loadOwnedKaleidoscopeScheme } from './loadKaleidoscopeScheme.js';
 import { prewarmStuffItDecoder, type DecodeWorkerOption } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
-import { prewarmDecodeWorker } from '../tools/theme-loader/decodeWorkerClient.js';
+import { willDecodeInWorker, startDecodeWorker } from '../tools/theme-loader/decodeWorkerClient.js';
 import { themeView, type ThemeInput, type OwnedTheme } from './ownedTheme.js';
 
 /**
@@ -54,12 +54,13 @@ export interface ThemeMeta {
 export interface ThemeLoadOptions {
   source?: string; meta?: ThemeMeta; provenance?: boolean; cicnTransfer?: CicnTransferOption;
   displayProfile?: DisplayProfile; cinfEnvironment?: PreparedCinfEnvironment; sliderLayoutEnvironment?: PreparedCinfEnvironment;
-  /** Opt-in: decode in this caller-owned worker (the `@khawkins98/scriptoscope/decode-worker`
+  /** Opt-in: decode in this worker (created from the `@khawkins98/scriptoscope/decode-worker`
    * entry) instead of on the calling thread. Loads that also pass `displayProfile`,
-   * `cicnTransfer`, `cinfEnvironment` or `sliderLayoutEnvironment` decode on the
-   * calling thread. The loader never terminates the worker. */
+   * `cicnTransfer`, `cinfEnvironment` or `sliderLayoutEnvironment`, or `meta` that is not
+   * plain cloneable data, decode on the calling thread. A Worker passed here is never
+   * terminated by the loader; one obtained from a function passed here is, when it fails. */
   decodeWorker?: DecodeWorkerOption;
-  /** How long a silent worker may hold pending loads before they reject. Default 30000. */
+  /** How long this load waits while the worker sends nothing. Default 30000. */
   decodeWorkerTimeoutMs?: number;
 }
 export function loadTheme(bundleUrl: string, opts: ThemeLoadOptions & { base?: LoadedTheme } = {}): Promise<LoadedTheme> {
@@ -85,15 +86,7 @@ async function loadBundle(
   displayRealizer(displayProfile);
   assertDisplayProfileChain(base ? themeView(base) : undefined, displayProfile);
   const baseUrl = bundleUrl.replace(/\/$/, '');
-  // With an eligible decode worker the StuffIt decoder is requested there, never
-  // on this thread. This also starts a factory's worker alongside the download.
-  const workerOptions = { decodeWorker: opts.decodeWorker, decodeWorkerTimeoutMs: opts.decodeWorkerTimeoutMs,
-    displayProfile, cicnTransfer, cinfEnvironment, sliderLayoutEnvironment };
-  // A malformed option or a throwing factory rejects the load here; later it is
-  // best effort like the main-thread warm-up, and the decode reports any failure.
-  const prewarm = prewarmDecodeWorker(workerOptions, false)
-    ? () => { try { prewarmDecodeWorker(workerOptions, true); } catch { /* reported by the decode */ } }
-    : prewarmStuffItDecoder;
+
   // Try the StuffIt archive first (the original `.sit` the author published — the
   // most palatable redistribution form: nothing decompressed by us). Fall back to
   // the raw resource fork (the unwrapped form some bundles ship when the upstream
@@ -104,11 +97,27 @@ async function loadBundle(
   // themes-manifest.json) — when present, we skip the cascade and fetch that file
   // directly. Avoids the dev-console 404 noise on bundles whose first-try is missing.
   const candidates = opts.source ? [opts.source] : ['scheme.sit', 'scheme.rsrc'];
+  // A consumer that names a `.sit` has said the StuffIt decoder will be needed, so ask
+  // for the lazy decoder now, alongside the archive, instead of after its bytes arrive.
+  // Only the path part of the name counts (`scheme.rsrc?from=x.sit` is not a `.sit`).
+  // The default cascade never warms: its `scheme.sit` may be absent, and a bundle that
+  // ships only `scheme.rsrc` must not request the decoder. A named `.sit` that is
+  // missing, or turns out to hold a raw fork, has still requested it.
+  const namedSit = typeof opts.source === 'string' && /\.sit$/i.test(opts.source.split(/[?#]/, 1)[0]!);
+  // With a decode worker, where this load will decode is settled now, from everything
+  // known before fetching: the prepared handles and a caller-supplied `meta`. A load
+  // bound for the worker obtains it here (so a factory's worker starts alongside the
+  // download) and asks IT for the decoder; any other load warms this thread as before.
+  // (Fetched `meta.json` is JSON, so it cannot change the answer.)
+  const workerOptions = { decodeWorker: opts.decodeWorker, decodeWorkerTimeoutMs: opts.decodeWorkerTimeoutMs };
+  if (opts.decodeWorker !== undefined && willDecodeInWorker({ ...workerOptions, displayProfile, cicnTransfer, cinfEnvironment, sliderLayoutEnvironment, meta: opts.meta })) {
+    startDecodeWorker(workerOptions, namedSit);
+  } else if (namedSit) prewarmStuffItDecoder();
   // Fetch the small provenance sidecar alongside the archive, not after it.
   // Only an explicit complete `meta` substitutes for the sidecar; picker display
   // labels omit origin/license and must never suppress this request.
   const [fileBytes, meta] = await Promise.all([
-    fetchFirst(baseUrl, candidates, !!opts.source, prewarm),
+    fetchFirst(baseUrl, candidates),
     opts.meta ? Promise.resolve(opts.meta) : fetchMeta(baseUrl),
   ]);
   if (!fileBytes) {
@@ -167,19 +176,12 @@ async function fetchMeta(baseUrl: string): Promise<ThemeMeta> {
  *  never fall through to the `.rsrc` alternative. The check is cheap (the magic-byte
  *  detection in containers.js plus a string sniff for the HTML preamble). */
 async function fetchFirst(
-  baseUrl: string, filenames: string[], named: boolean, prewarm: () => void,
+  baseUrl: string, filenames: string[],
 ): Promise<{ filename: string; bytes: Uint8Array } | null> {
   for (const filename of filenames) {
     try {
-      // Request the lazy StuffIt decoder while the archive downloads instead of after
-      // it. A consumer-named `.sit` starts it with the request. In the default cascade
-      // the `.sit` may simply be absent, so wait for a successful non-HTML response:
-      // a bundle that only ships `scheme.rsrc` still never requests the decoder.
-      const stuffIt = /\.sit(?:[?#]|$)/i.test(filename);
-      if (stuffIt && named) prewarm();
       const res = await fetch(`${baseUrl}/${filename}`);
       if (!res.ok) continue;
-      if (stuffIt && !named && !/^\s*text\/html/i.test(res.headers?.get?.('content-type') ?? '')) prewarm();
       const bytes = new Uint8Array(await res.arrayBuffer());
       if (looksLikeArchiveOrFork(bytes)) return { filename, bytes };
       // 200 but bytes don't smell like a binary archive — almost certainly an HTML SPA

@@ -176,6 +176,11 @@ export function expandMask(packed, width, height, rowBytes) {
   return out;
 }
 
+// True only for a genuine Uint8Array (any realm, including subclasses): the
+// %TypedArray% brand getter ignores a forged prototype on an ordinary array.
+const typedArrayTag = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype), Symbol.toStringTag).get;
+const isByteArray = value => typedArrayTag.call(value) === 'Uint8Array';
+
 /** Expand ordinary indexed art, retaining per-pixel mask observation order. */
 export function expandIndexedRgba(indices, rgba, colorTable, realizeRgb16, missingMessage, width, height, mask, maskAlpha) {
   // Bit15 selects positional entries; otherwise use the first matching value.
@@ -185,10 +190,13 @@ export function expandIndexedRgba(indices, rgba, colorTable, realizeRgb16, missi
     if (!palette.has(index)) palette.set(index, [entry.r, entry.g, entry.b]);
   });
   // Byte indices into byte output (every decoder call site): the color of each
-  // distinct index is resolved at its first occurrence in raster order, exactly
-  // as below, then replayed from a 256-entry byte table. Anything else, including
-  // rasters shorter than width*height, keeps the general keyed path.
-  if (!(indices instanceof Uint8Array && rgba instanceof Uint8Array
+  // distinct index is resolved at its first occurrence in raster order, as in the
+  // keyed path, then its three bytes are COPIED into a 256-entry table and
+  // replayed from there. The keyed path instead re-reads the realizer's returned
+  // object for every pixel, so the two differ for a realizer that reuses or later
+  // mutates what it returned, or returns a one-shot iterable. Anything else,
+  // including rasters shorter than width*height, keeps the general keyed path.
+  if (!(isByteArray(indices) && isByteArray(rgba)
       && Number.isInteger(width) && Number.isInteger(height) && indices.length >= width * height)) {
     return expandKeyedRgba(indices, rgba, palette, realizeRgb16, missingMessage, width, height, mask, maskAlpha);
   }

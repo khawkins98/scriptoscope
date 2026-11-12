@@ -51,7 +51,8 @@
     }
   },
   "sideEffects": [
-    "./dist/scriptoscope.css"
+    "./dist/scriptoscope.css",
+    "./dist/decode-worker.js"
   ],
   "files": [
     "dist/*.js",

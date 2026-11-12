@@ -76,6 +76,10 @@ worker asset. Both archives are decoded through the one worker and on the main
 thread, and the manifests and every asset's pixels must be equal; the runner
 requires the worker script to be fetched exactly once with 200. A seventh
 candidate omits `dist/decode-worker.js` and must fail export-file resolution.
+It then decodes once more through the consumer's own worker file whose only
+content is `import '@khawkins98/scriptoscope/decode-worker'`. That form works
+only because `package.json` lists the worker in `sideEffects`; without the entry
+the bundler drops the import and the load never gets an answer.
 This covers two archives in one browser; the every-bundled-theme comparison is
 `tools/theme-loader/decodeWorker.test.mjs` (Node) and
 `src/decodeWorker.browser.test.mjs` (Chromium, opt-in).

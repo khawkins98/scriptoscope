@@ -302,7 +302,13 @@ try {
     assert(decodeWorker['windows-95'].assets > 100 && decodeWorker['platinum-8'].assets > 100, 'The worker decode returned no assets');
     const workerScripts = network.filter(item => /^\/consumer\/assets\/decode-worker-[^/]+\.js$/.test(item.path));
     assert(workerScripts.length === 1 && workerScripts[0].status === 200, `Packed decode worker was not loaded once: ${JSON.stringify(workerScripts)}`);
-    record.decodeWorker = { script: workerScripts[0].path, results: decodeWorker };
+    // A consumer's own worker file importing the entry for its side effect must keep it:
+    // dropped by tree-shaking, the worker would be empty and never answer.
+    const wrappedWorker = await page.evaluate(() => window.packedConsumer.wrappedWorker);
+    assert.deepEqual(wrappedWorker, { same: true, assets: decodeWorker['windows-95'].assets });
+    const wrappedScripts = network.filter(item => /^\/consumer\/assets\/own-worker-[^/]+\.js$/.test(item.path));
+    assert(wrappedScripts.length === 1 && wrappedScripts[0].status === 200, `Wrapped decode worker was not loaded once: ${JSON.stringify(wrappedScripts)}`);
+    record.decodeWorker = { script: workerScripts[0].path, results: decodeWorker, wrapped: { script: wrappedScripts[0].path, result: wrappedWorker } };
     assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--scriptoscope-focus-width').trim()), '2px');
     await page.getByRole('checkbox', { name: 'Themed', exact: true }).click();
     const slider = page.getByRole('slider', { name: 'Volume', exact: true });

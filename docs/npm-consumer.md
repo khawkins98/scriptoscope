@@ -164,28 +164,54 @@ const resolver = createOwnedThemeResolver({ themeBaseUrl: '/themes', decodeWorke
 ```
 
 `loadTheme`, `loadOwnedTheme`, `loadKaleidoscopeScheme` and
-`loadOwnedKaleidoscopeScheme` take the same `decodeWorker` option. It also
-accepts a function returning the worker, called on the first load that uses it.
-The loaded theme is the same as without the option; only where the decode runs
-changes.
+`loadOwnedKaleidoscopeScheme` take the same `decodeWorker` option. The loaded
+theme is the same as without the option; only where the decode runs changes.
+Without the option nothing about a load changes, including its timing.
 
-- The worker is yours. Share one between loads and resolvers, and call
-  `terminate()` when the page no longer loads themes. Disposing a theme or a
-  resolver does not stop it.
-- The `new Worker(new URL(...), { type: 'module' })` form is what Vite and
-  webpack 5 recognise and bundle. A bundler that does not emit worker files needs
-  `dist/decode-worker.js` copied and served from your own origin; it is a single
-  self-contained module.
-- Loads that pass `displayProfile`, `cicnTransfer`, `cinfEnvironment` or
-  `sliderLayoutEnvironment`, or `meta` that is not plain JSON data, decode on the
-  calling thread as before. Those prepared handles cannot cross to a worker.
-- A worker that fails to start, throws, or does not answer within
-  `decodeWorkerTimeoutMs` (default 30 seconds) rejects its pending loads with an
-  error whose `code` is `'DECODE_WORKER_FAILED'`. The library does not retry on
-  the main thread; retry without the option if you want that fallback.
-- Eager loaders (`loadTheme`, `createThemeResolver`) still encode every image to
-  a PNG URL on the main thread after the decode. The owned loaders skip that
-  step, so they gain the most.
+**Bundling.** The form above, with the bare package specifier, is verified with
+Vite 7: the package's consumer test builds it from the published tarball. Your
+own worker file containing only
+`import '@khawkins98/scriptoscope/decode-worker'` is verified the same way.
+Other bundlers are not tested. For a setup that does not emit worker files, copy
+`dist/decode-worker.js` and serve it from your own origin: it is one
+self-contained module with no imports.
+
+**Who stops the worker.** A `Worker` you pass is yours: share it between loads
+and resolvers and call `terminate()` when the page no longer loads themes.
+Disposing a theme or a resolver does not stop it, and neither does a failure.
+You can instead pass a function that creates the worker. That function is
+called when the first load that will decode in the worker starts, never for a
+load that stays on the calling thread. A worker obtained this way is held by
+the library, since you have no handle to it: if it fails, the library
+terminates it and calls your function once more for a replacement on the next
+load. Return a new `Worker` from the function, not one you also use elsewhere.
+
+**Loads that stay on the calling thread.** A load that passes `displayProfile`,
+`cicnTransfer`, `cinfEnvironment` or `sliderLayoutEnvironment` decodes on the
+calling thread as before, because those prepared handles cannot cross to a
+worker. So does a load whose `meta` is not plain cloneable data: functions,
+class instances, dates, accessors, symbol keys, sparse arrays, and `Proxy`
+objects such as a reactive store's state. Pass a plain copy of such metadata if
+you want the worker used.
+
+**When the worker fails.** The affected loads reject with an `Error` whose `code`
+is `'DECODE_WORKER_FAILED'`. The library does not retry on the main thread;
+catch that code and load again without the option if you want that fallback.
+
+| What happens | How it is noticed | How soon |
+| --- | --- | --- |
+| The worker dispatches `error` or `messageerror` | The event | At once |
+| The worker never started (its script was missing or blocked), or is not this worker script | It does not answer the liveness check sent with the first request | 5 seconds, or `decodeWorkerTimeoutMs` if that is shorter |
+| The worker answered before and then goes silent | The load's own timeout | `decodeWorkerTimeoutMs`, default 30 seconds |
+
+A worker's `error` event cannot be observed after the fact, which is why a
+worker created long before its first load is checked rather than trusted. On a
+very slow connection the worker script must therefore arrive within 5 seconds
+of the first load that uses it.
+
+**What does not move.** Eager loaders (`loadTheme`, `createThemeResolver`) still
+encode every image to a PNG URL on the main thread after the decode. The owned
+loaders skip that step, so they gain the most.
 
 ## Public files and troubleshooting
 

@@ -1,5 +1,4 @@
 import { encodeRasterPng } from './encodeRasterPng.js';
-import { snapshotCicnTransfer } from './cicn-transfer-results.js';
 // Runtime Kaleidoscope scheme loader — the BROWSER shell over the portable
 // conversion core (convert.js). A single in-browser call instead of the Node
 // build pipeline: decode a dropped .ksc/.rsrc resource fork → a render-ready,
@@ -11,11 +10,10 @@ import { snapshotCicnTransfer } from './cicn-transfer-results.js';
 // produces the runtime's LoadedTheme contract. The Node CLIs (extract-*.mjs) are the
 // parallel Node shell. See docs/superpowers/specs/2026-05-27-browser-conversion-design.md.
 
-import { assertCinfEnvironment, finalizeCinfTheme, finalizeCinfResourceOwner } from './cinf-environment.js';
+import { finalizeCinfTheme, finalizeCinfResourceOwner } from './cinf-environment.js';
 import { createRasterAssetOwner, bindRasterOwner, bindRasterLifetime } from './rasterAssets.js';
-import { decodeSchemeBytes } from './decodeSchemeBytes.js';
-import { decodeWorkerRequest, decodeInWorker } from './decodeWorkerClient.js';
-import { displayRealizer } from './display-profile.js';
+import { decodeScheme as decodeOnThisThread } from './decodeScheme.js';
+import { decodeWithWorker } from './decodeWorkerClient.js';
 import { buildResourceRoles, parseCicnFilename, parsePpatFilename } from './classifyResources.js';
 
 /**
@@ -31,53 +29,18 @@ import { buildResourceRoles, parseCicnFilename, parsePpatFilename } from './clas
  * @property {object} [cinfEnvironment] Prepared explicit standalone push/bevel body cinf environment.
  * @property {(rgba: Uint8Array, w: number, h: number, path: string) => (string|Promise<string>)} [assetUrlFactory]
  *   Custom RGBA→URL encoder. Default: OffscreenCanvas PNG blob URL (browser only).
- * @property {object|Function} [decodeWorker] Caller-owned decode Worker (or a factory for one).
+ * @property {object|Function} [decodeWorker] Caller-supplied decode Worker (or a factory for one).
  *   Absent: everything runs on the calling thread. See decodeWorkerClient.js.
- * @property {number} [decodeWorkerTimeoutMs] How long a silent worker may hold a load (default 30000).
+ * @property {number} [decodeWorkerTimeoutMs] How long a silent worker may hold this load (default 30000).
  */
 
-/**
- * Decode a Kaleidoscope scheme resource fork into a render-ready in-memory theme.
- *
- * @param {Uint8Array|ArrayBuffer|Blob|string} input  a raw resource fork OR a Mac
- *   transfer container (MacBinary `.bin`, AppleSingle/Double, BinHex `.hqx`) — as
- *   bytes, an ArrayBuffer, a dropped Blob/File, or a URL to fetch. The container is
- *   unwrapped to its resource fork automatically; `.sit` lazily uses the WASM decoder.
- * @param {LoadOptions} [options]
- * @returns {Promise<object>} encodeAssets ⇒ a LoadedTheme `{ manifest, baseUrl:'', glyphs? }`
- *   whose asset refs are blob: URLs (assetUrl passes them through); otherwise the raw
- *   `{ manifest, assets, iconIndex }`.
- */
-async function decodeScheme(input, options) {
-  const displayProfile = options.displayProfile;
-  const cicnTransfer = snapshotCicnTransfer(options.cicnTransfer, displayProfile);
-  const cinfEnvironment = options.cinfEnvironment;
-  assertCinfEnvironment(cinfEnvironment);
-  const sliderLayoutEnvironment = options.sliderLayoutEnvironment;
-  assertCinfEnvironment(sliderLayoutEnvironment);
-  displayRealizer(displayProfile);
-  // Snapshot caller-owned byte inputs synchronously, before any await. Every
-  // digest and decoder receives this same private snapshot when opted in.
-  if ((options.provenance || cinfEnvironment || sliderLayoutEnvironment || cicnTransfer) && input instanceof Uint8Array) input = new Uint8Array(input);
-  else if ((options.provenance || cinfEnvironment || sliderLayoutEnvironment || cicnTransfer) && input && typeof input.byteLength === 'number' && !ArrayBuffer.isView(input)) {
-    input = new Uint8Array(new Uint8Array(input));
-  }
-  // Malformed worker options fail here, after the existing option validation.
-  const worker = decodeWorkerRequest(options);
-  const bytes = await toUint8Array(input);
-  if (!bytes || bytes.length === 0) {
-    throw new Error('loadKaleidoscopeScheme: empty input (0 bytes) — not a theme file.');
-  }
-  // The decode stage is one function on either thread; see decodeSchemeBytes.js.
-  if (worker) return decodeInWorker(worker, bytes);
-  return decodeSchemeBytes(bytes, {
-    meta: options.meta, source: options.source, provenance: options.provenance,
-    displayProfile, cicnTransfer, cinfEnvironment, sliderLayoutEnvironment,
-    iconBlitCicnIds: options.iconBlitCicnIds, unmaskedIconIds: options.unmaskedIconIds, engineCinfIds: options.engineCinfIds,
-  });
-}
+export { prewarmStuffItDecoder } from './decodeScheme.js';
 
-export { prewarmStuffItDecoder } from './decodeSchemeBytes.js';
+// Without `decodeWorker` this is a direct call of the decode stage: the same promise,
+// the same number of microtask ticks and the same option reads as before the option
+// existed. Only a load that names a worker takes the other branch.
+const decodeScheme = (input, options) => options.decodeWorker === undefined
+  ? decodeOnThisThread(input, options) : decodeWithWorker(input, options);
 
 export async function loadKaleidoscopeScheme(input, options = {}) {
   const { converted, byteProvenance, sliderLayoutBinding } = await decodeScheme(input, options);
@@ -201,22 +164,6 @@ function buildGlyphMap(iconIndex, urlByPath) {
     if (d > (depthAt[id] ?? 0)) { glyphs[id] = urlByPath ? urlByPath.get(`icons/${e.file}`) : `icons/${e.file}`; depthAt[id] = d; }
   }
   return glyphs;
-}
-
-async function toUint8Array(input) {
-  if (input instanceof Uint8Array) return input;
-  if (input && typeof input === 'object' && typeof input.byteLength === 'number' && !ArrayBuffer.isView(input)) {
-    return new Uint8Array(input);
-  }
-  if (typeof Blob !== 'undefined' && input instanceof Blob) {
-    return new Uint8Array(await input.arrayBuffer());
-  }
-  if (typeof input === 'string') {
-    const res = await fetch(input);
-    if (!res.ok) throw new Error(`loadKaleidoscopeScheme: failed to fetch ${input} (${res.status} ${res.statusText})`);
-    return new Uint8Array(await res.arrayBuffer());
-  }
-  throw new Error(`loadKaleidoscopeScheme: unsupported input type ${typeof input}`);
 }
 
 /** Browser PNG URL adapter; portable callers provide assetUrlFactory. */

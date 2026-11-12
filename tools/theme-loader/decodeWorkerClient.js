@@ -1,31 +1,44 @@
-// Main-thread side of the opt-in decode worker. The caller creates and owns the
-// Worker (or supplies a factory); this module only multiplexes decode requests
-// over it and never terminates it. Without the `decodeWorker` option none of this
-// runs and decoding stays on the calling thread.
-import { DECODE_PROTOCOL, unpackDecodeResult } from './decodeWorkerProtocol.js';
-import { DisplayProfileError } from './display-profile.js';
-import { CinfEnvironmentError } from './cinf-environment.js';
-import { CicnTransferError } from './cicn-transfer-results.js';
-import { ThemeValidationError } from './validateTheme.js';
+// Main-thread side of the opt-in decode worker. Nothing here runs for a load that
+// does not pass `decodeWorker`.
+//
+// Ownership. A Worker the caller passes is the caller's: this module never
+// terminates it. A Worker obtained from a caller's FACTORY is held by this module
+// (the caller has no handle to it): when it is judged failed it is terminated, and
+// the next load asks the factory for one replacement, which concurrent loads share.
+//
+// When a worker is judged failed (every pending load on it rejects with
+// DECODE_WORKER_FAILED, later loads reject at once):
+//   - it dispatches `error` or `messageerror`;
+//   - it sends this client a malformed reply;
+//   - it does not answer a liveness ping. A ping is sent the first time a worker is
+//     used, because a Worker that failed to start before anyone listened shows no
+//     later sign of it, and again on first use after one of its loads timed out.
+//     The wait is DECODE_WORKER_HANDSHAKE_MS, or the load's own timeout if shorter.
+// A load's own timeout rejects only that load. Its clock restarts whenever the
+// worker sends this client anything (an answer to another load counts: the worker
+// is alive and working through its queue). Posting a new request restarts nothing.
+import { decodeScheme, toUint8Array } from './decodeScheme.js';
+import { snapshotCicnTransfer } from './cicn-transfer-results.js';
+import { assertCinfEnvironment } from './cinf-environment.js';
+import { displayRealizer } from './display-profile.js';
+import { DECODE_PROTOCOL, unpackDecodeResult, unpackDecodeError } from './decodeWorkerProtocol.js';
 
 export const DEFAULT_DECODE_WORKER_TIMEOUT_MS = 30_000;
-const channels = new WeakMap(); // worker → request channel
-const spawned = new WeakMap();  // factory → the worker it returned
+export const DECODE_WORKER_HANDSHAKE_MS = 5_000;
+const MAX_TIMER_MS = 2 ** 31 - 1; // longer waits are not timed: setTimeout would fire at once
 
-// Options the worker stage reads, and options that only matter after it. Anything
-// else — prepared display profiles, cinf environments and finite transfers are
-// branded handles whose identity a structured clone cannot carry, and an option
-// this module does not know — keeps the load on the calling thread.
-const WORKER_OPTIONS = ['meta', 'source', 'provenance', 'iconBlitCicnIds', 'unmaskedIconIds', 'engineCinfIds'];
-const LOCAL_OPTIONS = ['encodeAssets', 'assetUrlFactory', 'decodeWorker', 'decodeWorkerTimeoutMs'];
-const ID_LISTS = ['iconBlitCicnIds', 'unmaskedIconIds', 'engineCinfIds'];
+// Identifies this module instance on a worker that another copy of the library shares.
+const CLIENT = Array.from(globalThis.crypto?.getRandomValues?.(new Uint8Array(16)) ?? Array.from({ length: 16 }, () => Math.random() * 256 | 0),
+  byte => (byte & 255).toString(16).padStart(2, '0')).join('');
+const channels = new WeakMap();  // worker → channel
+const factories = new WeakMap(); // factory → the worker it last returned
 
-function failure(message) {
-  return Object.assign(new Error(`Scriptoscope decode worker failed: ${message}`), { code: 'DECODE_WORKER_FAILED' });
-}
+const failure = message => Object.assign(new Error(`Scriptoscope decode worker failed: ${message}`), { code: 'DECODE_WORKER_FAILED' });
+const timed = ms => Number.isFinite(ms) && ms <= MAX_TIMER_MS;
+const timer = (run, ms) => { const handle = setTimeout(run, ms); handle.unref?.(); return handle; };
 
 /** Strict JSON-like data: a structured clone of it loses nothing the decoder reads. */
-function plainData(value, seen = new Set()) {
+function plainData(value, seen) {
   if (value === null || typeof value !== 'object') return typeof value !== 'function' && typeof value !== 'symbol';
   if (seen.has(value)) return true;
   seen.add(value);
@@ -37,9 +50,18 @@ function plainData(value, seen = new Set()) {
     if (typeof key === 'symbol') return false;
     if (array && key === 'length') continue;
     const descriptor = Object.getOwnPropertyDescriptor(value, key);
-    if (!descriptor.enumerable || !('value' in descriptor) || !plainData(descriptor.value, seen)) return false;
+    if (!descriptor?.enumerable || !('value' in descriptor) || !plainData(descriptor.value, seen)) return false;
   }
   return true;
+}
+
+/** Plain data that also survives an actual clone (a Proxy looks plain and does not). */
+function cloneable(meta) {
+  try {
+    if (!plainData(meta, new Set())) return false;
+    if (meta !== null && typeof meta === 'object' && typeof structuredClone === 'function') structuredClone(meta);
+    return true;
+  } catch { return false; } // throwing traps, too deep to walk, DataCloneError
 }
 
 function assertPort(port) {
@@ -49,129 +71,189 @@ function assertPort(port) {
   return port;
 }
 
-function portOf(option) {
-  if (typeof option !== 'function') return assertPort(option);
-  let port = spawned.get(option);
-  // A factory is asked again only after its previous worker failed.
-  if (!port || channels.get(port)?.failed) { port = assertPort(option()); spawned.set(option, port); }
-  return port;
+function settings(options) {
+  const option = options.decodeWorker;
+  if (typeof option !== 'function') assertPort(option);
+  const timeoutMs = options.decodeWorkerTimeoutMs ?? DEFAULT_DECODE_WORKER_TIMEOUT_MS;
+  if (typeof timeoutMs !== 'number' || !(timeoutMs > 0)) throw new TypeError('decodeWorkerTimeoutMs must be a positive number of milliseconds');
+  return { option, timeoutMs };
+}
+
+/**
+ * The options the worker's decodeScheme will read, taken with the same property
+ * reads the calling thread performs (inherited and non-enumerable options count).
+ * Undefined when any of them is not plain cloneable data.
+ */
+function payloadOf(options) {
+  const payload = {};
+  const meta = options.meta;
+  if (!cloneable(meta)) return undefined;
+  if (meta !== undefined) payload.meta = meta;
+  const source = options.source;
+  if (source !== undefined && source !== null && typeof source !== 'string') return undefined;
+  if (typeof source === 'string') payload.source = source;
+  if (options.provenance) payload.provenance = true;
+  for (const key of ['iconBlitCicnIds', 'unmaskedIconIds', 'engineCinfIds']) {
+    const ids = options[key];
+    if (!ids) continue;
+    if (!cloneable(ids) || !Array.isArray(ids) || !ids.every(Number.isFinite)) return undefined;
+    payload[key] = Array.from(ids);
+  }
+  return payload;
+}
+
+function fail(channel, message) {
+  if (channel.failed !== undefined) return;
+  channel.failed = message;
+  clearTimeout(channel.pingTimer);
+  const requests = [...channel.pending.values()];
+  channel.pending.clear();
+  for (const request of requests) { clearTimeout(request.timer); request.reject(failure(message)); }
+  // Only a worker this module obtained from a factory is this module's to stop.
+  if (channel.held) { try { channel.port.terminate?.(); } catch { /* already gone */ } }
+}
+
+function arm(channel, id, request) {
+  clearTimeout(request.timer);
+  if (!timed(request.timeoutMs)) return;
+  request.timer = timer(() => {
+    channel.pending.delete(id);
+    channel.alive = false; // unproven again: its next use starts with a liveness ping
+    request.reject(failure(`no response within ${request.timeoutMs} ms`));
+  }, request.timeoutMs);
 }
 
 function channelOf(port) {
   let channel = channels.get(port);
   if (channel) return channel;
-  const pending = new Map();
-  let timer;
-  const arm = () => {
-    clearTimeout(timer);
-    let wait = Infinity;
-    for (const request of pending.values()) wait = Math.min(wait, request.timeoutMs);
-    if (wait === Infinity) return;
-    timer = setTimeout(() => fail(`no response within ${wait} ms`), wait);
-    timer.unref?.();
-  };
-  const fail = message => {
-    channel.failed = message;
-    clearTimeout(timer);
-    const requests = [...pending.values()];
-    pending.clear();
-    for (const request of requests) request.reject(failure(message));
-  };
-  channel = { next: 0, pending, arm, failed: undefined };
+  channel = { port, held: false, next: 0, pending: new Map(), alive: false, pingTimer: undefined, failed: undefined };
   channels.set(port, channel);
   port.addEventListener('message', event => {
-    const message = event.data;
-    if (message?.protocol !== DECODE_PROTOCOL || channel.failed) return;
-    const request = pending.get(message.id);
-    pending.delete(message.id);
-    arm(); // any answer shows the worker is alive: restart the wait for the rest
-    if (!request) return;
-    if (message.type === 'error') { request.reject(unpackDecodeError(message.error)); return; }
-    try { request.resolve({ ...unpackDecodeResult(message, request.meta), sliderLayoutBinding: undefined }); }
-    catch (error) { request.reject(error); }
+    try {
+      const message = event?.data;
+      if (message === null || typeof message !== 'object' || message.protocol !== DECODE_PROTOCOL
+          || message.client !== CLIENT || channel.failed !== undefined) return;
+      const { type, id } = message;
+      if (type !== 'pong' && type !== 'result' && type !== 'error') throw new TypeError(`unknown reply type`);
+      // The worker spoke to this client: it is alive, so every pending wait starts over.
+      channel.alive = true;
+      clearTimeout(channel.pingTimer); channel.pingTimer = undefined;
+      for (const [pendingId, request] of channel.pending) arm(channel, pendingId, request);
+      const request = type === 'pong' ? undefined : channel.pending.get(id);
+      if (!request) return; // a pong, or a late or duplicate answer
+      const error = type === 'error' ? { thrown: unpackDecodeError(message.error) } : undefined;
+      const value = error ? undefined : unpackDecodeResult(message, request.meta);
+      channel.pending.delete(id);
+      clearTimeout(request.timer);
+      if (error) request.reject(error.thrown); else request.resolve({ ...value, sliderLayoutBinding: undefined });
+    } catch (error) {
+      // Never let a reply throw out of the listener: the load would hang.
+      fail(channel, `it sent a malformed reply (${error instanceof Error ? error.message : 'unreadable'})`);
+    }
   });
-  port.addEventListener('error', event => fail(event?.message || 'the worker reported an error'));
-  port.addEventListener('messageerror', () => fail('a worker message could not be deserialized'));
+  port.addEventListener('error', event => fail(channel, typeof event?.message === 'string' && event.message ? event.message : 'the worker reported an error'));
+  port.addEventListener('messageerror', () => fail(channel, 'a worker message could not be deserialized'));
   return channel;
 }
 
+/** The worker for this option; a factory is called only for a first or replacement worker. */
+function portOf(option) {
+  if (typeof option !== 'function') {
+    const port = assertPort(option);
+    channelOf(port).held = false; // passed directly at least once: the caller's
+    return port;
+  }
+  let port = factories.get(option);
+  if (port && channelOf(port).failed === undefined) return port;
+  port = assertPort(option());
+  factories.set(option, port);
+  if (!channels.has(port)) channelOf(port).held = true;
+  return port;
+}
+
+/** Ask an unproven worker to show it is running. No effect on a proven or already-asked one. */
+function probe(channel, timeoutMs) {
+  if (channel.alive || channel.pingTimer !== undefined || channel.failed !== undefined) return;
+  const wait = timed(timeoutMs) ? Math.min(DECODE_WORKER_HANDSHAKE_MS, timeoutMs) : DECODE_WORKER_HANDSHAKE_MS;
+  channel.pingTimer = timer(() => fail(channel, `it did not answer a liveness check within ${wait} ms`), wait);
+  try { channel.port.postMessage({ protocol: DECODE_PROTOCOL, client: CLIENT, type: 'ping' }, []); }
+  catch (error) { fail(channel, `it could not be messaged (${error instanceof Error ? error.message : 'postMessage threw'})`); }
+}
+
 /**
- * Decide where a load decodes. Returns undefined when no worker was supplied or
- * this load carries an option the worker cannot honour (it then decodes on the
- * calling thread, exactly as without the option).
+ * Loader-internal, for the URL loaders: whether a load with these options (the
+ * prepared handles and, when the caller supplied it, `meta`) will decode in the worker.
+ * Calls no factory and posts nothing.
  * @throws {TypeError} for a malformed `decodeWorker` / `decodeWorkerTimeoutMs`.
  */
-export function decodeWorkerRequest(options) {
-  const option = options.decodeWorker;
-  if (option === undefined) return undefined;
-  if (typeof option !== 'function') assertPort(option);
-  const timeoutMs = options.decodeWorkerTimeoutMs ?? DEFAULT_DECODE_WORKER_TIMEOUT_MS;
-  if (typeof timeoutMs !== 'number' || !(timeoutMs > 0)) throw new TypeError('decodeWorkerTimeoutMs must be a positive number of milliseconds');
-  const request = {};
-  for (const key of Object.keys(options)) {
-    const value = options[key];
-    if (value === undefined || LOCAL_OPTIONS.includes(key)) continue;
-    if (!WORKER_OPTIONS.includes(key)) return undefined;
-    if (ID_LISTS.includes(key)) {
-      if (!Array.isArray(value) || !value.every(Number.isFinite)) return undefined;
-      request[key] = Array.from(value);
-    } else if (key === 'source') {
-      if (typeof value !== 'string') return undefined;
-      request.source = value;
-    } else if (key === 'provenance') request.provenance = !!value;
-    else if (!plainData(value)) return undefined;
-    else request.meta = value;
-  }
-  const port = portOf(option);
-  channelOf(port); // listen from the first sight of the worker, so an early failure is seen
-  return { port, options: request, meta: options.meta, timeoutMs };
+export function willDecodeInWorker(options) {
+  settings(options);
+  return !(options.displayProfile || options.cicnTransfer || options.cinfEnvironment || options.sliderLayoutEnvironment)
+    && cloneable(options.meta);
 }
 
 /**
- * Run the decode stage in the worker. `bytes` is copied, never detached.
- * Rejects (code `DECODE_WORKER_FAILED`) when the worker errors or stays silent;
- * a decode error is rethrown as the class the main thread would have thrown.
+ * Loader-internal: obtain the worker ahead of the archive bytes (calling a factory
+ * if it has no live worker), start its liveness check and, for a named `.sit`, ask
+ * it for the lazy StuffIt decoder. Throws only what the factory throws.
  */
-export function decodeInWorker({ port, options, meta, timeoutMs }, bytes) {
-  const channel = channelOf(port);
-  if (channel.failed) return Promise.reject(failure(channel.failed));
+export function startDecodeWorker(options, stuffIt) {
+  const { option, timeoutMs } = settings(options);
+  const channel = channelOf(portOf(option));
+  if (channel.failed !== undefined) return;
+  probe(channel, timeoutMs);
+  if (stuffIt && channel.failed === undefined) {
+    try { channel.port.postMessage({ protocol: DECODE_PROTOCOL, client: CLIENT, type: 'prewarm' }, []); } catch { /* the decode reports it */ }
+  }
+}
+
+/**
+ * decodeScheme for a load that passed `decodeWorker`. Options are read and validated
+ * as decodeScheme does. A load carrying a prepared display profile, cinf environment
+ * or finite transfer (handles recognised by identity, which a clone does not keep),
+ * or options that are not plain cloneable data, decodes on the calling thread.
+ */
+export async function decodeWithWorker(input, options) {
+  const displayProfile = options.displayProfile;
+  const cicnTransfer = snapshotCicnTransfer(options.cicnTransfer, displayProfile);
+  const cinfEnvironment = options.cinfEnvironment;
+  assertCinfEnvironment(cinfEnvironment);
+  const sliderLayoutEnvironment = options.sliderLayoutEnvironment;
+  assertCinfEnvironment(sliderLayoutEnvironment);
+  displayRealizer(displayProfile);
+  const { option, timeoutMs } = settings(options);
+  const payload = displayProfile || cicnTransfer || cinfEnvironment || sliderLayoutEnvironment ? undefined : payloadOf(options);
+  if (!payload) return decodeScheme(input, options);
+  // Take a private copy of caller bytes now, into a buffer of our own. That buffer is
+  // what gets transferred, so the caller's memory (a Node Buffer's shared pool, a
+  // larger buffer behind a view) is never detached, whatever `slice` the input has.
+  if (input instanceof Uint8Array) {
+    const copy = new Uint8Array(input.byteLength);
+    Uint8Array.prototype.set.call(copy, input);
+    input = copy;
+  } else if (input && typeof input.byteLength === 'number' && !ArrayBuffer.isView(input)) {
+    input = new Uint8Array(new Uint8Array(input));
+  }
+  const bytes = await toUint8Array(input);
+  if (!bytes || bytes.length === 0) {
+    throw new Error('loadKaleidoscopeScheme: empty input (0 bytes) — not a theme file.');
+  }
+  const channel = channelOf(portOf(option));
+  if (channel.failed !== undefined) throw failure(channel.failed);
+  probe(channel, timeoutMs);
+  if (channel.failed !== undefined) throw failure(channel.failed);
+  const id = ++channel.next;
+  try {
+    channel.port.postMessage({ protocol: DECODE_PROTOCOL, client: CLIENT, type: 'decode', id, bytes, options: payload }, [bytes.buffer]);
+  } catch (error) {
+    // Something in the request could not be cloned after all. That is this load's
+    // problem, not the worker's: decode here, as if it had been ineligible.
+    if (error?.name === 'DataCloneError') return decodeScheme(bytes, options);
+    throw error;
+  }
   return new Promise((resolve, reject) => {
-    const id = ++channel.next, payload = bytes.slice();
-    port.postMessage({ protocol: DECODE_PROTOCOL, type: 'decode', id, bytes: payload, options }, [payload.buffer]);
-    channel.pending.set(id, { resolve, reject, meta, timeoutMs });
-    channel.arm();
+    const request = { resolve, reject, meta: payload.meta, timeoutMs, timer: undefined };
+    channel.pending.set(id, request);
+    arm(channel, id, request);
   });
-}
-
-/**
- * Loader-internal: ask the worker for the lazy StuffIt decoder (or, with
- * `stuffIt` false, only make sure a factory's worker exists) ahead of the bytes.
- * @returns {boolean} true when this load will decode in the worker.
- * @throws when the option is malformed or its factory throws.
- */
-export function prewarmDecodeWorker(options, stuffIt) {
-  const request = decodeWorkerRequest(options);
-  if (!request) return false;
-  if (stuffIt) {
-    try { request.port.postMessage({ protocol: DECODE_PROTOCOL, type: 'prewarm' }, []); } catch { /* the load reports it */ }
-  }
-  return true;
-}
-
-const LOADER_ERRORS = { DisplayProfileError, CinfEnvironmentError, CicnTransferError, ThemeValidationError };
-const BUILT_IN_ERRORS = ['Error', 'TypeError', 'RangeError', 'SyntaxError', 'ReferenceError', 'EvalError', 'URIError'];
-
-function unpackDecodeError(packed) {
-  if ('thrown' in packed) return packed.thrown;
-  const { name, message, stack, fields } = packed;
-  let error;
-  if (LOADER_ERRORS[name]) {
-    error = new Error(message);
-    Object.setPrototypeOf(error, LOADER_ERRORS[name].prototype);
-  } else if (BUILT_IN_ERRORS.includes(name)) error = new globalThis[name](message);
-  else if (typeof DOMException === 'function' && !('name' in fields)) return new DOMException(message, name);
-  else error = new Error(message);
-  Object.assign(error, fields);
-  if (stack) error.stack = stack;
-  return error;
 }

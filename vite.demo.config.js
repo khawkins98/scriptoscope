@@ -23,9 +23,10 @@ export default defineConfig({
       '@khawkins98/scriptoscope': resolve(import.meta.dirname, 'src/index.ts'),
     },
   },
-  // The aliased worker source keeps its lazy StuffIt decoder import, which needs an
-  // ES worker bundle. (The published `dist/decode-worker.js` is one self-contained file.)
-  worker: { format: 'es' },
+  // Build the aliased worker source the way the package ships it: one self-contained
+  // file, with its lazy StuffIt decoder import inlined. Left as a separate chunk, some
+  // engines fetched that chunk several times.
+  worker: { format: 'es', rollupOptions: { output: { inlineDynamicImports: true } } },
   build: {
     outDir: '../dist/demo',
     emptyOutDir: true,

@@ -13,25 +13,42 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   export is a self-contained module worker; pass a `Worker` created from it (or a
   function returning one) as `decodeWorker` to `loadTheme`, `loadOwnedTheme`,
   `loadKaleidoscopeScheme`, `loadOwnedKaleidoscopeScheme`, `createThemeResolver`
-  or `createOwnedThemeResolver`. The decoded theme is identical; fetching,
-  ownership and the eager loaders' PNG encoding stay on the calling thread.
-  Loads using `displayProfile`, `cicnTransfer`, `cinfEnvironment` or
-  `sliderLayoutEnvironment` keep decoding on the calling thread. A failed or
-  silent worker rejects its loads with `code: 'DECODE_WORKER_FAILED'`
-  (`decodeWorkerTimeoutMs`, default 30 s). Without the option nothing changes:
-  decoding stays on the calling thread and no worker file is requested.
+  or `createOwnedThemeResolver`. The decoded theme matches the main-thread
+  result; fetching, ownership and the eager loaders' PNG encoding stay on the
+  calling thread, and input bytes are copied, never detached. Loads using
+  `displayProfile`, `cicnTransfer`, `cinfEnvironment` or
+  `sliderLayoutEnvironment`, or `meta` that is not plain cloneable data, keep
+  decoding on the calling thread. A worker that errors, never started or goes
+  silent rejects its loads with `code: 'DECODE_WORKER_FAILED'`: a worker that
+  never started is noticed within 5 seconds of its first load, a silent one
+  after `decodeWorkerTimeoutMs` (default 30 s). A passed `Worker` is never
+  terminated by the library; one created by a passed function is terminated
+  and replaced when it fails. Without the option a load is unchanged, including
+  its timing and the order in which it reads options, and no worker file is
+  requested. `package.json` lists the worker in `sideEffects` so a consumer's
+  own worker file can import it.
 
 ### Changed
 
-- `loadTheme` and `loadOwnedTheme` request the lazy StuffIt decoder while a
-  `.sit` archive is still downloading instead of after it. A `source` naming a
-  `.sit` starts the decoder with the request; the default `scheme.sit` then
-  `scheme.rsrc` cascade starts it once the archive answers with a successful
-  non-HTML response. Bundles that only ship `scheme.rsrc` still never request
-  the decoder, and a decoder failure is still reported by the load that needs it.
-- Indexed-colour `cicn` and `ppat` decoding uses byte-indexed lookup tables
-  instead of per-pixel keyed collections. Decoded pixels, metadata, errors and
-  realizer or sampler call order are unchanged (#662).
+- `loadTheme` and `loadOwnedTheme` request the lazy StuffIt decoder alongside the
+  archive, instead of after its bytes arrive, when `source` names a file whose
+  path (before any `?` or `#`) ends in `.sit`. Nothing else requests it early:
+  the default `scheme.sit` then `scheme.rsrc` cascade and every other `source`
+  behave as before. A named `.sit` that is missing, or that holds a raw resource
+  fork, has still requested the decoder. A decoder failure is still reported
+  only by the load that needs it. If the decoder's WASM cannot instantiate, its
+  runtime logs two `console.error` lines and keeps the failed instantiation, as
+  before; for a named `.sit` this can now happen when the archive is requested
+  rather than when it is decoded (#662).
+- Indexed-colour `cicn` and `ppat` decoding uses byte lookup tables instead of
+  per-pixel keyed collections. Decoded pixels, metadata, errors and the order
+  and number of realizer and sampler calls are unchanged, with one narrowing in
+  `expandIndexedRgba`: each realized colour is now copied once, at the first
+  occurrence of its palette index, where it was previously re-read from the
+  realizer's returned object for every pixel. A realizer that reuses or later
+  mutates the array it returned, or returns a one-shot iterable, therefore
+  yields different pixels. Prepared display profiles return a fresh array per
+  call and are unaffected (#662).
 
 ## [0.10.0] — 2026-11-04
 

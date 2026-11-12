@@ -4,6 +4,8 @@
 //
 //   npm run build && SCRIPTOSCOPE_DECODE_WORKER_BROWSER=1 node --test src/decodeWorker.browser.test.mjs
 //
+// SCRIPTOSCOPE_DECODE_WORKER_ENGINE selects chromium (default), firefox or webkit.
+//
 // The Node counterpart (same codec over a MessageChannel) is
 // tools/theme-loader/decodeWorker.test.mjs and always runs.
 import assert from 'node:assert/strict';
@@ -15,6 +17,7 @@ import { extname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const enabled = process.env.SCRIPTOSCOPE_DECODE_WORKER_BROWSER === '1';
+const engine = process.env.SCRIPTOSCOPE_DECODE_WORKER_ENGINE ?? 'chromium';
 const root = fileURLToPath(new URL('..', import.meta.url));
 
 async function bundledThemes() {
@@ -45,13 +48,14 @@ async function serve() {
   return { origin: `http://127.0.0.1:${server.address().port}`, close: () => new Promise(done => server.close(done)) };
 }
 
-test('decode worker in Chromium: identical results, failures, concurrency and disposal', { skip: !enabled && 'set SCRIPTOSCOPE_DECODE_WORKER_BROWSER=1 after npm run build' }, async t => {
+test(`decode worker in ${engine}: identical results, failures, concurrency and disposal`, { skip: !enabled && 'set SCRIPTOSCOPE_DECODE_WORKER_BROWSER=1 after npm run build' }, async t => {
   assert.ok(await stat(join(root, 'dist/decode-worker.js')).then(entry => entry.isFile(), () => false), 'run npm run build first');
-  const { chromium } = await import('@playwright/test');
+  const playwright = await import('@playwright/test');
+  assert.ok(['chromium', 'firefox', 'webkit'].includes(engine), `unknown engine ${engine}`);
   const themes = await bundledThemes();
   assert.ok(themes.length >= 18);
   const site = await serve();
-  const browser = await chromium.launch();
+  const browser = await playwright[engine].launch();
   t.after(async () => { await browser.close(); await site.close(); });
   const page = await browser.newPage();
   const problems = [];
@@ -124,7 +128,8 @@ test('decode worker in Chromium: identical results, failures, concurrency and di
           main.dispose?.(); off.dispose?.();
         }
       }
-      totals.sent = worker.sent.length;
+      totals.sent = worker.sent.filter(type => type === 'decode').length;
+      totals.pings = worker.sent.filter(type => type === 'ping').length;
       worker.terminate();
       return totals;
     }, themes);
@@ -132,6 +137,7 @@ test('decode worker in Chromium: identical results, failures, concurrency and di
     assert.deepEqual(report.foreign, []);
     assert.equal(report.themes, themes.length * 3);
     assert.equal(report.sent, themes.length * 3, 'every worker-option load was decoded in the worker');
+    assert.equal(report.pings, 1, 'one liveness check for the whole run');
     assert.ok(report.typedArrays > 5000 && report.bytes > 10_000_000, JSON.stringify(report));
     assert.ok(report.blobUrls > 5000 && report.ownedImages > 5000, JSON.stringify(report));
     t.diagnostic(`compared ${report.themes} loads: ${report.typedArrays} typed arrays (${report.bytes} bytes), ${report.blobUrls} encoded images, ${report.ownedImages} owned image exports`);
@@ -153,7 +159,9 @@ test('decode worker in Chromium: identical results, failures, concurrency and di
       return result;
     });
     assert.equal(report.same, null);
-    assert.deepEqual(report.sent, ['prewarm', 'decode', 'prewarm', 'decode', 'decode', 'prewarm', 'decode']);
+    // Only the resolver's named `.sit` asks for the decoder; the default cascade does not.
+    assert.deepEqual([...report.sent].sort(), ['decode', 'decode', 'decode', 'decode', 'ping', 'prewarm']);
+    assert.deepEqual(report.sent.slice(0, 2), ['ping', 'decode']);
     assert.deepEqual(report.origins, ['/themes/beos-r503', '/themes/1138', '/themes/beos-r503']);
     assert.ok(report.cached);
     assert.equal(report.encodedAsset, 'blob:');
@@ -241,6 +249,14 @@ test('decode worker in Chromium: identical results, failures, concurrency and di
     const report = await page.evaluate(async () => {
       const bytes = await fetchBytes('/themes/1138/scheme.rsrc');
       const load = (decodeWorker, extra = {}) => outcome(api.loadOwnedKaleidoscopeScheme(bytes, { decodeWorker, ...extra }));
+      // A worker that failed to start long before its first load: its `error` event is
+      // gone by now, so only the liveness check can notice. Default 30 s decode timeout.
+      const stale = new Worker('/dist/no-such-worker.js', { type: 'module' });
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      const staleStart = performance.now();
+      const staleFailure = await load(stale);
+      const staleWaited = performance.now() - staleStart;
+      stale.terminate();
       const missing = new Worker('/dist/no-such-worker.js', { type: 'module' });
       const startFailure = await Promise.all([load(missing), load(missing)]);
       const afterFailure = await load(missing);
@@ -253,9 +269,10 @@ test('decode worker in Chromium: identical results, failures, concurrency and di
       const silent = await load(stopped, { decodeWorkerTimeoutMs: 250 });
       const waited = performance.now() - started;
       missing.terminate(); throwing.terminate();
-      return { startFailure, afterFailure, crash, first, silent, waited, unhandled: window.unhandled };
+      return { startFailure, afterFailure, crash, first, silent, waited, staleFailure, staleWaited, unhandled: window.unhandled };
     });
-    for (const failure of [...report.startFailure, report.afterFailure, report.crash, report.silent]) {
+    assert.ok(report.staleWaited < 7000, `a worker dead before its first load took ${report.staleWaited} ms to reject`);
+    for (const failure of [report.staleFailure, ...report.startFailure, report.afterFailure, report.crash, report.silent]) {
       assert.equal(failure.code, 'DECODE_WORKER_FAILED', JSON.stringify(failure));
       assert.match(failure.message, /^Scriptoscope decode worker failed: /);
     }
@@ -285,7 +302,7 @@ test('decode worker in Chromium: identical results, failures, concurrency and di
     assert.deepEqual(report.main.map(result => result.message), ['ThemeResolver: disposed', 'ThemeResolver: disposed']);
     assert.deepEqual(report.off, report.main);
     assert.deepEqual(report.reused, { resolved: true });
-    assert.deepEqual(report.sent, ['prewarm', 'decode', 'prewarm', 'decode']);
+    assert.deepEqual(report.sent, ['ping', 'prewarm', 'decode', 'decode']);
     assert.deepEqual(report.unhandled, []);
   });
 

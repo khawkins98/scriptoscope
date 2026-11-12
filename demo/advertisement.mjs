@@ -17,15 +17,24 @@ if (params.has('theme')) {
   const loadingLabel = document.getElementById('collage-loading-label');
   const schemeButtons = [...document.querySelectorAll('[data-portrait-theme]')];
   const manager = new WindowManager();
-  const resolver = createOwnedThemeResolver({
-    themeBaseUrl: `${import.meta.env.BASE_URL}themes`,
-    themes,
-    // Decode the five archives off the main thread. `?decode=main` keeps the default
-    // main-thread decode, for comparing the two.
-    ...(params.get('decode') === 'main' ? {} : {
-      decodeWorker: () => new Worker(new URL('@khawkins98/scriptoscope/decode-worker', import.meta.url), { type: 'module' }),
-    }),
+  const resolverOptions = { themeBaseUrl: `${import.meta.env.BASE_URL}themes`, themes };
+  const mainThread = createOwnedThemeResolver(resolverOptions);
+  // Decode the five archives off the main thread. `?decode=main` keeps the default
+  // main-thread decode, for comparing the two. If the worker fails (blocked, crashed,
+  // silent for 8 s) the page still assembles: that load and later ones decode here.
+  let offThread = params.get('decode') === 'main' ? null : createOwnedThemeResolver({
+    ...resolverOptions,
+    decodeWorker: () => new Worker(new URL('@khawkins98/scriptoscope/decode-worker', import.meta.url), { type: 'module' }),
+    decodeWorkerTimeoutMs: 8000,
   });
+  const resolver = {
+    preloadFonts: () => mainThread.preloadFonts(),
+    load: slug => !offThread ? mainThread.load(slug) : offThread.load(slug).catch(error => {
+      if (error?.code !== 'DECODE_WORKER_FAILED') throw error;
+      offThread = null;
+      return mainThread.load(slug);
+    }),
+  };
   const panels = [...collage.querySelectorAll('[data-scriptoscope-window]')].map(el => ({
     el,
     theme: el.dataset.scriptoscopeTheme,

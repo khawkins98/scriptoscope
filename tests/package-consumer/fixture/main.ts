@@ -58,6 +58,7 @@ const consumer = {
   directProfilePixels: [] as number[],
   builtInFrame: null as HTMLElement | null,
   decodeWorker: {} as Record<string, { same: boolean; assets: number }>,
+  wrappedWorker: null as { same: boolean; assets: number } | null,
   root, article, inputs, events,
   handle: null as { disconnect(): void } | null,
   ready: Promise.resolve(),
@@ -154,6 +155,12 @@ consumer.ready = (async () => {
   }
   if (archiveDetached(bytes)) throw new Error('The decode worker detached the caller\'s archive bytes');
   decodeWorker.terminate();
+  // The other documented shape: the consumer's own worker file importing the entry.
+  const wrapped = new Worker(new URL('./own-worker.ts', import.meta.url), { type: 'module' });
+  const viaWrapped = await rawDecode(bytes, wrapped), onMain = await rawDecode(bytes);
+  consumer.wrappedWorker = { assets: viaWrapped.assets.length, same: JSON.stringify(viaWrapped.manifest) === JSON.stringify(onMain.manifest)
+    && viaWrapped.assets.every((asset, i) => asset.rgba.length === onMain.assets[i]!.rgba.length && asset.rgba.every((value, at) => value === onMain.assets[i]!.rgba[at])) };
+  wrapped.terminate();
   const resolver = createOwnedThemeResolver({ themeBaseUrl: `${import.meta.env.BASE_URL}themes`,
     themes: [{ slug: 'windows-95', source: 'scheme.sit' }] });
   const lifetime = new AbortController();

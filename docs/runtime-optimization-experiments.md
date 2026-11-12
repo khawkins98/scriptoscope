@@ -13,9 +13,14 @@ Use [measured simplification](measured-simplification.md): identify code or work
 | [#495](https://github.com/khawkins98/scriptoscope/pull/495): prepared header pattern spans | Synthetic warm header calls improved by size; +23 production lines, +695 emitted JS bytes. |
 | [#496](https://github.com/khawkins98/scriptoscope/pull/496): prepared push pattern spans | Synthetic warm opaque-pattern calls took 36–84% less time; +59 production lines, +1,923 emitted JS bytes. Prototype hooks and cloned shared-storage aliases required fixes before landing. |
 | [#497](https://github.com/khawkins98/scriptoscope/pull/497): omit no-rect final push scan | 18 synthetic warm public workloads took 8–61% less time; +2 production lines, +38 emitted JS bytes. Narrow allocator-read timing change is documented in [push allocator compatibility](push-allocator-compatibility.md). |
-| [#663](https://github.com/khawkins98/scriptoscope/pull/663): StuffIt decoder requested during the archive download; byte lookup tables for indexed `cicn`/`ppat` decode | Decode: Node 24, resource fork to raw theme without PNG encoding, all 18 themes, old and new interleaved, two 40-round runs. Paired new/old time ratio had medians 0.73 and 0.67; fastest rounds fell from 652 to 371 ms and from 513 to 332 ms. Themes with little indexed art did not change. Prewarm: cold Chromium `loadTheme` of a named `.sit` under DevTools throttling saved 157–165 ms at 150 ms latency and 410–413 ms at 400 ms latency, about one request latency, because the decoder still shares a bandwidth-capped link with the archive. All timing came from one heavily loaded host. Not measured: other browsers, real networks, the default cascade, a separately served `munbox.wasm`, PNG encoding, memory. Scope: byte rasters only; other index containers keep the keyed path, and `.rsrc`-only bundles still never request the decoder. |
 
 Performance ranges describe the measured fixtures and hosts, not whole applications, cold starts, all browsers, memory, or historical-program fidelity. Counts from different studies need their stated scopes; source-line savings and execution savings are separate scores. The #497 verifier remained runtime-source blind, but accidentally saw author timing summaries during measurement; its fixed harness and analysis were unchanged and all samples retained.
+
+## Pending, not landed
+
+| Change | Evidence and limit |
+| --- | --- |
+| [#663](https://github.com/khawkins98/scriptoscope/pull/663) (open): StuffIt decoder requested alongside a named `.sit`; byte lookup tables for indexed `cicn`/`ppat` decode | **Decode.** Node 24, resource fork to raw theme without PNG encoding, all 18 themes, old and new interleaved, three 40-round runs: the paired new/old time ratio had medians 0.73, 0.67 and 0.65; fastest rounds fell from 652 to 371 ms, from 513 to 332 ms and from 262 to 174 ms (host load differed between runs). Themes with little indexed art did not change. Scope: genuine `Uint8Array` rasters only; other index containers, non-byte output, fractional sizes and short rasters keep the keyed path. Narrowing: the byte path copies each realized colour once per palette index, so a realizer that reuses or mutates its returned array, or returns a one-shot iterable, yields different pixels than before. **Prewarm.** Cold Chromium `loadTheme` with `source: 'scheme.sit'` under DevTools throttling saved 157–165 ms at 150 ms latency and 410–413 ms at 400 ms latency: about one request latency, because the decoder still shares a bandwidth-capped link with the archive. Scope: only a `source` whose path ends in `.sit`; the default cascade is unchanged and gains nothing. A named `.sit` that is missing or holds a raw fork still requests the decoder, and a WASM instantiation failure (two `console.error` lines, cached) can now occur at request time. **Limits.** All timing came from one heavily loaded host. Not measured: other browsers, real networks, a separately served `munbox.wasm`, PNG encoding, memory. |
 
 ## Opt-in decode worker: unmerged proposal (#662)
 
@@ -33,20 +38,26 @@ The seam was measured before any code (Chromium, one host, bytes already fetched
 
 Under 4× CPU throttling the owned figures were 57–262 ms on the main thread and 12–26 ms with the worker. The split is clean for owned loads: what remains is the result's structured-clone deserialisation, restoring frozen state and theme assembly. It is not clean for eager loads (`loadTheme`, `createThemeResolver`): 110–250 ms of their main-thread time is the PNG encoding of every image, which this proposal leaves where it is. Wall time for one warm owned load rose by 4–16 ms unthrottled (copy in, clone out).
 
-Landing page, built demo, five owned themes, cold context per run, 15 runs, median and range:
+Landing page, built demo, five owned themes, cold context per run, median and range. The first pass is 15 runs before the review fixes; the second is three 15-run passes after them, on the same host under heavier load (load average 15–28), giving the range of the three medians:
 
 | | TBT | Longest task | First window host | Last window host |
 | --- | --- | --- | --- | --- |
-| Desktop, main thread | 76 ms (0–225) | 106 ms (0–163) | 376 ms (179–470) | 399 ms (194–495) |
-| Desktop, worker | 27 ms (0–77) | 77 ms (0–127) | 330 ms (210–522) | 348 ms (229–544) |
-| 4× throttle, main thread | 468 ms (239–787) | 195 ms (140–428) | 917 ms (601–1198) | 984 ms (653–1297) |
-| 4× throttle, worker | 78 ms (23–165) | 107 ms (69–171) | 651 ms (501–770) | 745 ms (575–993) |
+| Desktop, main thread, first pass | 76 ms (0–225) | 106 ms (0–163) | 376 ms (179–470) | 399 ms (194–495) |
+| Desktop, worker, first pass | 27 ms (0–77) | 77 ms (0–127) | 330 ms (210–522) | 348 ms (229–544) |
+| 4× throttle, main thread, first pass | 468 ms (239–787) | 195 ms (140–428) | 917 ms (601–1198) | 984 ms (653–1297) |
+| 4× throttle, worker, first pass | 78 ms (23–165) | 107 ms (69–171) | 651 ms (501–770) | 745 ms (575–993) |
+| Desktop, main thread, later passes | 55–137 ms | 105–158 ms | 346–487 ms | 364–515 ms |
+| Desktop, worker, later passes | 50–93 ms | 100–143 ms | 353–509 ms | 370–537 ms |
+| 4× throttle, main thread, later passes | 468–752 ms | 204–238 ms | 929–1256 ms | 998–1350 ms |
+| 4× throttle, worker, later passes | 124–151 ms | 122–134 ms | 679–757 ms | 767–859 ms |
 
-An earlier nine-run pass on the same build gave 67 → 0 ms and 522 → 37 ms TBT. Limits: one busy host with wide ranges; Chromium only; local server, so no real network. DevTools CPU throttling slows the page's main thread but not the worker, so the throttled window-host times overstate what a slow device would gain; the blocking-time reduction does not depend on that. Not measured: other browsers, memory (the worker holds a second decoder instance and transfers rather than copies pixels), worker start-up on a cold HTTP cache, eager loads on the landing page.
+The throttled blocking-time reduction repeated in every pass. The unthrottled difference did not: in the later passes the two modes overlap and one pass had the worker slower, so no desktop gain is claimed from this host. Limits: one busy host with wide ranges; timing in Chromium only; local server, so no real network. DevTools CPU throttling slows the page's main thread but not the worker, so the throttled window-host times overstate what a slow device would gain; the blocking-time reduction does not depend on that. Not measured: timing in other browsers, memory (the worker holds a second decoder instance and transfers rather than copies pixels), worker start-up on a cold HTTP cache, eager loads on the landing page.
 
-Size: `dist/decode-worker.js` is 188,917 bytes (69,572 gzip -9) and carries its own copy of the base64 decoder WASM, because a worker loads from one URL. The loader chunk every consumer already receives grew by 7,094 bytes (2,089 gzip -9) for the request client; no other entry or chunk changed raw size. The worker is built in a second pass so the library entries keep their existing chunk graph.
+Size (bytes, gzip level 9, against the base branch built the same way): `dist/decode-worker.js` is 191,998 (70,455 gzip) and carries its own copy of the base64 decoder WASM, because a worker should load from one URL. The loader chunk every consumer already receives grew from 214,072 (64,608) to 225,074 (67,863), +11,002 (+3,255), for the request client, its reply validation and the error table; no other entry or chunk changed raw size. The worker is built in a second pass so the library entries keep their existing chunk graph.
 
-Equivalence is by comparison rather than argument: all 18 bundled themes, raw, owned and eager, decoded both ways and compared for key order, property flags, frozen state, shared references and every typed array's bytes (9,352 arrays, 26 MB, plus every encoded and exported image in Chromium).
+Equivalence is by comparison rather than argument: all 18 bundled themes, raw, owned and eager, decoded both ways and compared for key order, property flags, frozen and sealed state, shared references and every typed array's bytes (9,352 arrays, 26 MB, plus every encoded and exported image) in Chromium, Firefox and WebKit, and 300 corrupted archives compared for the error class, name, message and fields. One known difference is recorded in the runtime API: arrays that main-thread loads share between loads are separate copies in worker loads.
+
+An independent review of the first version confirmed 14 defects by running code, all outside the equivalence of a successful decode: failures of the worker that were never noticed or were noticed late, a shared timer, replies trusted without validation, caller buffers detached for Node `Buffer` input, options read differently from the calling thread, a one-tick timing change without the option, and worker files dropped by tree-shaking. The fixes added a liveness check, per-load timeouts, a per-client id, reply validation, and library-held factory workers; they account for roughly 3.9 KB of the loader chunk's 11 KB of added bytes.
 
 ## Rejected structural theories after #497
 

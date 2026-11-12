@@ -47,32 +47,91 @@ const resolver = createOwnedThemeResolver({ themeBaseUrl: '/themes', decodeWorke
 
 | Option | On | Meaning |
 | --- | --- | --- |
-| `decodeWorker` | `loadTheme`, `loadOwnedTheme`, `loadKaleidoscopeScheme`, `loadOwnedKaleidoscopeScheme`, `ThemeBootstrapOpts` | A `Worker`, or a function returning one. The function is called on the first load that decodes in the worker, and again only after that worker has failed. |
-| `decodeWorkerTimeoutMs` | the same | How long the worker may stay silent while loads are pending. Default `30000`; `Infinity` disables the limit. Any answer from the worker restarts the wait. |
+| `decodeWorker` | `loadTheme`, `loadOwnedTheme`, `loadKaleidoscopeScheme`, `loadOwnedKaleidoscopeScheme`, `ThemeBootstrapOpts` | A `Worker`, or a function returning one. |
+| `decodeWorkerTimeoutMs` | the same | How long one load waits while the worker sends nothing. Default `30000`. `Infinity`, or any value above 2,147,483,647, means no limit. |
 
-What stays the same: the returned theme (manifest, pixels, owned or eager
-structure, provenance apart from its random `loadId`), the error thrown for an
-undecodable archive, and resolver disposal during a pending load. Input bytes are
-copied to the worker, never detached. With `source` naming a `.sit`, the StuffIt
-decoder is requested in the worker while the archive downloads, and the main
-thread does not load it.
+Without `decodeWorker` a load is unchanged: the same code runs, it settles on
+the same microtask tick and it reads its options in the same order.
 
-What stays on the calling thread: fetching, ownership and disposal, `assetUrlFactory`
-and the eager loaders' PNG encoding of every image. `loadTheme` therefore still
-spends most of its time on the main thread; `loadOwnedTheme` does not encode up front.
+### What is the same and what is not
 
-A load that also passes `displayProfile`, `cicnTransfer`, `cinfEnvironment` or
-`sliderLayoutEnvironment` decodes on the calling thread, because those prepared
-handles are recognised by identity and a worker would only receive copies. So
-does a load whose `meta` is not plain JSON data, or that passes an option this
-version does not know. The result is unchanged; only the thread differs.
+The returned theme is what the calling thread would have produced: manifest,
+pixels, owned or eager structure, frozen and sealed state, and provenance apart
+from its random `loadId`. Caller `meta` objects that the manifest references are
+the caller's own objects, not copies. An undecodable archive rejects with the
+same error: `DisplayProfileError`, `CinfEnvironmentError`, `CicnTransferError`,
+`ThemeValidationError`, `WebAssembly.RuntimeError`, `CompileError`, `LinkError`
+and the standard built-in error classes arrive as themselves with the same
+`name`, `message` and own primitive fields. An error of any other class arrives
+as a plain `Error` carrying the original `name` and `message`. `stack` is the
+worker's.
 
-Failures of the worker itself reject the affected loads with an `Error` whose
-`code` is `'DECODE_WORKER_FAILED'`: an `error` or `messageerror` event rejects
-every pending load, and a worker that stays silent rejects them after the
-timeout. Later loads through that worker reject at once. Nothing is retried on
-the calling thread. A `decodeWorker` that is neither a worker nor a function is a
-`TypeError`. The library never calls `terminate()`.
+One difference: on the calling thread, some themes' loads share module-level
+arrays between loads (the same `manifest.windowTypes.*.widgets` array object
+appears in every such theme). A worker load receives its own copy of those
+arrays. Their contents are equal.
+
+Input bytes are copied when the load is called and the copy is sent. A caller's
+`Uint8Array`, `ArrayBuffer`, Node `Buffer` or view is never detached. When
+`source` names a `.sit`, the URL loaders ask the worker for the StuffIt decoder
+alongside the archive request and the main thread does not load it.
+
+Fetching, ownership and disposal, `assetUrlFactory` and the eager loaders' PNG
+encoding of every image stay on the calling thread. `loadTheme` therefore still
+spends most of its time there; `loadOwnedTheme` does not encode up front.
+
+### Loads that decode on the calling thread anyway
+
+- A load that passes `displayProfile`, `cicnTransfer`, `cinfEnvironment` or
+  `sliderLayoutEnvironment`. Those prepared handles are recognised by identity
+  and a worker would only receive copies.
+- A load whose `meta` is not plain cloneable data (functions, class instances,
+  dates, accessors, symbol keys, sparse or named-property arrays, `Proxy`
+  objects), or whose id lists are not plain number arrays.
+
+Options are read as the calling thread reads them, so an inherited or
+non-enumerable option counts. For a URL load this is decided before anything is
+requested, from the prepared handles and a caller-supplied `meta`. Such a load
+does not touch the worker and keeps its main-thread decoder warm-up for a named
+`.sit`. The result is the same either way.
+
+### Ownership
+
+A `Worker` passed as `decodeWorker` is never terminated by the library, whether
+it works or fails. A function passed as `decodeWorker` is called when the first
+load that will decode in the worker starts; a URL load calls it before its
+requests, so the worker starts alongside the download. The worker it returns is
+held by the library: when that worker is judged failed the library terminates
+it, and the next load calls the function once for a replacement that
+concurrent loads share. A worker that has also been passed directly is treated
+as the caller's.
+
+### Failure
+
+Loads that fail because of the worker reject with an `Error` whose `code` is
+`'DECODE_WORKER_FAILED'`. Nothing is retried on the calling thread.
+
+A worker is judged failed, which rejects every load pending on it and every
+later load at once, when:
+
+- it dispatches `error` or `messageerror`;
+- it sends a malformed reply;
+- it does not answer a liveness check. The check is sent with the first request
+  to a worker, because a worker that failed to start before the library was
+  listening shows no later sign of it. The wait is 5 seconds, or the load's
+  `decodeWorkerTimeoutMs` if shorter. A healthy worker answers before it starts
+  decoding, so the first load is not delayed.
+
+Separately, each load has its own timeout. It rejects only that load, when the
+worker has sent this copy of the library nothing for `decodeWorkerTimeoutMs`.
+Any message from the worker restarts every pending load's wait, since an answer
+to another load shows the worker is alive and working through its queue.
+Posting a new load restarts nothing. After a timeout the worker is checked for
+liveness again on its next use.
+
+Two copies of the library may share one worker; each ignores answers addressed
+to the other. A `decodeWorker` that is neither a worker nor a function, or a
+`decodeWorkerTimeoutMs` that is not a positive number, is a `TypeError`.
 
 ## Attach native form controls
 
