@@ -145,10 +145,53 @@ or dispose application-owned themes. Call each window's `unmount()` and restore
 controls first. The example also cleans up on failed mounting and page exit,
 and keeps the live UI when the browser places the page in its Back/Forward cache.
 
+## Decode themes off the main thread (optional)
+
+By default a theme archive is decoded on the thread that asks for it. Decoding
+one archive takes tens of milliseconds on a fast desktop and several hundred on
+a slow device, which shows up as long tasks while a page loads. To move that
+work, create a worker from the `decode-worker` export and pass it to the loader
+or resolver:
+
+```ts
+import { createOwnedThemeResolver } from '@khawkins98/scriptoscope/declarative';
+
+const decodeWorker = new Worker(
+  new URL('@khawkins98/scriptoscope/decode-worker', import.meta.url),
+  { type: 'module' },
+);
+const resolver = createOwnedThemeResolver({ themeBaseUrl: '/themes', decodeWorker });
+```
+
+`loadTheme`, `loadOwnedTheme`, `loadKaleidoscopeScheme` and
+`loadOwnedKaleidoscopeScheme` take the same `decodeWorker` option. It also
+accepts a function returning the worker, called on the first load that uses it.
+The loaded theme is the same as without the option; only where the decode runs
+changes.
+
+- The worker is yours. Share one between loads and resolvers, and call
+  `terminate()` when the page no longer loads themes. Disposing a theme or a
+  resolver does not stop it.
+- The `new Worker(new URL(...), { type: 'module' })` form is what Vite and
+  webpack 5 recognise and bundle. A bundler that does not emit worker files needs
+  `dist/decode-worker.js` copied and served from your own origin; it is a single
+  self-contained module.
+- Loads that pass `displayProfile`, `cicnTransfer`, `cinfEnvironment` or
+  `sliderLayoutEnvironment`, or `meta` that is not plain JSON data, decode on the
+  calling thread as before. Those prepared handles cannot cross to a worker.
+- A worker that fails to start, throws, or does not answer within
+  `decodeWorkerTimeoutMs` (default 30 seconds) rejects its pending loads with an
+  error whose `code` is `'DECODE_WORKER_FAILED'`. The library does not retry on
+  the main thread; retry without the option if you want that fallback.
+- Eager loaders (`loadTheme`, `createThemeResolver`) still encode every image to
+  a PNG URL on the main thread after the decode. The owned loaders skip that
+  step, so they gain the most.
+
 ## Public files and troubleshooting
 
 Supported imports are `@khawkins98/scriptoscope`, `@khawkins98/scriptoscope/renderer`,
-`@khawkins98/scriptoscope/declarative`, `@khawkins98/scriptoscope/scriptoscope.css` and
+`@khawkins98/scriptoscope/declarative`, `@khawkins98/scriptoscope/decode-worker` (a worker
+script, not an importable API), `@khawkins98/scriptoscope/scriptoscope.css` and
 `@khawkins98/scriptoscope/package.json`. Shared hashed JS chunks are shipped dependencies of
 these entries, not additional supported imports. Keep them when self-hosting.
 The package includes [LICENSE](../LICENSE) and

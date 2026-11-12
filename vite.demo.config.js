@@ -19,9 +19,13 @@ export default defineConfig({
   // using the same import path the landing models for consumers.
   resolve: {
     alias: {
+      '@khawkins98/scriptoscope/decode-worker': resolve(import.meta.dirname, 'tools/theme-loader/decodeWorker.js'),
       '@khawkins98/scriptoscope': resolve(import.meta.dirname, 'src/index.ts'),
     },
   },
+  // The aliased worker source keeps its lazy StuffIt decoder import, which needs an
+  // ES worker bundle. (The published `dist/decode-worker.js` is one self-contained file.)
+  worker: { format: 'es' },
   build: {
     outDir: '../dist/demo',
     emptyOutDir: true,

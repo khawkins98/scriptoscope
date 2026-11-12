@@ -69,6 +69,17 @@ proving that checkout files cannot silently satisfy a broken tarball. A sixth
 candidate omits `THIRD_PARTY_NOTICES` and must fail the contents check. macOS
 AppleDouble metadata is disabled when creating these defective test archives.
 
+The fixture also opts in to the decode worker the way the consumer guide writes
+it: `new Worker(new URL('@khawkins98/scriptoscope/decode-worker', import.meta.url),
+{ type: 'module' })`. The consumer's own build bundles that packed export as a
+worker asset. Both archives are decoded through the one worker and on the main
+thread, and the manifests and every asset's pixels must be equal; the runner
+requires the worker script to be fetched exactly once with 200. A seventh
+candidate omits `dist/decode-worker.js` and must fail export-file resolution.
+This covers two archives in one browser; the every-bundled-theme comparison is
+`tools/theme-loader/decodeWorker.test.mjs` (Node) and
+`src/decodeWorker.browser.test.mjs` (Chromium, opt-in).
+
 Compact `result.json` evidence and failure screenshots live under
 `test-results/rendering-evidence/package-consumer/`. Set
 `SCRIPTOSCOPE_PACKAGE_EVIDENCE` to a separate directory for concurrent local jobs.

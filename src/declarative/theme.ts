@@ -61,6 +61,12 @@ export interface ThemeBootstrapOpts {
    *  cascade behavior. Typically passed as the same `themes` array as
    *  MountOptions.themes (the manifest). */
   themes?: readonly ThemeEntry[];
+  /** Opt-in: decode every loaded theme in this caller-owned worker instead of on the
+   * main thread; see {@link ThemeLoadOptions.decodeWorker}. Disposing the resolver
+   * does not terminate it. */
+  decodeWorker?: ThemeLoadOptions['decodeWorker'];
+  /** See {@link ThemeLoadOptions.decodeWorkerTimeoutMs}. */
+  decodeWorkerTimeoutMs?: number;
 }
 
 export interface ThemeResolver<Theme extends ThemeInput = LoadedTheme> {
@@ -133,6 +139,8 @@ function createResolver<Theme extends ThemeInput>(opts: ThemeBootstrapOpts,
       if (displayProfile) loadOpts.displayProfile = displayProfile;
       if (hint?.source) loadOpts.source = hint.source;
       if (hint?.meta) loadOpts.meta = hint.meta;
+      if (opts.decodeWorker !== undefined) loadOpts.decodeWorker = opts.decodeWorker;
+      if (opts.decodeWorkerTimeoutMs !== undefined) loadOpts.decodeWorkerTimeoutMs = opts.decodeWorkerTimeoutMs;
       const theme = await load(url, loadOpts);
       if (disposed) {
         if (!borrowed.has(theme)) theme.dispose?.();

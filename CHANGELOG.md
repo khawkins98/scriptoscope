@@ -7,6 +7,20 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+### Added
+
+- Opt-in off-main-thread theme decoding (#662). A new `./decode-worker` package
+  export is a self-contained module worker; pass a `Worker` created from it (or a
+  function returning one) as `decodeWorker` to `loadTheme`, `loadOwnedTheme`,
+  `loadKaleidoscopeScheme`, `loadOwnedKaleidoscopeScheme`, `createThemeResolver`
+  or `createOwnedThemeResolver`. The decoded theme is identical; fetching,
+  ownership and the eager loaders' PNG encoding stay on the calling thread.
+  Loads using `displayProfile`, `cicnTransfer`, `cinfEnvironment` or
+  `sliderLayoutEnvironment` keep decoding on the calling thread. A failed or
+  silent worker rejects its loads with `code: 'DECODE_WORKER_FAILED'`
+  (`decodeWorkerTimeoutMs`, default 30 s). Without the option nothing changes:
+  decoding stays on the calling thread and no worker file is requested.
+
 ### Changed
 
 - `loadTheme` and `loadOwnedTheme` request the lazy StuffIt decoder while a

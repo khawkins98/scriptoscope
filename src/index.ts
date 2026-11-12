@@ -11,6 +11,8 @@ export { loadTheme, loadOwnedTheme, type ThemeMeta, type ThemeLoadOptions } from
 // `tools/theme-loader/loadKaleidoscopeScheme.d.ts` shim; src/loadKaleidoscopeScheme.ts
 // adds the engine's default loader inputs (engine cinf ids).
 export { loadKaleidoscopeScheme, loadOwnedKaleidoscopeScheme } from './loadKaleidoscopeScheme.js';
+// Opt-in off-main-thread decoding: the worker is the separate `./decode-worker` entry.
+export type { DecodeWorkerOption, DecodeWorkerPort } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
 
 export {
   interactiveButton, interactiveDisclosure,

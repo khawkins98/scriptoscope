@@ -17,6 +17,37 @@ Use [measured simplification](measured-simplification.md): identify code or work
 
 Performance ranges describe the measured fixtures and hosts, not whole applications, cold starts, all browsers, memory, or historical-program fidelity. Counts from different studies need their stated scopes; source-line savings and execution savings are separate scores. The #497 verifier remained runtime-source blind, but accidentally saw author timing summaries during measurement; its fixed harness and analysis were unchanged and all samples retained.
 
+## Opt-in decode worker: unmerged proposal (#662)
+
+Proposal: a consumer-supplied worker (`decodeWorker` option, `./decode-worker` export) runs the decode stage — container unwrap, StuffIt WASM, resource parsing, indexed art to RGBA, manifest build, byte provenance — and returns it with transferred buffers. Fetching, ownership, `assetUrlFactory` and eager PNG encoding stay on the calling thread. The default is unchanged because a worker is a separately emitted file, the constraint that already keeps the decoder WASM inlined.
+
+The seam was measured before any code (Chromium, one host, bytes already fetched, medians of five warm loads). Main-thread busy time is CDP `TaskDuration`.
+
+| Theme | Owned load, main thread | Owned load, worker | Eager load, main thread | Eager load, worker |
+| --- | --- | --- | --- | --- |
+| 1138 | 13.7 ms | 5.0 ms | 189.5 ms | 176.6 ms |
+| beos-r503 | 30.4 ms | 6.0 ms | 284.7 ms | 268.0 ms |
+| apple-platinum-2 | 15.0 ms | 2.9 ms | 126.9 ms | 114.3 ms |
+| windows-95 | 24.3 ms | 6.3 ms | 267.3 ms | 254.7 ms |
+| crayon-os | 71.8 ms | 3.9 ms | 222.9 ms | 147.0 ms |
+
+Under 4× CPU throttling the owned figures were 57–262 ms on the main thread and 12–26 ms with the worker. The split is clean for owned loads: what remains is the result's structured-clone deserialisation, restoring frozen state and theme assembly. It is not clean for eager loads (`loadTheme`, `createThemeResolver`): 110–250 ms of their main-thread time is the PNG encoding of every image, which this proposal leaves where it is. Wall time for one warm owned load rose by 4–16 ms unthrottled (copy in, clone out).
+
+Landing page, built demo, five owned themes, cold context per run, 15 runs, median and range:
+
+| | TBT | Longest task | First window host | Last window host |
+| --- | --- | --- | --- | --- |
+| Desktop, main thread | 76 ms (0–225) | 106 ms (0–163) | 376 ms (179–470) | 399 ms (194–495) |
+| Desktop, worker | 27 ms (0–77) | 77 ms (0–127) | 330 ms (210–522) | 348 ms (229–544) |
+| 4× throttle, main thread | 468 ms (239–787) | 195 ms (140–428) | 917 ms (601–1198) | 984 ms (653–1297) |
+| 4× throttle, worker | 78 ms (23–165) | 107 ms (69–171) | 651 ms (501–770) | 745 ms (575–993) |
+
+An earlier nine-run pass on the same build gave 67 → 0 ms and 522 → 37 ms TBT. Limits: one busy host with wide ranges; Chromium only; local server, so no real network. DevTools CPU throttling slows the page's main thread but not the worker, so the throttled window-host times overstate what a slow device would gain; the blocking-time reduction does not depend on that. Not measured: other browsers, memory (the worker holds a second decoder instance and transfers rather than copies pixels), worker start-up on a cold HTTP cache, eager loads on the landing page.
+
+Size: `dist/decode-worker.js` is 188,917 bytes (69,572 gzip -9) and carries its own copy of the base64 decoder WASM, because a worker loads from one URL. The loader chunk every consumer already receives grew by 7,094 bytes (2,089 gzip -9) for the request client; no other entry or chunk changed raw size. The worker is built in a second pass so the library entries keep their existing chunk graph.
+
+Equivalence is by comparison rather than argument: all 18 bundled themes, raw, owned and eager, decoded both ways and compared for key order, property flags, frozen state, shared references and every typed array's bytes (9,352 arrays, 26 MB, plus every encoded and exported image in Chromium).
+
 ## Rejected structural theories after #497
 
 These trials used the admitted production baseline corresponding to merged #497 (`240d0e1b5e7a8e574421b00383c96da43207360f`). Its production-only source archive excludes tests; a reconstructed subset tree must not be compared as though it were the full repository tree.

@@ -8,9 +8,40 @@
 // `npm run preview` previews the built library bundle (rarely useful) — use
 // `npm run dev` for the demo preview.
 
-import { defineConfig } from 'vite';
+import { build, defineConfig } from 'vite';
 import { resolve, sep } from 'node:path';
 import { existsSync, statSync, createReadStream } from 'node:fs';
+
+// Preserve the Vite 5 library target when upgrading the build tooling.
+// Consumers should not inherit Vite 7's newer default browser floor.
+const LIBRARY_TARGET = ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'];
+const DECODE_WORKER = resolve(import.meta.dirname, 'tools/theme-loader/decodeWorker.js');
+
+// `dist/decode-worker.js` is the opt-in decode worker (package export
+// `./decode-worker`). It is built on its own, after the library entries, for two
+// reasons: listed beside them it would pull the converter out of their chunks into
+// a new shared one (changing the chunk graph for consumers who never use a worker),
+// and a worker should load from one URL, so its lazy StuffIt decoder is inlined
+// rather than left as a sibling chunk. It therefore carries its own copy of the
+// base64 decoder WASM.
+const decodeWorkerEntryPlugin = () => ({
+  name: 'scriptoscope-decode-worker-entry',
+  apply: 'build',
+  async closeBundle() {
+    await build({
+      configFile: false,
+      publicDir: false,
+      build: {
+        target: LIBRARY_TARGET,
+        outDir: 'dist',
+        emptyOutDir: false,
+        sourcemap: true,
+        lib: { entry: { 'decode-worker': DECODE_WORKER }, formats: ['es'], fileName: (_format, entryName) => `${entryName}.js` },
+        rollupOptions: { external: [], output: { inlineDynamicImports: true } },
+      },
+    });
+  },
+});
 
 // Tiny middleware to serve canonical theme bundles from `themes/<slug>/` at
 // `/themes/<slug>/...` during dev. Phase 4 runtime (`loadTheme()`) fetches
@@ -96,6 +127,7 @@ export default defineConfig(({ command }) => {
         alias: {
           '@khawkins98/scriptoscope/declarative': resolve(import.meta.dirname, 'src/declarative/index.ts'),
           '@khawkins98/scriptoscope/renderer': resolve(import.meta.dirname, 'src/renderer.ts'),
+          '@khawkins98/scriptoscope/decode-worker': DECODE_WORKER,
           '@khawkins98/scriptoscope': resolve(import.meta.dirname, 'src/index.ts'),
         },
       },
@@ -103,10 +135,9 @@ export default defineConfig(({ command }) => {
   }
   // Library entries share rendering implementations and preparation registries.
   return {
+    plugins: [decodeWorkerEntryPlugin()],
     build: {
-      // Preserve the Vite 5 library target when upgrading the build tooling.
-      // Consumers should not inherit Vite 7's newer default browser floor.
-      target: ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14'],
+      target: LIBRARY_TARGET,
       outDir: 'dist',
       emptyOutDir: true,
       sourcemap: true,

@@ -76,7 +76,7 @@ async function prepareConsumer(tarball, name, example = false) {
   // different condition set, and verify actual files rather than resolution alone.
   let phase = 'exports';
   try {
-    const specifiers = ['@khawkins98/scriptoscope', '@khawkins98/scriptoscope/renderer', '@khawkins98/scriptoscope/declarative', '@khawkins98/scriptoscope/scriptoscope.css', '@khawkins98/scriptoscope/package.json'];
+    const specifiers = ['@khawkins98/scriptoscope', '@khawkins98/scriptoscope/renderer', '@khawkins98/scriptoscope/declarative', '@khawkins98/scriptoscope/decode-worker', '@khawkins98/scriptoscope/scriptoscope.css', '@khawkins98/scriptoscope/package.json'];
     const paths = JSON.parse(command(process.execPath, ['--input-type=module', '-e',
       `console.log(JSON.stringify(${JSON.stringify(specifiers)}.map(id => import.meta.resolve(id))))`], consumer));
     for (const [index, url] of paths.entries()) {
@@ -295,6 +295,14 @@ try {
     assert(builtInFrame && builtInFrame.width > 160 && builtInFrame.height > 60, 'Built-in frame window did not render a framed canvas');
     assert(builtInFrame.opaquePixels > 0, 'Built-in frame window canvas is fully transparent');
     record.builtInFrame.render = builtInFrame;
+    // The opt-in decode worker is the packed `./decode-worker` export, bundled by the
+    // consumer's own build; its results must equal the main-thread decode.
+    const decodeWorker = await page.evaluate(() => window.packedConsumer.decodeWorker);
+    assert.deepEqual(decodeWorker, { 'windows-95': { same: true, assets: decodeWorker['windows-95'].assets }, 'platinum-8': { same: true, assets: decodeWorker['platinum-8'].assets } });
+    assert(decodeWorker['windows-95'].assets > 100 && decodeWorker['platinum-8'].assets > 100, 'The worker decode returned no assets');
+    const workerScripts = network.filter(item => /^\/consumer\/assets\/decode-worker-[^/]+\.js$/.test(item.path));
+    assert(workerScripts.length === 1 && workerScripts[0].status === 200, `Packed decode worker was not loaded once: ${JSON.stringify(workerScripts)}`);
+    record.decodeWorker = { script: workerScripts[0].path, results: decodeWorker };
     assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--scriptoscope-focus-width').trim()), '2px');
     await page.getByRole('checkbox', { name: 'Themed', exact: true }).click();
     const slider = page.getByRole('slider', { name: 'Volume', exact: true });
@@ -340,6 +348,7 @@ try {
   await negativeTarball(tarball, 'dist/scriptoscope.css', 'exports', 'missing-css');
   await negativeTarball(tarball, 'THIRD_PARTY_NOTICES', 'contents', 'missing-notices');
   await negativeTarball(tarball, 'dist/renderer.js', 'exports', 'missing-renderer');
+  await negativeTarball(tarball, 'dist/decode-worker.js', 'exports', 'missing-decode-worker');
   await negativeTarball(tarball, 'dist/types/renderer.d.ts', 'types', 'missing-renderer-types', undefined, '@khawkins98/scriptoscope/renderer');
   // The entry may be a re-export facade over shared chunks, so follow its static
   // import graph and take the first dynamic import found (the archive decoder).
@@ -370,7 +379,7 @@ try {
     return declaration.replace(target, `from ${JSON.stringify(join(root, 'src/types.js'))}`);
   }, 'Declaration import escaped the installed consumer');
   record.complete = true;
-  console.log('Packed consumer passed: contents/notices, exports, Bundler/NodeNext declarations, shipped example, renderer interoperability, archive decoding, native interaction/teardown and six package-boundary negatives.');
+  console.log('Packed consumer passed: contents/notices, exports, Bundler/NodeNext declarations, shipped example, renderer interoperability, archive decoding, the decode-worker export, native interaction/teardown and seven package-boundary negatives.');
 } catch (error) {
   record.error = `${error.stack}\n${error.stdout ?? ''}\n${error.stderr ?? ''}`;
   throw error;

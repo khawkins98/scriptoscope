@@ -32,6 +32,48 @@ Existing loaders retain ready image URLs. See the [owned API and lifecycle
 contract](https://github.com/khawkins98/scriptoscope/blob/main/docs/v2/owned-theme-api.md) for examples and the current adoption boundary.
 Existing raw loading and factory APIs remain available. Registered themes are borrowed; release them only after host dependents are disconnected.
 
+## Optional decode worker
+
+Archive decoding (StuffIt decompression, resource parsing, indexed art to RGBA,
+manifest construction) runs on the calling thread unless a load is given a
+worker created from the `@khawkins98/scriptoscope/decode-worker` entry:
+
+```js
+import { loadOwnedTheme, createOwnedThemeResolver } from '@khawkins98/scriptoscope';
+const decodeWorker = new Worker(new URL('@khawkins98/scriptoscope/decode-worker', import.meta.url), { type: 'module' });
+const theme = await loadOwnedTheme('/themes/windows-95', { decodeWorker });
+const resolver = createOwnedThemeResolver({ themeBaseUrl: '/themes', decodeWorker });
+```
+
+| Option | On | Meaning |
+| --- | --- | --- |
+| `decodeWorker` | `loadTheme`, `loadOwnedTheme`, `loadKaleidoscopeScheme`, `loadOwnedKaleidoscopeScheme`, `ThemeBootstrapOpts` | A `Worker`, or a function returning one. The function is called on the first load that decodes in the worker, and again only after that worker has failed. |
+| `decodeWorkerTimeoutMs` | the same | How long the worker may stay silent while loads are pending. Default `30000`; `Infinity` disables the limit. Any answer from the worker restarts the wait. |
+
+What stays the same: the returned theme (manifest, pixels, owned or eager
+structure, provenance apart from its random `loadId`), the error thrown for an
+undecodable archive, and resolver disposal during a pending load. Input bytes are
+copied to the worker, never detached. With `source` naming a `.sit`, the StuffIt
+decoder is requested in the worker while the archive downloads, and the main
+thread does not load it.
+
+What stays on the calling thread: fetching, ownership and disposal, `assetUrlFactory`
+and the eager loaders' PNG encoding of every image. `loadTheme` therefore still
+spends most of its time on the main thread; `loadOwnedTheme` does not encode up front.
+
+A load that also passes `displayProfile`, `cicnTransfer`, `cinfEnvironment` or
+`sliderLayoutEnvironment` decodes on the calling thread, because those prepared
+handles are recognised by identity and a worker would only receive copies. So
+does a load whose `meta` is not plain JSON data, or that passes an option this
+version does not know. The result is unchanged; only the thread differs.
+
+Failures of the worker itself reject the affected loads with an `Error` whose
+`code` is `'DECODE_WORKER_FAILED'`: an `error` or `messageerror` event rejects
+every pending load, and a worker that stays silent rejects them after the
+timeout. Later loads through that worker reject at once. Nothing is retried on
+the calling thread. A `decodeWorker` that is neither a worker nor a function is a
+`TypeError`. The library never calls `terminate()`.
+
 ## Attach native form controls
 
 Use native checkbox/radio inputs, labels, initial `checked` state and native

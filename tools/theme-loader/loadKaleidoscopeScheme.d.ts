@@ -7,7 +7,24 @@
 import type { LoadedTheme } from '../../src/types.js';
 import type { OwnedTheme } from '../../src/ownedTheme.js';
 
+/** The part of a `Worker` the loader uses. The caller creates it and owns its lifetime. */
+export interface DecodeWorkerPort {
+  postMessage(message: unknown, transfer: Transferable[]): void;
+  addEventListener(type: string, listener: (event: any) => void): void;
+}
+/** A decode worker, or a factory called once, on the first load that uses it. */
+export type DecodeWorkerOption = DecodeWorkerPort | (() => DecodeWorkerPort);
+
 export interface LoadKaleidoscopeSchemeOptions {
+  /** Opt-in: run archive decoding in this caller-owned worker, created from the
+   * `@khawkins98/scriptoscope/decode-worker` entry. Absent (the default), decoding
+   * runs on the calling thread. A load that also passes `displayProfile`,
+   * `cicnTransfer`, `cinfEnvironment` or `sliderLayoutEnvironment`, or non-JSON
+   * `meta`, decodes on the calling thread; the result is the same either way.
+   * A worker that errors or stays silent rejects the load (`code: 'DECODE_WORKER_FAILED'`). */
+  decodeWorker?: DecodeWorkerOption;
+  /** How long a silent worker may hold pending loads before they reject. Default 30000. */
+  decodeWorkerTimeoutMs?: number;
   /** Explicit standalone group2 slider layout cinf lookup; absent preserves compatibility. */
   /** Authoritative ordered cinf-only providers for the engine group2 slider. */
   sliderLayoutEnvironment?: import('./cinf-environment.js').PreparedCinfEnvironment;

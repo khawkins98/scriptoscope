@@ -50,12 +50,14 @@ const bodyDeclaration: CicnBodyBinding = { model: 'kaleidoscope-2.3.1-cicn-body-
   selectionPolicy: 'unique-same-face-owner', requestedId: 0, status: 'missing', reason: 'same-owner-resource-absent' };
 void bodyDeclaration;
 
+const archiveDetached = (archive: Uint8Array) => archive.byteLength === 0;
 const consumer = {
   version: VERSION,
   decoderExport: typeof loadKaleidoscopeScheme,
   headerSurfaceExport: typeof composeHeaderSurface,
   directProfilePixels: [] as number[],
   builtInFrame: null as HTMLElement | null,
+  decodeWorker: {} as Record<string, { same: boolean; assets: number }>,
   root, article, inputs, events,
   handle: null as { disconnect(): void } | null,
   ready: Promise.resolve(),
@@ -132,6 +134,26 @@ consumer.ready = (async () => {
   const builtInTheme = await loadTheme(`${import.meta.env.BASE_URL}themes/platinum-8`, { source: 'scheme.sit' });
   consumer.builtInFrame = await renderWindow(builtInTheme, { title: 'Built-in frame', width: 160, height: 60 });
   document.querySelector('#consumer-builtin-frame')!.append(consumer.builtInFrame);
+  // Opt-in off-main-thread decoding through the packed `./decode-worker` export, exactly
+  // as the consumer guide writes it. Both archives share the one caller-owned worker
+  // and must decode to what the main thread produces.
+  const decodeWorker = new Worker(new URL('@khawkins98/scriptoscope/decode-worker', import.meta.url), { type: 'module' });
+  type RawDecode = { manifest: unknown; assets: { path: string; width: number; height: number; rgba: Uint8Array }[] };
+  const rawDecode = async (archive: Uint8Array, worker?: Worker) => await loadKaleidoscopeScheme(archive,
+    { encodeAssets: false, source: 'packed-consumer', ...(worker ? { decodeWorker: worker } : {}) }) as unknown as RawDecode;
+  const decodeInputs = { 'windows-95': bytes,
+    'platinum-8': new Uint8Array(await (await fetch(`${import.meta.env.BASE_URL}themes/platinum-8/scheme.sit`)).arrayBuffer()) };
+  const offThread = await Promise.all(Object.values(decodeInputs).map(archive => rawDecode(archive, decodeWorker)));
+  for (const [index, [slug, archive]] of Object.entries(decodeInputs).entries()) {
+    const main = await rawDecode(archive), off = offThread[index]!;
+    const same = JSON.stringify(off.manifest) === JSON.stringify(main.manifest) && off.assets.length === main.assets.length
+      && main.assets.every((asset, i) => { const other = off.assets[i]!;
+        return other.path === asset.path && other.width === asset.width && other.height === asset.height
+          && other.rgba.length === asset.rgba.length && other.rgba.every((value, at) => value === asset.rgba[at]); });
+    consumer.decodeWorker[slug] = { same, assets: off.assets.length };
+  }
+  if (archiveDetached(bytes)) throw new Error('The decode worker detached the caller\'s archive bytes');
+  decodeWorker.terminate();
   const resolver = createOwnedThemeResolver({ themeBaseUrl: `${import.meta.env.BASE_URL}themes`,
     themes: [{ slug: 'windows-95', source: 'scheme.sit' }] });
   const lifetime = new AbortController();

@@ -1,5 +1,5 @@
 import { encodeRasterPng } from './encodeRasterPng.js';
-import { snapshotCicnTransfer, bindCicnTransfer } from './cicn-transfer-results.js';
+import { snapshotCicnTransfer } from './cicn-transfer-results.js';
 // Runtime Kaleidoscope scheme loader — the BROWSER shell over the portable
 // conversion core (convert.js). A single in-browser call instead of the Node
 // build pipeline: decode a dropped .ksc/.rsrc resource fork → a render-ready,
@@ -11,12 +11,11 @@ import { snapshotCicnTransfer, bindCicnTransfer } from './cicn-transfer-results.
 // produces the runtime's LoadedTheme contract. The Node CLIs (extract-*.mjs) are the
 // parallel Node shell. See docs/superpowers/specs/2026-05-27-browser-conversion-design.md.
 
-import { assertCinfEnvironment, bindCinfEnvironment, finalizeCinfTheme, finalizeCinfResourceOwner } from './cinf-environment.js';
-import { beginLoadProvenance } from './loadProvenance.js';
+import { assertCinfEnvironment, finalizeCinfTheme, finalizeCinfResourceOwner } from './cinf-environment.js';
 import { createRasterAssetOwner, bindRasterOwner, bindRasterLifetime } from './rasterAssets.js';
-import { convertScheme } from './convert.js';
+import { decodeSchemeBytes } from './decodeSchemeBytes.js';
+import { decodeWorkerRequest, decodeInWorker } from './decodeWorkerClient.js';
 import { displayRealizer } from './display-profile.js';
-import { unwrapToResourceFork, detectContainer } from './containers.js';
 import { buildResourceRoles, parseCicnFilename, parsePpatFilename } from './classifyResources.js';
 
 /**
@@ -32,6 +31,9 @@ import { buildResourceRoles, parseCicnFilename, parsePpatFilename } from './clas
  * @property {object} [cinfEnvironment] Prepared explicit standalone push/bevel body cinf environment.
  * @property {(rgba: Uint8Array, w: number, h: number, path: string) => (string|Promise<string>)} [assetUrlFactory]
  *   Custom RGBA→URL encoder. Default: OffscreenCanvas PNG blob URL (browser only).
+ * @property {object|Function} [decodeWorker] Caller-owned decode Worker (or a factory for one).
+ *   Absent: everything runs on the calling thread. See decodeWorkerClient.js.
+ * @property {number} [decodeWorkerTimeoutMs] How long a silent worker may hold a load (default 30000).
  */
 
 /**
@@ -60,62 +62,22 @@ async function decodeScheme(input, options) {
   else if ((options.provenance || cinfEnvironment || sliderLayoutEnvironment || cicnTransfer) && input && typeof input.byteLength === 'number' && !ArrayBuffer.isView(input)) {
     input = new Uint8Array(new Uint8Array(input));
   }
+  // Malformed worker options fail here, after the existing option validation.
+  const worker = decodeWorkerRequest(options);
   const bytes = await toUint8Array(input);
   if (!bytes || bytes.length === 0) {
     throw new Error('loadKaleidoscopeScheme: empty input (0 bytes) — not a theme file.');
   }
-  // Unwrap a Mac transfer container down to the raw resource fork. StuffIt (.sit) needs the
-  // munbox WASM decoder, lazily imported here so the conversion core stays WASM-free until a
-  // .sit is actually dropped; the toolchain-free formats (MacBinary / AppleSingle·Double /
-  // BinHex) and a raw fork go through the pure-JS containers.js. See tools/sit-wasm.
-  const container = detectContainer(bytes);
-  const evidence = options.provenance ? await beginLoadProvenance(bytes, container) : null;
-  let fork, selection;
-  if (container === 'stuffit') {
-    const { stuffItResourceForkWithSelection } = await import('../sit-wasm/index.mjs');
-    ({ bytes: fork, selection } = await stuffItResourceForkWithSelection(bytes));
-  } else {
-    fork = unwrapToResourceFork(bytes);
-    selection = { policy: container === 'raw' ? 'raw-resource-fork' : 'unverified-container-unwrapping',
-      entryIndex: null, entryName: null, forkType: container === 'raw' ? 1 : null, fileType: null, creator: null };
-  }
-  if (cicnTransfer) fork = new Uint8Array(fork);
-  if (evidence) await evidence.selectedFork(fork, selection);
-  const cinfBinding = await bindCinfEnvironment(cinfEnvironment, fork);
-  const sliderLayoutBinding = await bindCinfEnvironment(sliderLayoutEnvironment, fork);
-  const cicnTransferBinding = await bindCicnTransfer(cicnTransfer, fork);
-  let converted;
-  try {
-    converted = convertScheme(fork, {
-      meta: options.meta, source: options.source ?? 'resource-fork', displayProfile, cinfBinding, cicnTransferBinding,
-      ...(options.iconBlitCicnIds ? { iconBlitCicnIds: options.iconBlitCicnIds } : {}),
-      ...(options.unmaskedIconIds ? { unmaskedIconIds: options.unmaskedIconIds } : {}),
-      ...(options.engineCinfIds ? { engineCinfIds: options.engineCinfIds } : {}),
-      ...(evidence ? { resourceObserver: evidence.observer } : {}),
-    });
-  } catch (error) {
-    // Preserve the primary conversion error and settle every pending digest.
-    if (evidence) await evidence.settle();
-    throw error;
-  }
-  // Complete or reject all hashing before any encoder can allocate asset URLs.
-  const byteProvenance = evidence ? await evidence.finish() : undefined;
-  return { converted, byteProvenance, sliderLayoutBinding };
+  // The decode stage is one function on either thread; see decodeSchemeBytes.js.
+  if (worker) return decodeInWorker(worker, bytes);
+  return decodeSchemeBytes(bytes, {
+    meta: options.meta, source: options.source, provenance: options.provenance,
+    displayProfile, cicnTransfer, cinfEnvironment, sliderLayoutEnvironment,
+    iconBlitCicnIds: options.iconBlitCicnIds, unmaskedIconIds: options.unmaskedIconIds, engineCinfIds: options.engineCinfIds,
+  });
 }
 
-/**
- * Start loading the lazy StuffIt decoder (module and WASM) while a `.sit` is still
- * downloading. Best effort and silent: decodeScheme's own import remains the only
- * place a decoder failure is reported. Callers must not use this for inputs that
- * are not StuffIt archives; those never request the decoder.
- *
- * The decoder has no separate warm-up entry, so its one-time WASM instantiation is
- * reached through its documented pass-through of a non-archive input: zero bytes
- * decode to a single empty fork, which is discarded.
- */
-export function prewarmStuffItDecoder() {
-  import('../sit-wasm/index.mjs').then(decoder => decoder.decodeArchive(new Uint8Array(0))).catch(() => {});
-}
+export { prewarmStuffItDecoder } from './decodeSchemeBytes.js';
 
 export async function loadKaleidoscopeScheme(input, options = {}) {
   const { converted, byteProvenance, sliderLayoutBinding } = await decodeScheme(input, options);

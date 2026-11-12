@@ -20,6 +20,11 @@ if (params.has('theme')) {
   const resolver = createOwnedThemeResolver({
     themeBaseUrl: `${import.meta.env.BASE_URL}themes`,
     themes,
+    // Decode the five archives off the main thread. `?decode=main` keeps the default
+    // main-thread decode, for comparing the two.
+    ...(params.get('decode') === 'main' ? {} : {
+      decodeWorker: () => new Worker(new URL('@khawkins98/scriptoscope/decode-worker', import.meta.url), { type: 'module' }),
+    }),
   });
   const panels = [...collage.querySelectorAll('[data-scriptoscope-window]')].map(el => ({
     el,
