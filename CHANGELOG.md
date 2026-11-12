@@ -9,12 +9,14 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Changed
 
-- The landing page shows its themed portrait windows sooner on a slow
-  connection (#662). It preloads its two smallest scheme archives and the
-  StuffIt decoder with the page, and on the first load each window appears as
-  soon as its own scheme has decoded instead of after all five. A failed load
-  still returns the whole collage to its plain HTML panels with the retry
-  control. Demo and demo build only; the library is unchanged.
+- The landing page shows its first themed portrait windows sooner on a slow
+  connection (#662). On the first load, and on a retry of a failed one, each
+  window appears as soon as its own scheme has decoded instead of after all
+  five, and the demo build adds a `modulepreload` for the StuffIt decoder
+  chunk. The time to the last window is unchanged. A failed load still returns
+  the whole collage to its plain HTML panels with the retry control, and a
+  retry now shows the loading progress again. Demo and demo build only; the
+  library is unchanged.
 
 ## [0.10.0] — 2026-11-04
 

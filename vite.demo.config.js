@@ -9,9 +9,9 @@ import { resolve } from 'node:path';
 
 // The landing collage decodes StuffIt archives as soon as it starts, but the
 // library imports its decoder lazily, so the browser would only learn of that
-// chunk and its WASM after the app chunk has run and an archive has arrived.
-// Their names are hashed, so index.html cannot name them: add the two preloads
-// here. demo/index.html preloads the unhashed archives itself.
+// chunk after the app chunk has run. Its name is hashed, so index.html cannot
+// name it: add its modulepreload here. The decoder's WASM is not preloaded,
+// because WebKit requests a fetch preload link a second time.
 function preloadLandingDecoder() {
   let base = '/';
   return {
@@ -21,20 +21,11 @@ function preloadLandingDecoder() {
       order: 'post',
       handler(_html, ctx) {
         if (!ctx.bundle || ctx.path !== '/index.html') return;
-        const outputs = Object.values(ctx.bundle);
-        const decoder = outputs.find(output => output.type === 'chunk'
+        const decoder = Object.values(ctx.bundle).find(output => output.type === 'chunk'
           && output.facadeModuleId?.endsWith('/tools/sit-wasm/index.mjs'));
-        const wasm = outputs.find(output => output.type === 'asset' && /(^|\/)munbox-[^/]+\.wasm$/.test(output.fileName));
-        if (!decoder || !wasm) {
-          console.warn('[preload-landing-decoder] StuffIt decoder chunk or WASM not found; the landing page will not preload them.');
-          return;
-        }
-        // `crossorigin` matches the module import and the decoder's same-origin
-        // fetch(), so each preload is reused rather than requested twice.
-        return [
-          { tag: 'link', attrs: { rel: 'modulepreload', crossorigin: true, href: base + decoder.fileName }, injectTo: 'head' },
-          { tag: 'link', attrs: { rel: 'preload', as: 'fetch', crossorigin: true, href: base + wasm.fileName }, injectTo: 'head' },
-        ];
+        // Fail rather than publish a landing page that silently lost the preload.
+        if (!decoder) throw new Error('preload-landing-decoder: no chunk for tools/sit-wasm/index.mjs in the demo build; update or remove this plugin.');
+        return [{ tag: 'link', attrs: { rel: 'modulepreload', crossorigin: true, href: base + decoder.fileName }, injectTo: 'head' }];
       },
     },
   };

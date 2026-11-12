@@ -105,13 +105,18 @@ if (params.has('theme')) {
         scriptoscopeX: String(x), scriptoscopeY: String(y),
         scriptoscopeWidth: String(width), scriptoscopeHeight: String(height),
       });
+      // The declared stacking also applies to a plain panel, so a panel still
+      // waiting for its scheme overlaps already promoted windows as it will later.
       Object.assign(el.style, {
         left: `${x}px`, top: `${y}px`, width: `${width}px`, height: `${height}px`,
+        zIndex: el.dataset.scriptoscopeZ,
       });
     }
     // Report progress per scheme while the first load decodes archives.
     const slugs = [...new Set(panels.map(panel => nextTheme ?? panel.theme))];
     let decoded = 0;
+    portrait.style.setProperty('--collage-progress', '0');
+    if (loadingLabel) loadingLabel.textContent = 'Unpacking the original schemes…';
     const loads = new Map(slugs.map(slug => [slug, resolver.load(slug).then(theme => {
       decoded += 1;
       portrait.style.setProperty('--collage-progress', String(decoded / slugs.length));
@@ -142,6 +147,8 @@ if (params.has('theme')) {
       let abandoned = false;
       let promotions = Promise.resolve();
       rebuilding = true;
+      // A retry shows the same waiting crops, progress and fade as the first load.
+      portrait.dataset.loading = '';
       try {
         await Promise.all(panels.map((panel, index) => loads.get(nextTheme ?? panel.theme)
           .then(theme => (promotions = promotions.then(async () => {
@@ -158,6 +165,9 @@ if (params.has('theme')) {
         throw error;
       } finally {
         rebuilding = false;
+        portrait.dataset.revealing = '';
+        delete portrait.dataset.loading;
+        setTimeout(() => { delete portrait.dataset.revealing; }, 500);
       }
       return;
     }
@@ -190,9 +200,6 @@ if (params.has('theme')) {
     await reassemble();
     status.textContent = 'Portrait windows ready.';
   });
-  portrait.dataset.revealing = '';
-  delete portrait.dataset.loading;
-  setTimeout(() => { delete portrait.dataset.revealing; }, 500);
   collage.addEventListener('scriptoscope:close', (event) => {
     if (rebuilding) return;
     status.textContent = hasMoved
