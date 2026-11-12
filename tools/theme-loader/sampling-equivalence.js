@@ -3,6 +3,10 @@
 import { macRgbToSrgb } from './mac-gamma.js';
 
 const UNSET = 0, EQUIVALENT = 1, DIFFERENT = 2, UNKNOWN = 3;
+// True only for a genuine Uint8Array (any realm, including subclasses): the
+// %TypedArray% brand getter ignores a forged prototype on an ordinary array.
+const typedArrayTag = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype), Symbol.toStringTag).get;
+const isByteArray = value => typedArrayTag.call(value) === 'Uint8Array';
 
 export function samplingEquivalenceRecord(width, height, status, reason, displayPolicy = 'mac-1.8-to-2.2-high-byte') {
   return Object.freeze({ model: 'kaleidoscope-2.3.1-opaque-sampling-v1',
@@ -21,7 +25,7 @@ export function compareOpaqueSampling(indices, rgba, pmap, mask, sample, realize
   // this call. Equal source/mask strides are NOT required (their depths differ).
   // Byte rasters (every decoder call site) remember each index's verdict in a
   // 256-entry table; any other index container keeps the keyed memo.
-  const bytes = indices instanceof Uint8Array;
+  const bytes = isByteArray(indices);
   const verdicts = bytes ? new Uint8Array(256) : null, memo = bytes ? null : new Map();
   let unsafe = false;
   for (let i = 0; i < indices.length; i++) {

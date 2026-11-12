@@ -9,15 +9,25 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Changed
 
-- `loadTheme` and `loadOwnedTheme` request the lazy StuffIt decoder while a
-  `.sit` archive is still downloading instead of after it. A `source` naming a
-  `.sit` starts the decoder with the request; the default `scheme.sit` then
-  `scheme.rsrc` cascade starts it once the archive answers with a successful
-  non-HTML response. Bundles that only ship `scheme.rsrc` still never request
-  the decoder, and a decoder failure is still reported by the load that needs it.
-- Indexed-colour `cicn` and `ppat` decoding uses byte-indexed lookup tables
-  instead of per-pixel keyed collections. Decoded pixels, metadata, errors and
-  realizer or sampler call order are unchanged (#662).
+- `loadTheme` and `loadOwnedTheme` request the lazy StuffIt decoder alongside the
+  archive, instead of after its bytes arrive, when `source` names a file whose
+  path (before any `?` or `#`) ends in `.sit`. Nothing else requests it early:
+  the default `scheme.sit` then `scheme.rsrc` cascade and every other `source`
+  behave as before. A named `.sit` that is missing, or that holds a raw resource
+  fork, has still requested the decoder. A decoder failure is still reported
+  only by the load that needs it. If the decoder's WASM cannot instantiate, its
+  runtime logs two `console.error` lines and keeps the failed instantiation, as
+  before; for a named `.sit` this can now happen when the archive is requested
+  rather than when it is decoded (#662).
+- Indexed-colour `cicn` and `ppat` decoding uses byte lookup tables instead of
+  per-pixel keyed collections. Decoded pixels, metadata, errors and the order
+  and number of realizer and sampler calls are unchanged, with one narrowing in
+  `expandIndexedRgba`: each realized colour is now copied once, at the first
+  occurrence of its palette index, where it was previously re-read from the
+  realizer's returned object for every pixel. A realizer that reuses or later
+  mutates the array it returned, or returns a one-shot iterable, therefore
+  yields different pixels. Prepared display profiles return a fresh array per
+  call and are unaffected (#662).
 
 ## [0.10.0] — 2026-11-04
 

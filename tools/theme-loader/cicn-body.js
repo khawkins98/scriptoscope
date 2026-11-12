@@ -3,6 +3,11 @@
 export const CICN_BODY_MODEL = 'kaleidoscope-2.3.1-cicn-body-v1';
 export const CICN_BODY_POLICY = 'unique-same-face-owner';
 
+// True only for a genuine Uint8Array (any realm, including subclasses): the
+// %TypedArray% brand getter ignores a forged prototype on an ordinary array.
+const typedArrayTag = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype), Symbol.toStringTag).get;
+const isByteArray = value => typedArrayTag.call(value) === 'Uint8Array';
+
 export function inspectCicnBody(pmap, mask, bitmap, table, indices) {
   const unsupported = reason => Object.freeze({ status: 'unsupported', reason });
   if (![1, 2, 4, 8].includes(pmap.pixelSize) || pmap.pixelType !== 0 || pmap.cmpCount !== 1 || pmap.cmpSize !== pmap.pixelSize
@@ -17,7 +22,7 @@ export function inspectCicnBody(pmap, mask, bitmap, table, indices) {
     if (palette.has(index)) return unsupported('ambiguous-palette-index');
     palette.set(index, [entry.r, entry.g, entry.b]);
   }
-  if (indices instanceof Uint8Array) {
+  if (isByteArray(indices)) {
     // Byte rasters (every decoder call site): one membership byte per index.
     const present = new Uint8Array(256);
     for (const index of palette.keys()) if (Number.isInteger(index) && index >= 0 && index < 256) present[index] = 1;
