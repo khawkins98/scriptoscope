@@ -45,7 +45,7 @@ within 16–56 ms because the work follows the archive response. Switching to a
 cached theme decodes nothing and still costs one task of 53–109 ms at 4×.
 
 Eager loads (`loadTheme`, `createThemeResolver`) are a different problem: five
-themes were ready in 1.2–1.5 s against 0.14–0.28 s owned, with the main thread busy
+themes were ready in 0.6–1.5 s against 0.13–0.28 s owned, with the main thread busy
 throughout, but in many short tasks. Exporting every asset (240–870 per theme) as a PNG blob URL dominates: the
 export script is 25–28% of main-thread time and browser-internal work 44–45%,
 against about 16% for decode. A throwaway pure-JS uncompressed PNG encoder through
