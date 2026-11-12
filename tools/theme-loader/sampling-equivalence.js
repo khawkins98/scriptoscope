@@ -2,6 +2,8 @@
 // samplers. This compares CURRENT DISPLAY RGB, not raw RGB16 or device colors.
 import { macRgbToSrgb } from './mac-gamma.js';
 
+const UNSET = 0, EQUIVALENT = 1, DIFFERENT = 2, UNKNOWN = 3;
+
 export function samplingEquivalenceRecord(width, height, status, reason, displayPolicy = 'mac-1.8-to-2.2-high-byte') {
   return Object.freeze({ model: 'kaleidoscope-2.3.1-opaque-sampling-v1',
     comparison: 'opaque-current-display-rgb', displayPolicy,
@@ -17,24 +19,28 @@ export function compareOpaqueSampling(indices, rgba, pmap, mask, sample, realize
   if (!sample) return record('unknown', 'missing-sampler');
   // Each safe indexed palette has at most 256 used indices. Retain nothing after
   // this call. Equal source/mask strides are NOT required (their depths differ).
-  const memo = new Map(); let unsafe = false;
+  // Byte rasters (every decoder call site) remember each index's verdict in a
+  // 256-entry table; any other index container keeps the keyed memo.
+  const bytes = indices instanceof Uint8Array;
+  const verdicts = bytes ? new Uint8Array(256) : null, memo = bytes ? null : new Map();
+  let unsafe = false;
   for (let i = 0; i < indices.length; i++) {
     if (rgba[i * 4 + 3] === 0) continue; // original mask-check sampler exits first
     const index = indices[i];
-    let result = coordinatePlane ? undefined : memo.get(index);
-    if (result === undefined) {
+    let result = coordinatePlane ? UNSET : bytes ? verdicts[index] : memo.get(index) ?? UNSET;
+    if (result === UNSET) {
       const rgb16 = sample(i % pmap.width, Math.floor(i / pmap.width));
-      if (!rgb16) result = 'unknown';
+      if (!rgb16) result = UNKNOWN;
       else {
         const source = realizeRgb16 ? realizeRgb16(rgb16) : macRgbToSrgb(rgb16.map(value => value >> 8));
         const rawRaster = [rgba[i * 4], rgba[i * 4 + 1], rgba[i * 4 + 2]];
         const raster = realizeRgb16 ? rawRaster : macRgbToSrgb(rawRaster);
-        result = source.every((value, channel) => value === raster[channel]) ? 'equivalent' : 'different';
+        result = source.every((value, channel) => value === raster[channel]) ? EQUIVALENT : DIFFERENT;
       }
-      if (!coordinatePlane) memo.set(index, result);
+      if (!coordinatePlane) { if (bytes) verdicts[index] = result; else memo.set(index, result); }
     }
-    if (result === 'different') return record('different', 'opaque-display-mismatch');
-    if (result === 'unknown') unsafe = true;
+    if (result === DIFFERENT) return record('different', 'opaque-display-mismatch');
+    if (result === UNKNOWN) unsafe = true;
   }
   return unsafe ? record('unknown', 'unsafe-palette-access') : record('equivalent', 'all-opaque-display-rgb-equal');
 }

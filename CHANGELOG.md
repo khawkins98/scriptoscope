@@ -7,6 +7,18 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+### Changed
+
+- `loadTheme` and `loadOwnedTheme` request the lazy StuffIt decoder while a
+  `.sit` archive is still downloading instead of after it. A `source` naming a
+  `.sit` starts the decoder with the request; the default `scheme.sit` then
+  `scheme.rsrc` cascade starts it once the archive answers with a successful
+  non-HTML response. Bundles that only ship `scheme.rsrc` still never request
+  the decoder, and a decoder failure is still reported by the load that needs it.
+- Indexed-colour `cicn` and `ppat` decoding uses byte-indexed lookup tables
+  instead of per-pixel keyed collections. Decoded pixels, metadata, errors and
+  realizer or sampler call order are unchanged (#662).
+
 ## [0.10.0] — 2026-11-04
 
 ### Added

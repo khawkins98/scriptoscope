@@ -17,7 +17,12 @@ export function inspectCicnBody(pmap, mask, bitmap, table, indices) {
     if (palette.has(index)) return unsupported('ambiguous-palette-index');
     palette.set(index, [entry.r, entry.g, entry.b]);
   }
-  for (const index of new Set(indices)) if (!palette.has(index)) return unsupported('missing-palette-index');
+  if (indices instanceof Uint8Array) {
+    // Byte rasters (every decoder call site): one membership byte per index.
+    const present = new Uint8Array(256);
+    for (const index of palette.keys()) if (Number.isInteger(index) && index >= 0 && index < 256) present[index] = 1;
+    for (let i = 0; i < indices.length; i++) if (!present[indices[i]]) return unsupported('missing-palette-index');
+  } else for (const index of new Set(indices)) if (!palette.has(index)) return unsupported('missing-palette-index');
   // FE5C uses iconPMap, not iconBMap pixels. Restrict the 1-bit source to the
   // conventional white background/black foreground palette, without requiring
   // its unused mono fallback bitplane to equal the color plane.
