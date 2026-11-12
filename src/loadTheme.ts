@@ -3,6 +3,7 @@ import { assertCinfEnvironment, CinfEnvironmentError, type PreparedCinfEnvironme
 import { displayRealizer, assertDisplayProfileChain, type DisplayProfile } from '../tools/theme-loader/display-profile.js';
 import type { LoadedTheme } from './types.js';
 import { loadKaleidoscopeScheme, loadOwnedKaleidoscopeScheme } from './loadKaleidoscopeScheme.js';
+import { prewarmStuffItDecoder } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
 import { themeView, type ThemeInput, type OwnedTheme } from './ownedTheme.js';
 
 /**
@@ -87,6 +88,13 @@ async function loadBundle(
   // themes-manifest.json) — when present, we skip the cascade and fetch that file
   // directly. Avoids the dev-console 404 noise on bundles whose first-try is missing.
   const candidates = opts.source ? [opts.source] : ['scheme.sit', 'scheme.rsrc'];
+  // A consumer that names a `.sit` has said the StuffIt decoder will be needed, so ask
+  // for the lazy decoder now, alongside the archive, instead of after its bytes arrive.
+  // Only the path part of the name counts (`scheme.rsrc?from=x.sit` is not a `.sit`).
+  // The default cascade never warms: its `scheme.sit` may be absent, and a bundle that
+  // ships only `scheme.rsrc` must not request the decoder. A named `.sit` that is
+  // missing, or turns out to hold a raw fork, has still requested it.
+  if (typeof opts.source === 'string' && /\.sit$/i.test(opts.source.split(/[?#]/, 1)[0]!)) prewarmStuffItDecoder();
   // Fetch the small provenance sidecar alongside the archive, not after it.
   // Only an explicit complete `meta` substitutes for the sidecar; picker display
   // labels omit origin/license and must never suppress this request.

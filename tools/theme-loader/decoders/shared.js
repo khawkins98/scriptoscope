@@ -139,18 +139,30 @@ export function readColorTable(r) {
  */
 export function expandIndexedPixels(packed, width, height, pixelSize, rowBytes) {
   const out = new Uint8Array(width * height);
-  const supported = [1, 2, 4, 8].includes(pixelSize);
-  const perByte = supported ? 8 / pixelSize : 0, mask = supported ? (1 << pixelSize) - 1 : 0;
-  const byteShift = pixelSize === 1 ? 3 : pixelSize === 2 ? 2 : 1;
-  for (let y = 0; y < height; y++) {
-    const rowStart = y * rowBytes;
-    for (let x = 0; x < width; x++) {
-      if (!supported) throw new Error(`Unsupported pixelSize: ${pixelSize}`);
-      const byte = packed[rowStart + (pixelSize === 8 ? x : x >> byteShift)];
-      const shift = (perByte - 1 - (x & (perByte - 1))) * pixelSize; // leftmost sample first
-      out[y * width + x] = (byte >> shift) & mask;
+  // One loop per depth: the sample position and shift are constants of the
+  // depth, so nothing depth-dependent is decided per pixel. An unsupported
+  // depth is reported only when there is a first pixel to decode, as before.
+  if (pixelSize === 8) {
+    for (let y = 0; y < height; y++) {
+      const rowStart = y * rowBytes, rowOut = y * width;
+      for (let x = 0; x < width; x++) out[rowOut + x] = packed[rowStart + x];
     }
-  }
+  } else if (pixelSize === 4) {
+    for (let y = 0; y < height; y++) {
+      const rowStart = y * rowBytes, rowOut = y * width;
+      for (let x = 0; x < width; x++) out[rowOut + x] = (packed[rowStart + (x >> 1)] >> ((1 - (x & 1)) << 2)) & 15;
+    }
+  } else if (pixelSize === 2) {
+    for (let y = 0; y < height; y++) {
+      const rowStart = y * rowBytes, rowOut = y * width;
+      for (let x = 0; x < width; x++) out[rowOut + x] = (packed[rowStart + (x >> 2)] >> ((3 - (x & 3)) << 1)) & 3;
+    }
+  } else if (pixelSize === 1) {
+    for (let y = 0; y < height; y++) {
+      const rowStart = y * rowBytes, rowOut = y * width;
+      for (let x = 0; x < width; x++) out[rowOut + x] = (packed[rowStart + (x >> 3)] >> (7 - (x & 7))) & 1; // leftmost sample first
+    }
+  } else if (0 < height && 0 < width) throw new Error(`Unsupported pixelSize: ${pixelSize}`);
   return out;
 }
 
@@ -164,6 +176,11 @@ export function expandMask(packed, width, height, rowBytes) {
   return out;
 }
 
+// True only for a genuine Uint8Array (any realm, including subclasses): the
+// %TypedArray% brand getter ignores a forged prototype on an ordinary array.
+const typedArrayTag = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype), Symbol.toStringTag).get;
+const isByteArray = value => typedArrayTag.call(value) === 'Uint8Array';
+
 /** Expand ordinary indexed art, retaining per-pixel mask observation order. */
 export function expandIndexedRgba(indices, rgba, colorTable, realizeRgb16, missingMessage, width, height, mask, maskAlpha) {
   // Bit15 selects positional entries; otherwise use the first matching value.
@@ -172,6 +189,44 @@ export function expandIndexedRgba(indices, rgba, colorTable, realizeRgb16, missi
     const index = colorTable.flags & 0x8000 ? position : entry.value;
     if (!palette.has(index)) palette.set(index, [entry.r, entry.g, entry.b]);
   });
+  // Byte indices into byte output (every decoder call site): the color of each
+  // distinct index is resolved at its first occurrence in raster order, as in the
+  // keyed path, then its three bytes are COPIED into a 256-entry table and
+  // replayed from there. The keyed path instead re-reads the realizer's returned
+  // object for every pixel, so the two differ for a realizer that reuses or later
+  // mutates what it returned, or returns a one-shot iterable. Anything else,
+  // including rasters shorter than width*height, keeps the general keyed path.
+  if (!(isByteArray(indices) && isByteArray(rgba)
+      && Number.isInteger(width) && Number.isInteger(height) && indices.length >= width * height)) {
+    return expandKeyedRgba(indices, rgba, palette, realizeRgb16, missingMessage, width, height, mask, maskAlpha);
+  }
+  const known = new Uint8Array(256), table = new Uint8Array(768);
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+    const i = y * width + x;
+    const index = indices[i];
+    const entry = index * 3;
+    if (!known[index]) {
+      if (realizeRgb16 && !palette.has(index)) throw new DisplayProfileError(missingMessage, 'UNSUPPORTED_SOURCE_COLOR');
+      const raw = palette.get(index) ?? [0, 0, 0];
+      const rgb = realizeRgb16 ? realizeRgb16(raw) : raw.map(value => value >> 8);
+      const [r, g, b] = rgb;
+      table[entry] = r;
+      table[entry + 1] = g;
+      table[entry + 2] = b;
+      // A falsy result was never remembered: its index is realized again.
+      if (rgb) known[index] = 1;
+    }
+    const offset = i * 4;
+    rgba[offset] = table[entry];
+    rgba[offset + 1] = table[entry + 1];
+    rgba[offset + 2] = table[entry + 2];
+    rgba[offset + 3] = mask ? (x < mask.width && y < mask.height ? maskAlpha[y * mask.width + x] : 255) : 255;
+  }
+  return rgba;
+}
+
+/** General path: any index value, any output container. */
+function expandKeyedRgba(indices, rgba, palette, realizeRgb16, missingMessage, width, height, mask, maskAlpha) {
   const realized = new Map();
   for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
     const i = y * width + x;
