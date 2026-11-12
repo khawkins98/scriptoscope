@@ -17,7 +17,7 @@
     },
     {
       "path": "src/loadTheme.ts",
-      "sha256": "9e1f5b877d362d3ac62326bcbb2c8a20b074853f46dad3ab19b1000b703034be"
+      "sha256": "0a695950ec4c332b8cf75fb041e6b13fa2aca62fa9c8367554066608643ed8a1"
     },
     {
       "path": "src/resolveWindowType.ts",
@@ -84,6 +84,26 @@
       "sha256": "e652e2c231c126b73e7606e547968617f9ec582dd1a9c9cf7020e758297c2050"
     },
     {
+      "path": "tools/theme-loader/decodeSchemeBytes.js",
+      "sha256": "40dad2d0902f1900fb9f4c3447e55b45bc87e8bc59c27fa53af877609867f3dc"
+    },
+    {
+      "path": "tools/theme-loader/decodeWorker.js",
+      "sha256": "820b2a1395256ebee6104639e53a1f84de8e2200d87aa209d369079f90f74c87"
+    },
+    {
+      "path": "tools/theme-loader/decodeWorkerClient.js",
+      "sha256": "425de515e09cdc106d64f70f8252e6741653b56674f087cde498d05cde30abaf"
+    },
+    {
+      "path": "tools/theme-loader/decodeWorkerHost.js",
+      "sha256": "b14e1ad9e818ca2724bdb0ef189d17eb7020c0d2aa83995713f46439a10f723c"
+    },
+    {
+      "path": "tools/theme-loader/decodeWorkerProtocol.js",
+      "sha256": "07d311aa024deb0ed36c4710b02e9ecaf75b829b6f61cfc075880ab3a3d8f0a7"
+    },
+    {
       "path": "tools/theme-loader/decoders/cicn.js",
       "sha256": "b78ae05509723a246d64d6f0b2b147c29c5b7fc7ed6c1214303942c43415bb73"
     },
@@ -137,7 +157,7 @@
     },
     {
       "path": "tools/theme-loader/loadKaleidoscopeScheme.js",
-      "sha256": "1505acb8709b96fcd0e0dc64767083032953ce5e167d358ea46fb72eff09e7ca"
+      "sha256": "7a35d8a1bfdecc09c645a29db580b06b522548b961f418d9e362a04f1bfebdab"
     },
     {
       "path": "tools/theme-loader/loadProvenance.js",
