@@ -25,11 +25,8 @@
     /* Charcoal 12 — Jeremy Sachs' CC BY-SA bitmap clone of Mac OS 8/9 Charcoal at
        12px (fontstruct.com/fontstructions/show/2813611). A pixel font: only crisp
        at its native grid size. Credit/terms: assets/fonts/charcoal-12-license.txt */
-    @font-face {
-      font-family: 'Charcoal 12';
-      src: url('assets/fonts/charcoal-12.woff') format('woff');
-      font-display: swap;
-    }
+    /* 'Charcoal 12' is declared once, in site-shell.css. A second rule here makes
+       Firefox download the file twice when the runtime loads the family. */
     :root { color-scheme: light; }
     body {
       margin: 0;
