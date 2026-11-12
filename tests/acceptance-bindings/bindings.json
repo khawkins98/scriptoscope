@@ -17,7 +17,7 @@
     },
     {
       "path": "src/loadTheme.ts",
-      "sha256": "02e067faba7a50ebd79f09e1d7fd26f157dccde1b8e0edfe0f979f2908035cf2"
+      "sha256": "9e1f5b877d362d3ac62326bcbb2c8a20b074853f46dad3ab19b1000b703034be"
     },
     {
       "path": "src/resolveWindowType.ts",
@@ -61,7 +61,7 @@
     },
     {
       "path": "tools/theme-loader/cicn-body.js",
-      "sha256": "2fdc7e9d7dfb4332d858e754257814db0a96f5daa0828bf5a04fc54b68eba966"
+      "sha256": "3fd053abec530cf771e3208fe9f052e8ac3a8101a93adddb7d556d867d534da8"
     },
     {
       "path": "tools/theme-loader/cicn-transfer-results.js",
@@ -105,7 +105,7 @@
     },
     {
       "path": "tools/theme-loader/decoders/shared.js",
-      "sha256": "901d248c4dd5de46ea46ade936d7ce8021400a6f04c820926cae4d90094efba4"
+      "sha256": "fc3e206c08ed9f24e9f69762bb5dd9b47146ee51bc6829e1f7ca878dfc365690"
     },
     {
       "path": "tools/theme-loader/decoders/wnd.js",
@@ -137,7 +137,7 @@
     },
     {
       "path": "tools/theme-loader/loadKaleidoscopeScheme.js",
-      "sha256": "d2d20a53bf7d60b7897cb0450581adebcf86e92b68ee25cde917f9f5dbd349e4"
+      "sha256": "1505acb8709b96fcd0e0dc64767083032953ce5e167d358ea46fb72eff09e7ca"
     },
     {
       "path": "tools/theme-loader/loadProvenance.js",
@@ -157,7 +157,7 @@
     },
     {
       "path": "tools/theme-loader/sampling-equivalence.js",
-      "sha256": "ad4eff53c9132689571a3afc443034dd81f70c37b65a43446d3629a3a79ec2ad"
+      "sha256": "0774c03e40b67ee8fcd44821873e14daaa0f5f5234ec09f3e3a4db3d84c24969"
     },
     {
       "path": "tools/theme-loader/validateTheme.js",

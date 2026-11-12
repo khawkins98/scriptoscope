@@ -29,8 +29,8 @@
     "tools/theme-loader/resource-fork.js": "d7c382d770c8bbd51924150629dc0707d3169d3ac4d22a3dd66ff40dcf3e9a42",
     "tools/theme-loader/decoders/cicn.js": "b78ae05509723a246d64d6f0b2b147c29c5b7fc7ed6c1214303942c43415bb73",
     "tools/theme-loader/kdef-color-samples.js": "84cee437c3fdfdae8c8efe7f7ed3f27ea14228a6446ad7a00936215fc6b06fb4",
-    "tools/theme-loader/sampling-equivalence.js": "ad4eff53c9132689571a3afc443034dd81f70c37b65a43446d3629a3a79ec2ad",
-    "tools/theme-loader/cicn-body.js": "2fdc7e9d7dfb4332d858e754257814db0a96f5daa0828bf5a04fc54b68eba966",
+    "tools/theme-loader/sampling-equivalence.js": "0774c03e40b67ee8fcd44821873e14daaa0f5f5234ec09f3e3a4db3d84c24969",
+    "tools/theme-loader/cicn-body.js": "3fd053abec530cf771e3208fe9f052e8ac3a8101a93adddb7d556d867d534da8",
     "tools/theme-loader/mac-gamma.js": "cd496a62fc96ce81a5609a1111987c2d1f99ba34ca5a84bdd69f954dfb33ce21"
   },
   "themes": [
