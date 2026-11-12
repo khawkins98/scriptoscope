@@ -3,6 +3,7 @@ import { assertCinfEnvironment, CinfEnvironmentError, type PreparedCinfEnvironme
 import { displayRealizer, assertDisplayProfileChain, type DisplayProfile } from '../tools/theme-loader/display-profile.js';
 import type { LoadedTheme } from './types.js';
 import { loadKaleidoscopeScheme, loadOwnedKaleidoscopeScheme } from './loadKaleidoscopeScheme.js';
+import { prewarmStuffItDecoder } from '../tools/theme-loader/loadKaleidoscopeScheme.js';
 import { themeView, type ThemeInput, type OwnedTheme } from './ownedTheme.js';
 
 /**
@@ -91,7 +92,7 @@ async function loadBundle(
   // Only an explicit complete `meta` substitutes for the sidecar; picker display
   // labels omit origin/license and must never suppress this request.
   const [fileBytes, meta] = await Promise.all([
-    fetchFirst(baseUrl, candidates),
+    fetchFirst(baseUrl, candidates, !!opts.source),
     opts.meta ? Promise.resolve(opts.meta) : fetchMeta(baseUrl),
   ]);
   if (!fileBytes) {
@@ -148,12 +149,19 @@ async function fetchMeta(baseUrl: string): Promise<ThemeMeta> {
  *  never fall through to the `.rsrc` alternative. The check is cheap (the magic-byte
  *  detection in containers.js plus a string sniff for the HTML preamble). */
 async function fetchFirst(
-  baseUrl: string, filenames: string[],
+  baseUrl: string, filenames: string[], named: boolean,
 ): Promise<{ filename: string; bytes: Uint8Array } | null> {
   for (const filename of filenames) {
     try {
+      // Request the lazy StuffIt decoder while the archive downloads instead of after
+      // it. A consumer-named `.sit` starts it with the request. In the default cascade
+      // the `.sit` may simply be absent, so wait for a successful non-HTML response:
+      // a bundle that only ships `scheme.rsrc` still never requests the decoder.
+      const stuffIt = /\.sit(?:[?#]|$)/i.test(filename);
+      if (stuffIt && named) prewarmStuffItDecoder();
       const res = await fetch(`${baseUrl}/${filename}`);
       if (!res.ok) continue;
+      if (stuffIt && !named && !/^\s*text\/html/i.test(res.headers?.get?.('content-type') ?? '')) prewarmStuffItDecoder();
       const bytes = new Uint8Array(await res.arrayBuffer());
       if (looksLikeArchiveOrFork(bytes)) return { filename, bytes };
       // 200 but bytes don't smell like a binary archive — almost certainly an HTML SPA

@@ -103,6 +103,20 @@ async function decodeScheme(input, options) {
   return { converted, byteProvenance, sliderLayoutBinding };
 }
 
+/**
+ * Start loading the lazy StuffIt decoder (module and WASM) while a `.sit` is still
+ * downloading. Best effort and silent: decodeScheme's own import remains the only
+ * place a decoder failure is reported. Callers must not use this for inputs that
+ * are not StuffIt archives; those never request the decoder.
+ *
+ * The decoder has no separate warm-up entry, so its one-time WASM instantiation is
+ * reached through its documented pass-through of a non-archive input: zero bytes
+ * decode to a single empty fork, which is discarded.
+ */
+export function prewarmStuffItDecoder() {
+  import('../sit-wasm/index.mjs').then(decoder => decoder.decodeArchive(new Uint8Array(0))).catch(() => {});
+}
+
 export async function loadKaleidoscopeScheme(input, options = {}) {
   const { converted, byteProvenance, sliderLayoutBinding } = await decodeScheme(input, options);
   const { theme, assets, ...catalog } = converted;
