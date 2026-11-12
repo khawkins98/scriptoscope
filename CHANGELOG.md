@@ -7,6 +7,21 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ## [Unreleased]
 
+### Added
+
+- `yieldBetweenStages` option on `loadTheme`, `loadOwnedTheme`,
+  `loadKaleidoscopeScheme`, `loadOwnedKaleidoscopeScheme`, `createThemeResolver`
+  and `createOwnedThemeResolver` (#662). When set, a decode ends its main-thread
+  task after the StuffIt unwrap, between chrome and icon conversion, and after
+  conversion, so one long task becomes several shorter ones. The decoded theme
+  is identical and the total work is unchanged; the load settles later because
+  other tasks can run at each boundary. Input bytes are copied when the option
+  is set. Boundaries use `scheduler.yield()` where available and a
+  `MessageChannel` message elsewhere. Without the option a load settles on the
+  same microtask tick as before and makes the same option reads, plus one read
+  of the new option. The landing page and the showcase opt in. See
+  [shorter decode tasks](docs/runtime-api.md#shorter-decode-tasks-yieldbetweenstages).
+
 ### Changed
 
 - The landing page shows its first themed portrait windows sooner on a slow

@@ -14,7 +14,7 @@ import { snapshotCicnTransfer, bindCicnTransfer } from './cicn-transfer-results.
 import { assertCinfEnvironment, bindCinfEnvironment, finalizeCinfTheme, finalizeCinfResourceOwner } from './cinf-environment.js';
 import { beginLoadProvenance } from './loadProvenance.js';
 import { createRasterAssetOwner, bindRasterOwner, bindRasterLifetime } from './rasterAssets.js';
-import { convertScheme } from './convert.js';
+import { convertScheme, convertChrome, convertIcons, joinConversion } from './convert.js';
 import { displayRealizer } from './display-profile.js';
 import { unwrapToResourceFork, detectContainer } from './containers.js';
 import { buildResourceRoles, parseCicnFilename, parsePpatFilename } from './classifyResources.js';
@@ -32,7 +32,21 @@ import { buildResourceRoles, parseCicnFilename, parsePpatFilename } from './clas
  * @property {object} [cinfEnvironment] Prepared explicit standalone push/bevel body cinf environment.
  * @property {(rgba: Uint8Array, w: number, h: number, path: string) => (string|Promise<string>)} [assetUrlFactory]
  *   Custom RGBA→URL encoder. Default: OffscreenCanvas PNG blob URL (browser only).
+ * @property {boolean} [yieldBetweenStages] Opt-in: end the current task after the StuffIt
+ *   unwrap, between chrome and icon conversion, and after conversion, so one decode is
+ *   several shorter tasks. Same result; it settles later. Absent: timing is unchanged.
  */
+
+// A task boundary for `yieldBetweenStages`. `scheduler.yield()` resumes ahead of other
+// queued tasks; elsewhere a message port, which is not clamped or throttled like a timer.
+function nextTask() {
+  if (typeof globalThis.scheduler?.yield === 'function') return globalThis.scheduler.yield();
+  return new Promise(resolve => {
+    const { port1, port2 } = new MessageChannel();
+    port1.onmessage = () => { port1.close(); resolve(); };
+    port2.postMessage(0);
+  });
+}
 
 /**
  * Decode a Kaleidoscope scheme resource fork into a render-ready in-memory theme.
@@ -54,10 +68,12 @@ async function decodeScheme(input, options) {
   const sliderLayoutEnvironment = options.sliderLayoutEnvironment;
   assertCinfEnvironment(sliderLayoutEnvironment);
   displayRealizer(displayProfile);
+  const yields = !!options.yieldBetweenStages;
   // Snapshot caller-owned byte inputs synchronously, before any await. Every
   // digest and decoder receives this same private snapshot when opted in.
-  if ((options.provenance || cinfEnvironment || sliderLayoutEnvironment || cicnTransfer) && input instanceof Uint8Array) input = new Uint8Array(input);
-  else if ((options.provenance || cinfEnvironment || sliderLayoutEnvironment || cicnTransfer) && input && typeof input.byteLength === 'number' && !ArrayBuffer.isView(input)) {
+  // Yielding opts in too: the caller's code runs between the stages.
+  if ((options.provenance || cinfEnvironment || sliderLayoutEnvironment || cicnTransfer || yields) && input instanceof Uint8Array) input = new Uint8Array(input);
+  else if ((options.provenance || cinfEnvironment || sliderLayoutEnvironment || cicnTransfer || yields) && input && typeof input.byteLength === 'number' && !ArrayBuffer.isView(input)) {
     input = new Uint8Array(new Uint8Array(input));
   }
   const bytes = await toUint8Array(input);
@@ -74,6 +90,7 @@ async function decodeScheme(input, options) {
   if (container === 'stuffit') {
     const { stuffItResourceForkWithSelection } = await import('../sit-wasm/index.mjs');
     ({ bytes: fork, selection } = await stuffItResourceForkWithSelection(bytes));
+    if (yields) await nextTask();
   } else {
     fork = unwrapToResourceFork(bytes);
     selection = { policy: container === 'raw' ? 'raw-resource-fork' : 'unverified-container-unwrapping',
@@ -86,13 +103,20 @@ async function decodeScheme(input, options) {
   const cicnTransferBinding = await bindCicnTransfer(cicnTransfer, fork);
   let converted;
   try {
-    converted = convertScheme(fork, {
+    const convertOptions = {
       meta: options.meta, source: options.source ?? 'resource-fork', displayProfile, cinfBinding, cicnTransferBinding,
       ...(options.iconBlitCicnIds ? { iconBlitCicnIds: options.iconBlitCicnIds } : {}),
       ...(options.unmaskedIconIds ? { unmaskedIconIds: options.unmaskedIconIds } : {}),
       ...(options.engineCinfIds ? { engineCinfIds: options.engineCinfIds } : {}),
       ...(evidence ? { resourceObserver: evidence.observer } : {}),
-    });
+    };
+    if (yields) {
+      // convertScheme's two halves, each in its own task.
+      const chrome = convertChrome(fork, convertOptions);
+      await nextTask();
+      converted = joinConversion(chrome, convertIcons(fork, { displayProfile, unmaskedIconIds: convertOptions.unmaskedIconIds }));
+      await nextTask();
+    } else converted = convertScheme(fork, convertOptions);
   } catch (error) {
     // Preserve the primary conversion error and settle every pending digest.
     if (evidence) await evidence.settle();

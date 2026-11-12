@@ -20,6 +20,8 @@ if (params.has('theme')) {
   const resolver = createOwnedThemeResolver({
     themeBaseUrl: `${import.meta.env.BASE_URL}themes`,
     themes,
+    // Five archives decode during load: keep each decode to several short tasks.
+    yieldBetweenStages: true,
   });
   const panels = [...collage.querySelectorAll('[data-scriptoscope-window]')].map(el => ({
     el,

@@ -151,6 +151,50 @@ Picker `name`, `author`, and `year` are display labels. The loader fetches the c
 If your catalog already includes that complete sidecar, pass it as `ThemeEntry.meta`
 (or `loadTheme`’s `meta` option) to avoid the metadata request.
 
+### Shorter decode tasks: `yieldBetweenStages`
+
+Decoding one archive is a single main-thread task by default: the StuffIt unwrap,
+the chrome conversion, the icon conversion and whatever your code does with the
+result all run before the browser can handle input or paint. Pass
+`yieldBetweenStages: true` to end the task at three points instead: after the
+StuffIt unwrap (only for a `.sit`), between chrome and icon conversion, and after
+conversion.
+
+```ts
+const theme = await loadOwnedTheme('/themes/1984', { source: 'scheme.sit', yieldBetweenStages: true });
+// or once for every load a resolver makes:
+const resolver = createOwnedThemeResolver({ themeBaseUrl: '/themes', themes, yieldBetweenStages: true });
+```
+
+`loadTheme`, `loadOwnedTheme`, `loadKaleidoscopeScheme`, `loadOwnedKaleidoscopeScheme`,
+`createThemeResolver` and `createOwnedThemeResolver` accept it. A resolver reads it
+once, when it is created.
+
+- Input bytes you pass in are copied when the load is called, because your code
+  now runs between the stages; you may reuse or change your buffer straight away.
+  Other option values (`meta`, the id lists) are read when their stage runs, as
+  before: leave them unchanged until the load settles.
+- The decoded theme is the same object graph as without the option, and every
+  other option, including `displayProfile`, `cicnTransfer`, `cinfEnvironment`,
+  `sliderLayoutEnvironment`, `provenance` and `assetUrlFactory`, works with it.
+- The work still runs on the main thread and takes the same total time. Only the
+  length of each task changes. Each stage is still one task: on a slow device the
+  StuffIt unwrap or the chrome conversion of a large scheme can exceed 50 ms by
+  itself.
+- The load settles later: other queued tasks (input, timers, rendering) can run
+  at each boundary, and a decode error from a later stage is reported after them.
+  Input and option validation errors are thrown before the first boundary, as before.
+- Boundaries use `scheduler.yield()` where the browser has it, which resumes ahead
+  of other queued tasks. Elsewhere they post a message through a `MessageChannel`,
+  which is not clamped or throttled in background tabs the way timers are. If
+  `scheduler.yield()` rejects, the load rejects with that reason.
+- Without the option nothing changes: a load settles on the same microtask tick
+  and reads its options in the same order, plus one read of `yieldBetweenStages`
+  after the existing option validation.
+- The eager loaders (`loadTheme`, `createThemeResolver`) spend most of their time
+  PNG-encoding every asset after the decode. That encoding already runs as many
+  short tasks and is not changed by this option; use the owned loaders to avoid it.
+
 The `LoadedTheme` returned carries optional `dispose()` to revoke its blob URLs and evict its raster-cache entries; call it after its last consumer permanently unmounts.
 
 The released control facades include `composeScrollbar` / `composeSlider` with
