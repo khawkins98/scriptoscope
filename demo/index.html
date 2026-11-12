@@ -10,6 +10,15 @@
   <link rel="preload" as="image" href="assets/landing/portrait.jpg" fetchpriority="high">
   <link rel="preload" as="font" type="font/woff" crossorigin href="assets/fonts/charcoal-12.woff">
   <link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/instrument-serif-normal-latin.woff2">
+  <!-- The collage's two smallest scheme archives, requested with the page's
+       scripts rather than after them, so the first windows can appear as soon
+       as the runtime starts. Each URL and its CORS mode must match the loader's
+       fetch() exactly, or the archive downloads twice. The three larger
+       archives are left to the loader: preloading them too takes bandwidth
+       from the portrait and the runtime and delays every window. The build
+       adds preloads for the hashed StuffIt decoder (vite.demo.config.js). -->
+  <link rel="preload" as="fetch" crossorigin href="themes/windows-95/scheme.sit">
+  <link rel="preload" as="fetch" crossorigin href="themes/beos-r503/scheme.sit">
   <style>
     @font-face {
       font-family: 'Instrument Serif';

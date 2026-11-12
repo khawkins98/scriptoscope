@@ -109,7 +109,6 @@ if (params.has('theme')) {
         left: `${x}px`, top: `${y}px`, width: `${width}px`, height: `${height}px`,
       });
     }
-    // Resolve before teardown: a failed fetch must leave the current face intact.
     // Report progress per scheme while the first load decodes archives.
     const slugs = [...new Set(panels.map(panel => nextTheme ?? panel.theme))];
     let decoded = 0;
@@ -119,6 +118,50 @@ if (params.has('theme')) {
       if (loadingLabel) loadingLabel.textContent = `Unpacking the original schemes… ${decoded} of ${slugs.length}`;
       return theme;
     })]));
+    const promote = async (panel, theme) => {
+      const window = await ScriptoscopeWindow.promote(panel.el, { manager, theme });
+      window.host.dataset.scriptoscopeTheme = nextTheme ?? panel.theme;
+      initialPositions.set(window.host, { left: window.host.style.left, top: window.host.style.top });
+      return window;
+    };
+    const assembled = () => {
+      collage.dataset.interactive = '';
+      selectedTheme = nextTheme;
+      hasMoved = false;
+      reset.hidden = true;
+      syncSelection();
+    };
+    if (!windows.length) {
+      // First assembly, or a retry of one: no themed face exists to keep intact,
+      // so each panel is promoted as soon as its own scheme has decoded instead
+      // of waiting for the slowest archive. The unpromoted HTML crops are the
+      // fallback: any failure returns every panel to them before reporting it.
+      // Each host replaces its own source element and carries its declared z,
+      // so document order and stacking do not depend on arrival order.
+      const mounted = [];
+      let abandoned = false;
+      let promotions = Promise.resolve();
+      rebuilding = true;
+      try {
+        await Promise.all(panels.map((panel, index) => loads.get(nextTheme ?? panel.theme)
+          .then(theme => (promotions = promotions.then(async () => {
+            if (!abandoned) mounted[index] = await promote(panel, theme);
+          })))));
+        windows = mounted;
+        assembled();
+      } catch (error) {
+        // Let a promotion already in flight settle so nothing mounts after this.
+        abandoned = true;
+        await promotions.catch(() => {});
+        for (const window of mounted) window?.unmount();
+        initialPositions.clear();
+        throw error;
+      } finally {
+        rebuilding = false;
+      }
+      return;
+    }
+    // Resolve before teardown: a failed fetch must leave the current face intact.
     const resolved = await Promise.all(panels.map(panel => loads.get(nextTheme ?? panel.theme)));
     rebuilding = true;
     try {
@@ -126,19 +169,9 @@ if (params.has('theme')) {
       windows = [];
       initialPositions.clear();
       for (const [index, panel] of panels.entries()) {
-        const theme = nextTheme ?? panel.theme;
-        const window = await ScriptoscopeWindow.promote(panel.el, {
-          manager, theme: resolved[index],
-        });
-        window.host.dataset.scriptoscopeTheme = theme;
-        windows.push(window);
-        initialPositions.set(window.host, { left: window.host.style.left, top: window.host.style.top });
+        windows.push(await promote(panel, resolved[index]));
       }
-      collage.dataset.interactive = '';
-      selectedTheme = nextTheme;
-      hasMoved = false;
-      reset.hidden = true;
-      syncSelection();
+      assembled();
     } catch (error) {
       // If painting fails after teardown, restore the complete HTML collage
       // rather than leave hidden source panels behind a partial composition.

@@ -7,8 +7,42 @@
 import { defineConfig } from 'vite';
 import { resolve } from 'node:path';
 
+// The landing collage decodes StuffIt archives as soon as it starts, but the
+// library imports its decoder lazily, so the browser would only learn of that
+// chunk and its WASM after the app chunk has run and an archive has arrived.
+// Their names are hashed, so index.html cannot name them: add the two preloads
+// here. demo/index.html preloads the unhashed archives itself.
+function preloadLandingDecoder() {
+  let base = '/';
+  return {
+    name: 'preload-landing-decoder',
+    configResolved(config) { base = config.base; },
+    transformIndexHtml: {
+      order: 'post',
+      handler(_html, ctx) {
+        if (!ctx.bundle || ctx.path !== '/index.html') return;
+        const outputs = Object.values(ctx.bundle);
+        const decoder = outputs.find(output => output.type === 'chunk'
+          && output.facadeModuleId?.endsWith('/tools/sit-wasm/index.mjs'));
+        const wasm = outputs.find(output => output.type === 'asset' && /(^|\/)munbox-[^/]+\.wasm$/.test(output.fileName));
+        if (!decoder || !wasm) {
+          console.warn('[preload-landing-decoder] StuffIt decoder chunk or WASM not found; the landing page will not preload them.');
+          return;
+        }
+        // `crossorigin` matches the module import and the decoder's same-origin
+        // fetch(), so each preload is reused rather than requested twice.
+        return [
+          { tag: 'link', attrs: { rel: 'modulepreload', crossorigin: true, href: base + decoder.fileName }, injectTo: 'head' },
+          { tag: 'link', attrs: { rel: 'preload', as: 'fetch', crossorigin: true, href: base + wasm.fileName }, injectTo: 'head' },
+        ];
+      },
+    },
+  };
+}
+
 export default defineConfig({
   root: 'demo',
+  plugins: [preloadLandingDecoder()],
   // GitHub Pages serves at /scriptoscope/ (the repo slug, post-2026-05-31 rename from
   // /aaron-ui/). Override via the env var if/when the repo is renamed again. The legacy
   // AARON_UI_BASE_PATH env var is kept as a fallback alias so any old CI / scripts /
