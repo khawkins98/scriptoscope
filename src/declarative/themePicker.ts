@@ -219,6 +219,18 @@ export async function promoteThemePicker(
   // miss, by which point visible folder icons are usually cache-warm
   // (loaded by their own IO firings + the page chrome). Sparse-bundle
   // base-chain walk + last-resort theme walk — lib reviewer P2 2026-05-30.
+  // One icon lookup per slug, shared by its own tile and the fallback search.
+  // A failed lookup is forgotten so a later activation can retry it.
+  const icons = new Map<string, Promise<string | null>>();
+  const iconOf = (slug: string): Promise<string | null> => {
+    let icon = icons.get(slug);
+    if (!icon) {
+      icon = iconFor(slug);
+      icons.set(slug, icon);
+      icon.catch(() => { icons.delete(slug); });
+    }
+    return icon;
+  };
   let cachedFallbackUrl: string | null = null;
   let fallbackSearch: Promise<string | null> | null = null;
   const findFallbackIcon = (excludeSlug: string): Promise<string | null> => {
@@ -232,7 +244,7 @@ export async function promoteThemePicker(
       for (const c of candidates) {
         if (disposed) return null;
         try {
-          const url = await iconFor(c);
+          const url = await iconOf(c);
           if (disposed) return null;
           if (url) { cachedFallbackUrl = url; return url; }
         } catch { /* try next candidate */ }
@@ -253,18 +265,13 @@ export async function promoteThemePicker(
       inFlight += 1;
       void (async () => {
         try {
-          let resolvedUrl = await iconFor(slug);
+          let resolvedUrl = await iconOf(slug);
           if (disposed) return;
-          if (resolvedUrl) {
-            // Seed the fallback cache from the FIRST successful resolution
-            // so subsequent sparse tiles short-circuit without re-walking.
-            cachedFallbackUrl ??= resolvedUrl;
-          } else {
-            // Sparse theme — borrow a folder icon from any candidate that
-            // has one. Search runs once per picker, memoised. Most tiles
-            // hit the cache on the second-or-later sparse decode.
-            resolvedUrl = await findFallbackIcon(slug);
-          }
+          // Sparse theme — borrow the folder icon of the first candidate that has
+          // one, in the fixed order above. The search runs once per picker and is
+          // memoised. It is never seeded from whichever tile happened to resolve
+          // first: that made the borrowed icon depend on decode arrival order.
+          if (!resolvedUrl) resolvedUrl = await findFallbackIcon(slug);
           if (disposed) return;
           if (resolvedUrl) {
             const tile = tiles.get(slug);

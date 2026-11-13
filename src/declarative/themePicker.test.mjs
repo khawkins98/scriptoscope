@@ -121,6 +121,39 @@ test('background tiles use folder-only loading, with active-theme fallback for s
   assert.equal(el.children[2].children[0].src, 'blob:folder');
 });
 
+test('a sparse tile borrows the same icon whatever order the tiles resolve in', async (t) => {
+  const slugs = ['a', 'b', 'sparse1', 'c', 'sparse2'];
+  const sparse = slug => slug.startsWith('sparse');
+  // Each load settles after its own number of tasks; the rows permute who arrives first.
+  const delays = [[0, 1, 2, 3, 4], [4, 3, 2, 1, 0], [3, 0, 0, 5, 1], [0, 6, 4, 6, 0], [5, 5, 0, 0, 3], [1, 0, 6, 0, 2]];
+  const wait = async n => { for (let i = 0; i < n; i++) await flush(); };
+  const run = async (initialSlug, order) => {
+    const el = setup(t);
+    const delay = slug => wait(order[slugs.indexOf(slug)]);
+    const picker = await promoteThemePicker(el, slugs.map(slug => ({ slug })), {
+      initialSlug, switchTheme() {},
+      loadTheme: async slug => { await delay(slug); return { manifest: {}, inspector: { iconIndex: sparse(slug) ? [] : [{ id: -3983, size: 32, url: `blob:${slug}` }] } }; },
+      loadIcon: async slug => { await delay(slug); return sparse(slug) ? null : `icon:${slug}`; },
+    });
+    for (const tile of el.children) tile.dispatchEvent(new Event('mouseenter'));
+    // The decode queue hands over through a timer between tiles; wait on real time, bounded.
+    for (let i = 0; i < 200 && el.children.some(tile => tile.getAttribute('aria-busy') !== 'false'); i++) {
+      await new Promise(resolve => setTimeout(resolve, 5));
+    }
+    const icons = el.children.map(tile => tile.children[0].src);
+    picker.teardown();
+    return icons;
+  };
+  // The active theme has an icon: both sparse tiles borrow it, never a faster neighbour's.
+  for (const order of delays) {
+    assert.deepEqual(await run('c', order), ['icon:a', 'icon:b', 'blob:c', 'blob:c', 'blob:c'], `active c, delays ${order}`);
+  }
+  // The active theme is itself sparse: the first theme in picker order that has one.
+  for (const order of delays) {
+    assert.deepEqual(await run('sparse2', order), ['icon:a', 'icon:b', 'icon:a', 'icon:c', 'icon:a'], `active sparse2, delays ${order}`);
+  }
+});
+
 test('activating a failed background tile retries its icon and updates busy state', async (t) => {
   const el = setup(t);
   let calls = 0, finish;
