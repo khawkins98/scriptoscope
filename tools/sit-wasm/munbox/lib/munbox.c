@@ -228,16 +228,23 @@ munbox_layer_t *munbox_process_new(munbox_layer_t * initial_layer) {
         return NULL;
 
     munbox_layer_t *current_layer = initial_layer;
+    int depth = 0;
 
     for (;;) {
 
         munbox_layer_t *next_layer = NULL;
         int i;
 
+        /* hardening: same nesting limit as munbox_probe(); every read through the chain recurses
+           once per layer, so crafted nesting was unbounded stack and time. */
+        if (depth >= 16)
+            return current_layer;
+
         for (i = 0; i < g_num_format_handlers; ++i) {
             next_layer = g_format_handlers[i].layer_factory(current_layer);
             if (next_layer) {
                 printf("Detected format: %s\n", g_format_handlers[i].name);
+                depth++;
                 break;
             }
         }

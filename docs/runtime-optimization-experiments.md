@@ -347,6 +347,93 @@ device or network; transfer size stands in for download time. Differences under
 roughly 8% in median decode time could not be resolved, so “no slowdown” means
 none larger than that. Compact Pro and the rare StuffIt methods have no fixture.
 
+## StuffIt decoder hardening: decode-time cost (#662)
+
+Baseline `ed79c70a` (the `-Os` build above). The vendored decoder gained the
+malformed-input checks recorded in
+[PATCHES.md](../tools/sit-wasm/munbox/PATCHES.md) and now frees its method 13
+code trees. This section records only what that costs in decode time and why the
+method 13 bit reader is built the way it is. Same flags, same Emscripten 5.0.7,
+Node 24.18, one Apple M5 Mac with a load average between 50 and 185 throughout.
+
+Two ways to stop the bit reader's 4-byte load leaving the fork were built and
+compared against the unpatched binary, each beside a second copy of its own bytes
+(A/A):
+
+- **Per-read check:** compare the cursor with the end of the fork on every read
+  (every bit of every code), with the rarely taken path out of line.
+- **Padded input (shipped):** copy each fork once into a buffer with 32 zero
+  bytes after it and test the cursor once per decoded symbol.
+
+Because wall time on this host could not be trusted, the main measure is CPU work
+for a fresh Node process (`/usr/bin/time -l`), taken at 5 and at 45 passes over the
+13 bundled archives and differenced, so start-up, compilation and warm-up cancel.
+Six rounds, order rotated. Cells are minimum / median / maximum per pass.
+
+| Build | Instructions (millions) | Cycles (millions) | User CPU (ms) |
+| --- | ---: | ---: | ---: |
+| Unpatched (`main`) | 914 / 919 / 928 | 355 / 374 / 386 | 165 / 172 / 174 |
+| Per-read check | 1,295 / 1,301 / 1,309 | 438 / 462 / 472 | 207 / 214 / 220 |
+| Per-read check, A/A copy | 1,294 / 1,300 / 1,312 | 436 / 455 / 486 | 204 / 215 / 219 |
+| Padded input (shipped) | 1,043 / 1,048 / 1,056 | 400 / 416 / 437 | 187 / 191 / 197 |
+| Padded input, A/A copy | 1,044 / 1,046 / 1,053 | 402 / 412 / 427 | 188 / 192 / 196 |
+
+| Per-round ratio, median (range) | Instructions | Cycles | User CPU |
+| --- | ---: | ---: | ---: |
+| Per-read check / unpatched | 1.415 (1.410–1.416) | 1.234 (1.222–1.249) | 1.254 (1.239–1.278) |
+| Padded input / unpatched | 1.142 (1.136–1.144) | 1.131 (1.097–1.152) | 1.117 (1.087–1.138) |
+| Padded input / per-read check | 0.807 (0.803–0.810) | 0.913 (0.892–0.933) | 0.894 (0.851–0.914) |
+| A/A, per-read check | 1.001 (0.997–1.003) | 0.998 (0.961–1.030) | 0.997 (0.986–1.009) |
+| A/A, padded input | 0.999 (0.994–1.001) | 0.989 (0.976–1.005) | 1.001 (0.994–1.027) |
+
+Wall time, for comparison: one fresh Node process per sample, three untimed
+passes and then the fastest of eight; 16 rounds, order rotated. Fastest pass in
+milliseconds, minimum / median / maximum over samples: unpatched 163 / 178 / 685;
+per-read check 198 / 214 / 904 (A/A copy 206 / 223 / 255); padded input
+176 / 192 / 212 (A/A copy 180 / 194 / 221). Median per-round ratio of the fastest
+pass: per-read check 1.20 and padded input 1.08 against unpatched, padded input
+0.90 against the per-read check, and 1.03 and 1.01 between the A/A copies. The
+per-round ranges are wide (0.21 to 1.32 across the pairs) because single rounds
+were hit by other load.
+
+**Result.** The shipped decoder spends about 12% more CPU time on the bundled
+archives than the unpatched one (14% more instructions, 13% more cycles, 8% in
+the fastest wall-clock passes). The per-read check would have cost about 25%
+(41% more instructions). The padded reader's 9–11% advantage over it in cycles
+and CPU time is outside the A/A ranges (at most 4% either way in cycles, 3% in
+CPU time), so it was shipped. The first
+per-read prototype, with its slow path inline, ran 1,403 million instructions a
+pass against 1,310 with the path moved out of line; moving it changed cycles by
+less than the noise.
+
+**What the remaining 12% is.** Mostly one more test per bit of every code (a walk
+that reaches a missing branch now stops instead of dereferencing it) and one test
+per symbol for an exhausted stream. Neither was separately measured.
+
+**Safety of the padded reader.** It is safe only if the decoder cannot read more
+than 32 bytes past a fork between two tests, and only if an error is final. A
+first prototype without the second property was caught by a fuzzer that drives
+the method 13 API directly and keeps reading after errors: a heap over-read
+within seconds. With errors made final the same fuzzer ran 46,969 inputs with no
+finding, the 9,000-input corruption corpus gave the same outcome on every input
+as the per-read build (in WebAssembly and under native AddressSanitizer and
+UndefinedBehaviorSanitizer), and 593,345 coverage-guided runs of the whole
+decoder found nothing (292,645 for the per-read build). The bound is argued in
+the comment at `SIT13_INPUT_PAD` in `sit13.c`.
+
+**Other effects.** `munbox.wasm` is 61,502 bytes (28,056 gzip) against 60,461
+(27,491); `munbox.mjs` 5,331 (2,566) against 5,460 (2,622), smaller because the
+assertion import is gone; the lazy decoder chunk 91,792 (40,949) against 90,387
+(40,371), +1.4% gzip. Linear memory stays at 21.06 MB (22,085,632 bytes) across
+twelve passes over the 13 archives, where the unpatched binary reached 91 MB. All 18 bundled themes
+decode to the same canonical digest as before in Chromium 156, Firefox 157 and
+WebKit 27.2 (the method recorded in the section above).
+
+**Limits.** One loaded host; Node only for timing, no browser timing; bundled
+archives only, which all use method 13. Methods 0, 1, 2 and 15, SIT5 and Compact
+Pro were checked for identical output on generated and upstream sample archives
+but not timed.
+
 ## Rejected structural theories after #497
 
 These trials used the admitted production baseline corresponding to merged #497 (`240d0e1b5e7a8e574421b00383c96da43207360f`). Its production-only source archive excludes tests; a reconstructed subset tree must not be compared as though it were the full repository tree.

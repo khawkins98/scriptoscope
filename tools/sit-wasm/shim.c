@@ -8,7 +8,7 @@
 //   forkType: 0 = data fork, 1 = resource fork.
 //
 // sit_decode() returns NULL on error; call sit_error() for the message. Free the
-// returned buffer with sit_free().
+// returned buffer with sit_free(). The packed output is capped at SIT_MAX_OUTPUT_BYTES.
 #include "munbox.h"
 #include <stdint.h>
 #include <stdlib.h>
@@ -18,8 +18,20 @@
 
 typedef struct { uint8_t *p; size_t len, cap; int ok; } buf_t;
 
+// Upper bound on the packed output (all forks plus their headers). A fork's declared length comes
+// from the archive — a few dozen bytes can declare 4 GiB — and WASM linear memory never shrinks, so
+// without a bound one hostile file could pin the page's memory at the maximum. The largest bundled
+// archive decodes to about 1.55 MiB. Keep this a power of two: the buffer below doubles from 4096,
+// so its capacity then never exceeds the cap either.
+#define SIT_MAX_OUTPUT_BYTES ((size_t)32 * 1024 * 1024)
+
 static void bput(buf_t *b, const void *src, size_t n) {
     if (!b->ok) return;
+    if (n > SIT_MAX_OUTPUT_BYTES || b->len > SIT_MAX_OUTPUT_BYTES - n) {
+        b->ok = 0;
+        munbox_error("decoded output exceeds the %u MiB limit", (unsigned)(SIT_MAX_OUTPUT_BYTES >> 20));
+        return;
+    }
     if (b->len + n > b->cap) {
         size_t nc = b->cap ? b->cap : 4096;
         while (b->len + n > nc) nc *= 2;
@@ -54,9 +66,12 @@ uint8_t *sit_decode(const uint8_t *in, int in_len) {
     uint32_t count = 0;
 
     munbox_file_info_t info;
-    int r;
+    int r = 0;
     munbox_open_t what = MUNBOX_OPEN_FIRST;
-    while ((r = proc->open(proc, what, &info)) == 1) {
+    // Stop at the first failure (a fork that failed to read, the output cap, out of memory). The
+    // loop used to open and read every remaining entry first, so the error reported was whichever
+    // came last, and an over-cap archive would have kept decoding.
+    while (b.ok && (r = proc->open(proc, what, &info)) == 1) {
         what = MUNBOX_OPEN_NEXT;
         uint32_t nameLen = (uint32_t)strlen(info.filename);
         bu32(&b, nameLen);
@@ -71,7 +86,11 @@ uint8_t *sit_decode(const uint8_t *in, int in_len) {
         uint8_t tmp[16384];      // kept modest to bound per-call stack use (build.sh raises the
                                  // WASM stack to 5MB; the default 64KB would overflow on big frames)
         ssize_t n;
-        while ((n = proc->read(proc, tmp, sizeof tmp)) > 0) { bput(&b, tmp, (size_t)n); forkLen += (uint32_t)n; }
+        while ((n = proc->read(proc, tmp, sizeof tmp)) > 0) {
+            bput(&b, tmp, (size_t)n);
+            if (!b.ok) break; // over the output cap (or out of memory): stop decoding this archive
+            forkLen += (uint32_t)n;
+        }
         if (n < 0) b.ok = 0;
         if (b.ok) patch_u32(b.p + lenPos, forkLen);
         count++;

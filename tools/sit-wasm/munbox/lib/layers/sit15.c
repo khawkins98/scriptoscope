@@ -279,7 +279,7 @@ static int decode_arithmetic_bit_string(decompressor_state_t *state, arithmetic_
     int result = 0;
     for (int i = 0; i < num_bits; i++) {
         if (decode_arithmetic_symbol(state, model)) {
-            result |= 1 << i;
+            result |= (int)(1u << i); /* hardening: 1 << 31 is undefined for int */
         }
     }
     return result;
@@ -459,6 +459,10 @@ static void decode_and_prepare_next_block(decompressor_state_t *state) {
                     zero_run_count += zero_run_state;
                 else
                     zero_run_count += 2 * zero_run_state; // selector == 1
+                /* hardening: both counters overflowed int after ~31 run symbols; a negative count then
+                   passed the block-size check below and memset() wrote far outside the block buffer. */
+                if (zero_run_count > state->block_size)
+                    handle_error(state);
                 zero_run_state *= 2;
                 selector = decode_arithmetic_symbol(state, &state->selector_model);
             } while (selector < 2);

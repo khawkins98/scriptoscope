@@ -241,11 +241,15 @@ static int cpt_pfx_build(cpt_pfx_t *pc, const int *lens, int count, int maxLen) 
                 int node = 0;
                 for (int bp = l - 1; bp >= 0; bp--) {
                     int bit = (code >> bp) & 1;
+                    /* hardening: with over-subscribed lengths the walk reached a LEAF, whose b0/b1 hold a
+                       symbol value, and used that value as a node index (out-of-bounds heap access). */
+                    if (cpt_is_leaf(pc, node))
+                        goto invalid;
                     int next = bit ? pc->tree[node].b1 : pc->tree[node].b0;
                     if (next < 0) {
                         next = cpt_new_node(pc);
                         if (next < 0)
-                            return -1;
+                            goto invalid;
                         if (bit)
                             pc->tree[node].b1 = next;
                         else
@@ -253,6 +257,8 @@ static int cpt_pfx_build(cpt_pfx_t *pc, const int *lens, int count, int maxLen) 
                     }
                     node = next;
                 }
+                if (pc->tree[node].b0 != -1 || pc->tree[node].b1 != -2)
+                    goto invalid; /* hardening: node already a leaf or already has children */
                 pc->tree[node].b0 = pc->tree[node].b1 = i;
                 if (l > pc->maxl)
                     pc->maxl = l;
@@ -272,7 +278,7 @@ built:;
     int tsize = (int)tsizeu;
     pc->tab = malloc((size_t)tsize * sizeof(*pc->tab));
     if (!pc->tab)
-        return -1;
+        goto invalid;
     for (int i = 0; i < tsize; i++) {
         int node = 0;
         int depth = 0;
@@ -299,6 +305,11 @@ built:;
         }
     }
     return 0;
+invalid: /* hardening: the partially built tree used to leak on failure */
+    free(pc->tree);
+    free(pc->tab);
+    memset(pc, 0, sizeof(*pc));
+    return -1;
 }
 
 // Free the resources allocated by a prefix structure
@@ -750,9 +761,10 @@ static void cpt_build_path(char dest[256], const char *parent, const char *name,
 
 // Walk a directory structure located in-memory and append entries to out_entries
 // Returns 0 on success or negative on error
+#define CPT_MAX_DIR_DEPTH 64 /* hardening: each level costs ~1 KB of stack; nesting came straight from the input */
 static int cpt_walk_dir_mem(const uint8_t *data, size_t size, size_t *cursor, int entries_in_this_dir,
                             const char *parent_rel, cpt_file_entry_t **out_entries, size_t *out_count,
-                            size_t *out_cap) {
+                            size_t *out_cap, int depth) {
     while (entries_in_this_dir > 0) {
         if (*cursor >= size)
             return munbox_error("Directory entry beyond end of archive");
@@ -780,7 +792,9 @@ static int cpt_walk_dir_mem(const uint8_t *data, size_t size, size_t *cursor, in
                 return munbox_error("Directory child count beyond file size");
             uint16_t child_count = LOAD_BE16(data + *cursor);
             *cursor += 2;
-            int r = cpt_walk_dir_mem(data, size, cursor, child_count, fullpath, out_entries, out_count, out_cap);
+            if (depth >= CPT_MAX_DIR_DEPTH)
+                return munbox_error("CPT directory nesting too deep");
+            int r = cpt_walk_dir_mem(data, size, cursor, child_count, fullpath, out_entries, out_count, out_cap, depth + 1);
             if (r < 0)
                 return r;
             entries_in_this_dir -= (child_count + 1);
@@ -846,7 +860,7 @@ static int cpt_parse_directory_mem(const uint8_t *data, size_t size, uint32_t di
         return munbox_error("Comment extends beyond file size");
     cpt_file_entry_t *entries = NULL;
     size_t count = 0, cap = 0;
-    int r = cpt_walk_dir_mem(data, size, &cursor, (int)total_entries, "", &entries, &count, &cap);
+    int r = cpt_walk_dir_mem(data, size, &cursor, (int)total_entries, "", &entries, &count, &cap, 0);
     if (r < 0) {
         free(entries);
         return r;
@@ -1143,7 +1157,7 @@ munbox_layer_t *munbox_new_cpt_layer(munbox_layer_t *input) {
 
     // Initialize layer vtable
     layer->internal_state = st;
-    layer->read = NULL; // will be set on first open()
+    layer->read = cpt_layer_read; /* hardening: an archive with no entries never reached open(); probing layers then called NULL */
     layer->close = cpt_layer_close;
     layer->open = cpt_layer_open;
     // no extract; use open/read
