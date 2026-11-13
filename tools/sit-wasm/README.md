@@ -84,7 +84,9 @@ Calls share one decoder instance. It is replaced in two cases:
   is the instance's size when new (337 pages, 21.1 MB). Above that, the instance
   is still healthy: the decode that took it there returns its result. The next
   call starts loading a replacement and is itself served by the old instance, as
-  are later calls, until the replacement has loaded. The second term is there so
+  are later calls, until the replacement has loaded. Loading finishes on a later
+  turn of the event loop, so calls awaited back to back without yielding to it
+  all run on the old instance. The second term is there so
   that one large input does not cause a replacement on every decode (an input of
   about 4 MB or more grows even a new instance; decoding needs up to about
   2 × (input + output) above the initial size).
