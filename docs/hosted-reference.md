@@ -66,6 +66,7 @@ no automatic observation of sources added later.
 | `pageThemeDefault` | Default slug or URL; default `1138`. |
 | `baseSlug` | Optional base scheme for inheritance. |
 | `registeredThemes` | Iterable `[ref, theme]` entries borrowed before initial paint. |
+| `resolver` | Optional caller-owned theme resolver to share. The host loads and registers through it and never disposes it; its own options replace `themeBaseUrl`, `baseSlug` and `themes` source hints. Dispose it only after every host using it has disconnected. Omitted: the host creates and disposes its own, as before. |
 | `themes` | Picker/cycle catalog; default empty. Entries include `slug`, optional `name`, `author`, `year`, `source`, `meta`; legacy `label` is accepted. |
 | `hit` | Default frame input mode, region unless overridden. |
 | `persistKey` | Layout storage namespace `scriptoscope:layout:<key>`. |
