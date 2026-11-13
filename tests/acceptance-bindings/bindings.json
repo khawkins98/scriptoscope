@@ -49,7 +49,7 @@
     },
     {
       "path": "tools/sit-wasm/index.mjs",
-      "sha256": "5b46b6811d31ec97df18f59f2e6e7db55aca5be7eb8dcbf511c4ea43d5ee3e19"
+      "sha256": "8830be4156a030bbad02bd248ba6814fb8c14b94a58ab54f3b8faea345026658"
     },
     {
       "path": "tools/theme-loader/assetLifecycle.js",
