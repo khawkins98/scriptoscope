@@ -49,7 +49,7 @@
     },
     {
       "path": "tools/sit-wasm/index.mjs",
-      "sha256": "5b46b6811d31ec97df18f59f2e6e7db55aca5be7eb8dcbf511c4ea43d5ee3e19"
+      "sha256": "7cc1b152cf3d4c0b520e6be481ac2e6fda7eb1ff13f24fd28e2eb0a02e1707d9"
     },
     {
       "path": "tools/theme-loader/assetLifecycle.js",
@@ -137,7 +137,7 @@
     },
     {
       "path": "tools/theme-loader/loadKaleidoscopeScheme.js",
-      "sha256": "faf8e0ffcd0c2448e532567053e116bafba4ac798a1a283f94fbc5d2105d2b6d"
+      "sha256": "e550f000a235607d533d8ba9dcfcb71654157f751d2904798faed6590713b620"
     },
     {
       "path": "tools/theme-loader/loadProvenance.js",

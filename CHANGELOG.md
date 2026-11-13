@@ -54,6 +54,34 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   order: the initially active theme, then the themes in picker order. Each
   theme's icon is also looked up once and shared between its own tile and that
   search (#662).
+- StuffIt decoder: a decode that crashes the decoder no longer breaks later
+  decodes, and memory a decode leaves behind is given back. The wrapper shared
+  one WebAssembly instance for the life of the page or process. A runtime abort
+  or trap left that instance holding everything the failed decode had allocated,
+  so later valid archives could fail, and memory one large decode needed stayed
+  allocated for good. The wrapper now replaces the instance after a crash, and
+  when its memory passes a limit (twice its initial size, or more for a large
+  input). The crashing call still rejects with the same error. A replacement
+  starts at the initial memory size; memory is not held there. With the leak
+  fix above the bundled archives never reach the limit (40 passes use one
+  instance at 21.1 MB); it applies after a large input or the 32 MiB output cap.
+  To avoid requesting the `.wasm` again, the wrapper keeps the module compiled
+  for the first instance: it wraps `WebAssembly.instantiateStreaming` for the
+  length of one synchronous call each time it loads the decoder without a kept
+  module, and puts back the function it found. Replacements built from the kept
+  module make no network request. Where no module can be kept (a `.wasm` served
+  with the wrong MIME type, no `instantiateStreaming`, a frozen or non-writable
+  `WebAssembly` namespace, and Node, which reads the file from disk) a
+  replacement loads the way the first instance did. A failed replacement is not
+  kept, and is not attempted again for one second; an instance that was only
+  over its limit keeps serving meanwhile. Only a failure of the very first
+  instantiation is kept, as before. A failed input allocation is reported as
+  `decodeArchive: out of memory` instead of being written through, and the
+  wrapper's buffers are freed when copying data in or out fails. Results,
+  ordinary error messages and success-path timing are unchanged.
+  `tools/sit-wasm/index.mjs`, and so the lazy decoder chunk and the
+  `stuffit-wasm` package, gains a named export `__createDecoderForTests`. It is
+  internal and unsupported (#669).
 
 ### Changed
 

@@ -64,9 +64,97 @@ Serve a page beside the copied module, keeping its `dist/` directory in place:
 
 ### Locating the `.wasm`
 
-Keep `dist/munbox.wasm` beside `dist/munbox.mjs`; the wrapper instantiates it once
-on first use. A bundler may relocate these assets together. For a custom WASM
-location, change the Emscripten `locateFile` hook in `index.mjs`'s factory call.
+Keep `dist/munbox.wasm` beside `dist/munbox.mjs`; the wrapper loads it on first
+use. A bundler may relocate these assets together. For a custom WASM location, add
+the Emscripten `locateFile` hook to `moduleOptions` in `index.mjs`; every
+instantiation uses those options.
+
+### The shared instance and when it is replaced
+
+Calls share one decoder instance. It is replaced in two cases:
+
+- **A decode crashed it** (a runtime abort or a WebAssembly trap). The failed call
+  rejects with that error, unchanged. Nothing the decode allocated was released
+  and the instance's heap may be damaged, so it is never called again. The next
+  call waits for a replacement.
+- **It outgrew its memory limit.** WebAssembly memory cannot shrink, so whatever
+  one decode needed stays with a reused instance. After each decode the wrapper
+  compares the instance's linear memory with
+  `max(2 × initial, initial + 3 × (input bytes + output bytes))`, where `initial`
+  is the instance's size when new (337 pages, 21.1 MB). Above that, the instance
+  is still healthy: the decode that took it there returns its result. The next
+  call starts loading a replacement and is itself served by the old instance, as
+  are later calls, until the replacement has loaded. Loading finishes on a later
+  turn of the event loop, so calls awaited back to back without yielding to it
+  all run on the old instance. The second term is there so
+  that one large input does not cause a replacement on every decode (an input of
+  about 4 MB or more grows even a new instance; decoding needs up to about
+  2 × (input + output) above the initial size).
+
+An ordinary decoder error (`decodeArchive: …`) is neither case and keeps the
+instance, unless it also left the instance over its limit, as reaching the
+[output cap](#malformed-input-and-limits) does.
+
+What this bounds: an instance found over its limit after a decode is replaced as
+soon as a replacement can be loaded, and the replacement starts at the initial
+size. Memory is not held at the initial size. With the current decoder the
+bundled archives never reach the limit: 40 passes over the 13 of them use one
+instance, which stays at its initial 21.1 MB. The limit matters after a large
+input (an 8 MB input leaves 45 MB allocated; the small decodes that follow get a
+new instance) and for anything the decoder might fail to free. A single decode
+can take memory as far as that archive needs. A replaced instance's memory is
+returned when the JavaScript engine collects it. Alternating a large input with
+small ones replaces the instance once per large input; that is the cost of
+giving the large input's memory back.
+
+What a replacement costs: nothing is loaded ahead of need. After a crash the
+next call waits for one instantiation. For an instance over its limit no call
+waits.
+
+- In a browser where an instance was compiled by streaming (the normal case),
+  the wrapper keeps that compiled `WebAssembly.Module` and instantiates
+  replacements from it. They make no network request and do not depend on the
+  network. Measured medians for the call that waits: 0.1 to 0.2 ms in Chromium,
+  up to 1 ms in Firefox and 2 ms in WebKit.
+- In Node a replacement reads and compiles `munbox.wasm` from disk again. Measured
+  medians on one host ranged from 0.3 ms to 5.6 ms depending on load, against 2.5
+  to 20 ms to decode one bundled archive on a quiet host.
+- Where no module can be kept, each replacement loads the way the first instance
+  did, which in a browser means requesting the file again (twice when streaming
+  fails, as for the first load). That is the case when the first compile could
+  not stream (for example a server that sends `.wasm` with the wrong MIME type),
+  when there is no `WebAssembly.instantiateStreaming`, and when the `WebAssembly`
+  namespace is frozen or the property is not writable.
+
+When instantiation fails:
+
+- **The very first instantiation.** The failure is kept for the life of the page
+  or process and every later call rejects with it, as before. The Emscripten
+  runtime also logs it with `console.error`.
+- **A replacement after a crash.** The calls waiting on it reject with the
+  instantiation error. The failure is not kept, but no new attempt is made for
+  one second: calls in that second reject with the same error without touching
+  the network. The first call after it tries again, so decoding recovers within
+  a second of the file becoming reachable.
+- **A replacement for an instance over its limit.** Nothing is lost: calls keep
+  being served by that instance. The next attempt is made by the first call at
+  least one second later. The same holds if the load never finishes, except that
+  no further attempt is made while it is pending.
+- **A kept module that will not instantiate.** It is dropped, that replacement
+  falls back to the default load, and no module is kept again.
+
+How the module is kept: on each load made while no module is held (the first
+load, and in Node every load), the wrapper replaces
+`WebAssembly.instantiateStreaming` for the length of the one synchronous factory
+call that starts the load, then puts back the function it found. The wrapped
+call gets the same receiver and arguments and returns the same promise, so the
+request and its errors are unchanged. The result is kept only if its `module`
+is a `WebAssembly.Module`. If the property cannot be assigned, nothing is kept.
+
+`__createDecoderForTests` is a named export of `index.mjs`, and so of this
+package and of any bundle chunk built from it. It is internal: it builds a
+separate decoder over a caller-supplied factory for this package's tests, and is
+not part of the supported API.
 
 ## Coverage
 
@@ -106,7 +194,8 @@ prevent that, and the next call on the shared instance decodes normally.
   limit`. A fork's declared length comes from the archive, and a few dozen bytes
   can declare 4 GiB. The largest bundled archive decodes to about 1.55 MiB.
   Reaching the cap leaves the instance's memory at about 69 MiB, which
-  WebAssembly does not give back.
+  WebAssembly does not give back; that is over the instance's limit, so the
+  wrapper [replaces the instance](#the-shared-instance-and-when-it-is-replaced).
 - **Lengths are enforced.** A stored (uncompressed) StuffIt fork with fewer
   bytes than its header declares is an error. A method 13 fork is decoded from
   exactly its declared compressed bytes, so a fork whose header understates
@@ -198,4 +287,5 @@ terms. The first-party wrapper has its own [MIT license](./LICENSE).
 | `dist/` | Committed generated ES module and WASM |
 | `munbox/` | Vendored subset, license and patch record |
 | `sit-wasm.test.mjs` | Archive/fork regression tests, included in repository `npm test` |
+| `instance-recovery.test.mjs` | Instance replacement, module reuse and buffer-freeing tests, included in repository `npm test`; `tests/rendering-options/sit-wasm-instance.spec.mjs` repeats the module-reuse check in a browser with the real glue |
 | `sit-wasm.malformed.test.mjs` / `malformed-archives.fixture.mjs` | Malformed-input, output-cap and memory tests, and the small inputs they build in code |

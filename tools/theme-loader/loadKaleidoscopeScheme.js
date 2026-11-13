@@ -142,14 +142,16 @@ async function decodeScheme(input, options) {
  * place a decoder failure is reported. Callers must not use this for inputs that
  * are not StuffIt archives; those never request the decoder.
  *
- * The decoder has no separate warm-up entry, so its one-time WASM instantiation is
+ * The decoder has no separate warm-up entry, so its first WASM instantiation is
  * reached through its documented pass-through of a non-archive input: zero bytes
- * decode to a single empty fork, which is discarded.
+ * decode to a single empty fork, which is discarded. The decoder may replace that
+ * instance later (after a crash, or when its memory passes a limit); a
+ * replacement is loaded by the decode that needs it, not by this function.
  *
- * When the WASM cannot instantiate, the Emscripten runtime logs the failure with
- * console.error and the decoder keeps the failed instantiation for the page's
- * lifetime, as it does without warming. Warming only moves that earlier: to the
- * request for a named `.sit` instead of the first decode.
+ * When that first instantiation fails, the Emscripten runtime logs the failure
+ * with console.error and the decoder keeps the failed instantiation for the
+ * page's lifetime, as it does without warming. Warming only moves that earlier:
+ * to the request for a named `.sit` instead of the first decode.
  */
 export function prewarmStuffItDecoder() {
   import('../sit-wasm/index.mjs').then(decoder => decoder.decodeArchive(new Uint8Array(0))).catch(() => {});
