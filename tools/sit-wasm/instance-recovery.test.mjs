@@ -79,27 +79,39 @@ function fakeModule(name, onDecode = () => {}) {
   return m;
 }
 
-// A decoder over stand-in instances: `behaviours[i]` is the onDecode of the i-th instance
-// made. `loads[i]`, when given, is an error for the i-th load to reject with instead.
+// A decoder over stand-in instances. `behaviours[i]` is the onDecode of the i-th instance
+// made. `loads[n]` says how the n-th load goes instead of succeeding: an Error rejects with
+// it, `{ throwSync }` makes the factory throw it synchronously, and `{ gate }` (from
+// `gate()`) holds the load until the test opens the gate; `{ gate, then }` also runs `then`
+// in the job that completes the load.
 function setup(behaviours = [], loads = []) {
   const made = [];
   const log = { loads: 0, options: [] };
-  const decode = createDecoder(async (options) => {
+  const make = () => { const m = fakeModule(`i${made.length}`, behaviours[made.length]); made.push(m); return m; };
+  const decode = createDecoder((options) => {
     const n = log.loads++;
     log.options.push(options);
-    assert.ok(n < INSTANCE_CAP, 'runaway instantiation');
-    if (loads[n]) throw loads[n];
-    const m = fakeModule(`i${made.length}`, behaviours[made.length]);
-    made.push(m);
-    return m;
+    if (n >= INSTANCE_CAP) return Promise.reject(new Error('runaway instantiation'));
+    const how = loads[n];
+    if (how instanceof Error) return Promise.reject(how);
+    if (how?.throwSync) throw how.throwSync;
+    if (how?.gate) return how.gate.then(() => { const m = make(); how.then?.(); return m; });
+    return Promise.resolve().then(make);
   });
   return { made, decode, log };
 }
+const gate = () => { let open; const promise = new Promise((r) => { open = r; }); return { gate: promise, open }; };
 const input = (...b) => new Uint8Array(b);
 const servedBy = (entries) => entries[0].name;
 const entry = (name, bytes) => [{ name, type: 0x41424344, creator: 0x45464748, forkType: 1, bytes }];
 const isThe = (error) => (e) => e === error;
 const isOrdinary = (message) => (e) => e.constructor === Error && e.message === message;
+const crashError = () => new WebAssembly.RuntimeError('unreachable');
+// Lets every pending promise job run, so a load started in the background has landed.
+const settle = () => new Promise((r) => setImmediate(r));
+// Freezes Date.now() for the test and returns a function that advances it.
+const clock = (t) => { t.mock.timers.enable({ apis: ['Date'], now: 1_000_000 }); return (ms) => t.mock.timers.tick(ms); };
+const RETRY_MS = 1000;
 
 // Runs `body` and fails if it left a promise rejection unhandled.
 async function withoutUnhandledRejections(body) {
@@ -108,16 +120,34 @@ async function withoutUnhandledRejections(body) {
   process.on('unhandledRejection', listener);
   try {
     await body();
-    await new Promise((r) => setImmediate(r));
-    await new Promise((r) => setImmediate(r));
+    await settle();
+    await settle();
   } finally { process.off('unhandledRejection', listener); }
   assert.equal(seen.length, 0, 'no unhandled rejections');
+}
+
+// The instance in service (`old`) is over its limit: the next call starts loading one
+// replacement and is still served by `old`; once that has loaded, calls are served by `fresh`.
+async function expectReplacement({ decode, log }, old, fresh) {
+  const before = log.loads;
+  assert.equal(servedBy(await decode(input(200))), old, 'the call that starts the replacement is served by the old instance');
+  assert.equal(log.loads, before + 1, 'one replacement started');
+  await settle();
+  assert.equal(servedBy(await decode(input(201))), fresh);
+  assert.equal(servedBy(await decode(input(202))), fresh);
+  assert.equal(log.loads, before + 1);
+}
+async function expectNoReplacement({ decode, log }, name) {
+  const before = log.loads;
+  for (let i = 0; i < 3; i++) { assert.equal(servedBy(await decode(input(210 + i))), name); await settle(); }
+  assert.equal(log.loads, before);
 }
 
 test('a healthy instance is shared, decodes correctly and frees both buffers each time', opts, async () => {
   const { made, decode, log } = setup();
   for (let i = 0; i < 5; i++) assert.deepEqual(await decode(input(i, 2, 3)), entry('i0', input(i, 2, 3)));
   assert.deepEqual(await decode(input(7, 8).buffer), entry('i0', input(7, 8)));
+  await settle();
   assert.equal(log.loads, 1);
   assert.deepEqual(made[0].calls, { malloc: 6, free: 6, decode: 6, sitFree: 6 });
   assert.deepEqual(made[0].mallocSizes, [3, 3, 3, 3, 3, 2]);
@@ -138,6 +168,7 @@ for (const [kind, make] of [
     const crash = make();
     const { made, decode, log } = setup([() => { throw crash; }]);
     await assert.rejects(decode(input(1)), isThe(crash));
+    await settle();
     assert.equal(log.loads, 1, 'no replacement until a call needs one');
 
     assert.equal(servedBy(await decode(input(2))), 'i1');
@@ -171,6 +202,7 @@ test('an ordinary decoder error keeps the instance, frees the input and reports 
   await assert.rejects(decode(input(1)), isOrdinary('decodeArchive: decode failed'));
   fail = false;
   assert.equal(servedBy(await decode(input(2))), 'i0');
+  await settle();
   assert.equal(log.loads, 1);
   assert.deepEqual(made[0].calls, { malloc: 3, free: 3, decode: 3, sitFree: 1 });
 });
@@ -186,6 +218,7 @@ test('a failed input allocation is an ordinary error and nothing is written to t
   assert.deepEqual(m.calls, { malloc: 2, free: 1, decode: 1, sitFree: 1 }, 'no decode, nothing to free');
   m.mallocResult = IN_PTR;
   assert.equal(servedBy(await decode(input(2))), 'i0', 'the instance stays in use');
+  await settle();
   assert.equal(log.loads, 1);
 });
 
@@ -201,6 +234,7 @@ test('a throw while copying the result out reaches the caller as thrown, frees t
   m.HEAPU8.failSlice = null;
   m._sit_decode = realDecode;
   assert.equal(servedBy(await decode(input(2))), 'i0');
+  await settle();
   assert.equal(log.loads, 1);
 });
 
@@ -214,6 +248,7 @@ test('a throw while copying the input in reaches the caller as thrown, frees the
   assert.deepEqual(m.calls, { malloc: 2, free: 2, decode: 1, sitFree: 1 });
   m.HEAPU8.failSet = null;
   assert.equal(servedBy(await decode(input(2))), 'i0');
+  await settle();
   assert.equal(log.loads, 1);
 });
 
@@ -235,87 +270,90 @@ test('when cleanup after a failed copy throws as well, the copy error wins and t
 
 // The limit for a decode is max(2 × initial, initial + 3 × (input + output bytes)).
 const OVER = HEAP * 2 + 4096;
+const growOnce = (m) => { if (m.HEAPU8.length < OVER) growTo(m, OVER); };
 
-test('an instance that outgrew its limit is replaced by the next call, after delivering its result', opts, async () => {
+test('an instance that outgrew its limit delivers its result, serves the next call while its replacement loads, then is replaced', opts, async () => {
   let n = 0;
-  const { made, decode, log } = setup([(m) => { if (++n === 3) growTo(m, OVER); }]);
+  const ctx = setup([(m) => { if (++n === 3) growTo(m, OVER); }]);
+  const { made, decode, log } = ctx;
   assert.equal(servedBy(await decode(input(1))), 'i0');
   assert.equal(servedBy(await decode(input(2))), 'i0');
   assert.deepEqual(await decode(input(3, 3, 3)), entry('i0', input(3, 3, 3)), 'the decode that grew memory still returns its result');
+  await settle();
   assert.equal(log.loads, 1, 'no replacement until a call needs one');
-  assert.equal(servedBy(await decode(input(4))), 'i1');
-  assert.equal(servedBy(await decode(input(5))), 'i1');
-  assert.equal(log.loads, 2);
-  assert.deepEqual(made[0].calls, { malloc: 3, free: 3, decode: 3, sitFree: 3 }, 'the outgrown instance was left clean');
+  await expectReplacement(ctx, 'i0', 'i1');
+  assert.deepEqual(made[0].calls, { malloc: 4, free: 4, decode: 4, sitFree: 4 }, 'the outgrown instance was left clean');
   assert.equal(made[1].HEAPU8.length, HEAP);
+
+  growTo(made[1], OVER); // and the same again for its replacement
+  assert.equal(servedBy(await decode(input(9))), 'i1');
+  await expectReplacement(ctx, 'i1', 'i2');
+  assert.equal(log.loads, 3);
 });
 
 test('memory at exactly twice the initial size is within the limit', opts, async () => {
-  const { decode, log } = setup([(m) => growTo(m, HEAP * 2)]);
-  for (let i = 0; i < 3; i++) assert.equal(servedBy(await decode(input(i))), 'i0');
-  assert.equal(log.loads, 1);
+  const ctx = setup([(m) => growTo(m, HEAP * 2)]);
+  assert.equal(servedBy(await ctx.decode(input(1))), 'i0');
+  await expectNoReplacement(ctx, 'i0');
 });
 
 test('growth that the size of the input and output accounts for does not replace the instance', opts, async () => {
   const big = new Uint8Array(12000).fill(7); // 3 × (input + output) is above the initial size
-  const { made, decode, log } = setup([(m) => { if (m.HEAPU8.length < OVER) growTo(m, OVER); }]);
-  for (let i = 0; i < 4; i++) assert.deepEqual(await decode(big), entry('i0', big));
-  assert.equal(log.loads, 1, 'repeated large decodes keep one instance');
-  assert.equal(servedBy(await decode(input(1))), 'i0', 'a small decode still finds it in service');
-  assert.equal(servedBy(await decode(input(2))), 'i1', 'and marks it outgrown for a small input');
-  assert.equal(log.loads, 2);
-  assert.equal(made[0].calls.decode, 5);
+  const ctx = setup([growOnce]);
+  for (let i = 0; i < 4; i++) { assert.deepEqual(await ctx.decode(big), entry('i0', big)); await settle(); }
+  assert.equal(ctx.log.loads, 1, 'repeated large decodes keep one instance');
+  assert.equal(servedBy(await ctx.decode(input(1))), 'i0', 'a small decode finds it over the limit for a small input');
+  await expectReplacement(ctx, 'i0', 'i1');
 });
 
 test('growth during the input allocation counts', opts, async () => {
-  const { made, decode, log } = setup();
-  await decode(input(0));
-  made[0].onMalloc = (m) => { if (m.HEAPU8.length < OVER) growTo(m, OVER); };
-  assert.equal(servedBy(await decode(input(1))), 'i0');
-  assert.equal(servedBy(await decode(input(2))), 'i1');
-  assert.equal(log.loads, 2);
+  const ctx = setup();
+  await ctx.decode(input(0));
+  ctx.made[0].onMalloc = growOnce;
+  assert.equal(servedBy(await ctx.decode(input(1))), 'i0');
+  await expectReplacement(ctx, 'i0', 'i1');
 });
 
 test('growth during the input allocation of an instance\'s first decode counts', opts, async () => {
   const fresh = [];
-  const decode = createDecoder(async () => {
-    assert.ok(fresh.length < INSTANCE_CAP, 'runaway instantiation');
+  const decode = createDecoder(() => Promise.resolve().then(() => {
     const m = fakeModule(`i${fresh.length}`);
-    if (fresh.length === 0) m.onMalloc = () => { if (m.HEAPU8.length < OVER) growTo(m, OVER); };
+    if (fresh.length === 0) m.onMalloc = growOnce;
     fresh.push(m);
     return m;
-  });
+  }));
   assert.equal(servedBy(await decode(input(1))), 'i0');
-  assert.equal(servedBy(await decode(input(2))), 'i1', 'the initial size was taken before the allocation');
+  assert.equal(servedBy(await decode(input(2))), 'i0');
+  await settle();
+  assert.equal(servedBy(await decode(input(3))), 'i1', 'the initial size was taken before the allocation');
 });
 
 test('outgrowing the limit also counts when the decode ends in an ordinary error', opts, async () => {
-  const { made, decode, log } = setup([(m) => { growTo(m, OVER); return 0; }]);
-  await assert.rejects(decode(input(1)), isOrdinary('decodeArchive: boom'));
-  assert.equal(servedBy(await decode(input(2))), 'i1');
-  assert.equal(log.loads, 2);
-  assert.deepEqual(made[0].calls, { malloc: 1, free: 1, decode: 1, sitFree: 0 });
+  const ctx = setup([(m) => { if (m.HEAPU8.length < OVER) { growTo(m, OVER); return 0; } }]);
+  await assert.rejects(ctx.decode(input(1)), isOrdinary('decodeArchive: boom'));
+  assert.deepEqual(ctx.made[0].calls, { malloc: 1, free: 1, decode: 1, sitFree: 0 });
+  await expectReplacement(ctx, 'i0', 'i1');
 });
 
 test('outgrowing the limit also counts when a copy throws', opts, async () => {
   for (const flag of ['failSet', 'failSlice']) {
-    const { made, decode, log } = setup();
-    await decode(input(9));
-    const m = made[0];
+    const ctx = setup();
+    await ctx.decode(input(9));
+    const m = ctx.made[0];
     const failure = new RangeError(`${flag} copy failed`);
     const realDecode = m._sit_decode;
     if (flag === 'failSet') m.onMalloc = () => { growTo(m, OVER); m.HEAPU8.failSet = failure; };
     else m._sit_decode = (...a) => { const r = realDecode(...a); growTo(m, OVER); m.HEAPU8.failSlice = failure; return r; };
-    await assert.rejects(decode(input(1)), isThe(failure), flag);
+    await assert.rejects(ctx.decode(input(1)), isThe(failure), flag);
     m.onMalloc = () => {};
     m._sit_decode = realDecode;
-    assert.equal(servedBy(await decode(input(2))), 'i1', flag);
-    assert.equal(log.loads, 2, flag);
+    m.HEAPU8.failSet = m.HEAPU8.failSlice = null;
+    await expectReplacement(ctx, 'i0', 'i1');
   }
 });
 
 test('calls waiting on an instance that crashes share one replacement', opts, async () => {
-  const crash = new WebAssembly.RuntimeError('unreachable');
+  const crash = crashError();
   const { made, decode, log } = setup([() => { throw crash; }]);
   // All four start before the first instance exists, so all four wait on the same one.
   const results = await Promise.allSettled([decode(input(1)), decode(input(2)), decode(input(3)), decode(input(4))]);
@@ -329,7 +367,7 @@ test('calls waiting on an instance that crashes share one replacement', opts, as
 });
 
 test('each crash among concurrent calls costs exactly one replacement', opts, async () => {
-  const crash = () => { throw new WebAssembly.RuntimeError('unreachable'); };
+  const crash = () => { throw crashError(); };
   const { made, decode, log } = setup([crash, crash]);
   const results = await Promise.allSettled([1, 2, 3, 4, 5].map((b) => decode(input(b))));
   assert.deepEqual(results.map((r) => r.status), ['rejected', 'rejected', 'fulfilled', 'fulfilled', 'fulfilled']);
@@ -338,161 +376,204 @@ test('each crash among concurrent calls costs exactly one replacement', opts, as
   assert.deepEqual(made.map((m) => m.calls.decode), [1, 1, 3]);
 });
 
-test('calls already waiting on an instance that outgrows its limit still use it; later calls share one replacement', opts, async () => {
-  const { made, decode, log } = setup([(m) => { if (m.HEAPU8.length < OVER) growTo(m, OVER); }]);
-  const first = decode(input(1)), second = decode(input(2));
-  assert.equal(servedBy(await first), 'i0');
-  assert.equal(servedBy(await second), 'i0', 'it is healthy, so the call that was waiting on it is served');
-  const later = await Promise.all([decode(input(3)), decode(input(4)), decode(input(5))]);
-  assert.deepEqual(later.map(servedBy), ['i1', 'i1', 'i1']);
+test('calls made while a replacement is loading are served by the outgrown instance and share that one load', opts, async () => {
+  const held = gate();
+  const { made, decode, log } = setup([growOnce], [null, held]);
+  assert.equal(servedBy(await decode(input(1))), 'i0');
+  const during = await Promise.all([decode(input(2)), decode(input(3)), decode(input(4))]);
+  assert.deepEqual(during.map(servedBy), ['i0', 'i0', 'i0']);
+  assert.equal(servedBy(await decode(input(5))), 'i0');
+  assert.equal(log.loads, 2, 'one replacement, however many calls arrive while it loads');
+  held.open();
+  await settle();
+  assert.equal(servedBy(await decode(input(6))), 'i1');
   assert.equal(log.loads, 2);
-  assert.deepEqual(made.map((m) => m.calls.decode), [2, 3]);
+  assert.deepEqual(made.map((m) => m.calls.decode), [5, 1]);
 });
 
-test('a failed first instantiation is kept: later calls reject with it and nothing is retried', opts, async () => {
+test('a replacement that never finishes loading costs nothing', opts, async () => {
+  const { decode, log } = setup([growOnce], [null, gate()]);
+  for (let i = 0; i < 6; i++) { assert.equal(servedBy(await decode(input(i))), 'i0'); await settle(); }
+  assert.equal(log.loads, 2);
+});
+
+test('a factory that throws synchronously while replacing an outgrown instance costs nothing', opts, async (t) => {
+  await withoutUnhandledRejections(async () => {
+    const advance = clock(t);
+    const ctx = setup([growOnce], [null, { throwSync: new Error('factory threw') }]);
+    assert.equal(servedBy(await ctx.decode(input(1))), 'i0');
+    assert.equal(servedBy(await ctx.decode(input(2))), 'i0', 'the call that met the throw is served');
+    assert.equal(ctx.log.loads, 2);
+    await settle();
+    advance(RETRY_MS);
+    await expectReplacement(ctx, 'i0', 'i1');
+  });
+});
+
+test('a crash on an outgrown instance while its replacement loads: the late replacement is not put in service', opts, async () => {
+  const held = gate();
+  const crash = crashError();
+  let n = 0;
+  const { made, decode, log } = setup([(m) => { n++; if (n === 1) growTo(m, OVER); if (n === 3) throw crash; }], [null, held]);
+  assert.equal(servedBy(await decode(input(1))), 'i0');
+  assert.equal(servedBy(await decode(input(2))), 'i0'); // starts the held replacement
+  await assert.rejects(decode(input(3)), isThe(crash));
+  assert.equal(servedBy(await decode(input(4))), 'i1', 'nothing usable, so this call loaded its own replacement');
+  assert.equal(log.loads, 3);
+  held.open();
+  await settle();
+  assert.equal(made.length, 3, 'the held load finished');
+  assert.equal(servedBy(await decode(input(5))), 'i1', 'and was not swapped in over the instance in service');
+  await settle();
+  assert.equal(log.loads, 3);
+});
+
+test('an instance that outgrew its limit and then crashed is replaced once', opts, async () => {
+  const crash = crashError();
+  let n = 0;
+  const { decode, log } = setup([(m) => { if (++n === 1) growTo(m, OVER); else throw crash; }]);
+  const results = await Promise.allSettled([decode(input(1)), decode(input(2))]); // both wait on the first instance
+  assert.equal(servedBy(results[0].value), 'i0');
+  assert.equal(results[1].reason, crash);
+  assert.equal(servedBy(await decode(input(3))), 'i1');
+  await settle();
+  assert.equal(servedBy(await decode(input(4))), 'i1');
+  assert.equal(log.loads, 2);
+});
+
+test('a call that was already waiting when the replacement went into service runs on the old instance without disturbing the new one', opts, async () => {
+  // The late call is made from a job queued while the replacement's load completes, so it
+  // waits on the old instance's promise and runs after the swap.
+  let late;
+  const held = gate();
+  held.then = () => { Promise.resolve().then(() => { late = ctx.decode(input(9)); }); };
+  const ctx = setup([growOnce], [null, held]);
+  assert.equal(servedBy(await ctx.decode(input(1))), 'i0');
+  assert.equal(servedBy(await ctx.decode(input(2))), 'i0');
+  held.open();
+  await settle();
+  assert.equal(servedBy(await late), 'i0');
+  await expectNoReplacement(ctx, 'i1');
+  assert.equal(ctx.log.loads, 2, 'the old instance being over its limit does not retire the new one');
+});
+
+test('a failed first instantiation is kept: later calls reject with it and nothing is retried', opts, async (t) => {
+  const advance = clock(t);
   const failure = new Error('no wasm');
   const { decode, log } = setup([], [failure]);
   const results = await Promise.allSettled([decode(input(1)), decode(input(2))]);
   assert.deepEqual(results.map((r) => r.reason), [failure, failure]);
   await assert.rejects(decode(input(3)), isThe(failure));
+  advance(10 * RETRY_MS);
   await assert.rejects(decode(input(4)), isThe(failure));
   assert.equal(log.loads, 1);
 });
 
-test('a failed replacement after a crash rejects the calls waiting on it and the next call tries again', opts, async () => {
+test('a failed replacement after a crash rejects the calls that need it, is retried no sooner than the retry interval, and decoding recovers', opts, async (t) => {
   await withoutUnhandledRejections(async () => {
-    const crash = new WebAssembly.RuntimeError('unreachable');
-    const failure = new Error('no wasm just now');
-    const { made, decode, log } = setup([() => { throw crash; }], [null, failure, failure]);
+    const advance = clock(t);
+    const crash = crashError();
+    const failure = new Error('no wasm just now'), second = new Error('still no wasm');
+    const { made, decode, log } = setup([() => { throw crash; }], [null, failure, second]);
     await assert.rejects(decode(input(1)), isThe(crash));
     const waiting = await Promise.allSettled([decode(input(2)), decode(input(3))]);
     assert.deepEqual(waiting.map((r) => r.reason), [failure, failure], 'both waited on the one failed load');
     assert.equal(log.loads, 2);
-    await assert.rejects(decode(input(4)), isThe(failure), 'a second failure is not kept either');
+    for (let i = 0; i < 5; i++) await assert.rejects(decode(input(4)), isThe(failure), 'within the interval: the same failure, no new attempt');
+    advance(RETRY_MS - 1);
+    await assert.rejects(decode(input(4)), isThe(failure));
+    assert.equal(log.loads, 2);
+    advance(1);
+    await assert.rejects(decode(input(5)), isThe(second), 'the interval has passed: a new attempt, which also fails');
     assert.equal(log.loads, 3);
-    assert.equal(servedBy(await decode(input(5))), 'i1');
+    await assert.rejects(decode(input(5)), isThe(second));
+    assert.equal(log.loads, 3, 'the interval restarts at the latest failure');
+    advance(RETRY_MS);
     assert.equal(servedBy(await decode(input(6))), 'i1');
+    assert.equal(servedBy(await decode(input(7))), 'i1');
     assert.equal(log.loads, 4);
     assert.equal(made[0].calls.decode, 1);
   });
 });
 
-test('a failed replacement for an outgrown instance costs nothing: that instance serves until one loads', opts, async () => {
+test('a failed replacement for an outgrown instance costs nothing and is retried no sooner than the retry interval', opts, async (t) => {
   await withoutUnhandledRejections(async () => {
+    const advance = clock(t);
     const failure = new Error('no wasm just now');
-    const { made, decode, log } = setup([(m) => { if (m.HEAPU8.length < OVER) growTo(m, OVER); }], [null, failure, failure]);
+    const ctx = setup([growOnce], [null, failure, failure]);
+    const { made, decode, log } = ctx;
     assert.equal(servedBy(await decode(input(1))), 'i0');
-    const waiting = await Promise.all([decode(input(2)), decode(input(3))]);
-    assert.deepEqual(waiting.map(servedBy), ['i0', 'i0'], 'the load failed, so the outgrown instance served both');
-    assert.equal(log.loads, 2, 'and both shared the one attempt');
-    assert.equal(servedBy(await decode(input(4))), 'i0', 'a second failed attempt');
-    assert.equal(log.loads, 3);
-    assert.equal(servedBy(await decode(input(5))), 'i1', 'the third attempt loads');
-    assert.equal(servedBy(await decode(input(6))), 'i1');
-    assert.equal(log.loads, 4);
-    assert.deepEqual(made.map((m) => m.calls.decode), [4, 2]);
-  });
-});
-
-test('an outgrown instance that crashes while its replacement is failing is not used again', opts, async () => {
-  await withoutUnhandledRejections(async () => {
-    const crash = new WebAssembly.RuntimeError('unreachable');
-    const failure = new Error('no wasm just now');
-    let n = 0;
-    const { decode, log } = setup([(m) => { if (++n === 1) growTo(m, OVER); else throw crash; }], [null, failure]);
-    assert.equal(servedBy(await decode(input(1))), 'i0');
-    await assert.rejects(decode(input(2)), isThe(crash), 'served by the outgrown instance, which crashes');
-    assert.equal(servedBy(await decode(input(3))), 'i1');
-    assert.equal(log.loads, 3);
-  });
-});
-
-// A call can still be holding the old instance's promise when a later call starts the
-// replacement: three calls on a loaded instance, queued so that the first outgrows it, the
-// second (made from a microtask in between) starts the replacement, and the third then runs
-// on the old instance.
-async function straggler({ onThird, loads }) {
-  let n = 0;
-  const ctx = setup([(m) => { n++; if (n === 2) growTo(m, OVER); if (n === 3) onThird(); }], loads);
-  await ctx.decode(input(0)); // the instance is loaded
-  const first = ctx.decode(input(1));
-  let second;
-  const queued = Promise.resolve().then(() => { second = ctx.decode(input(2)); });
-  const third = ctx.decode(input(3));
-  await queued;
-  return { ...ctx, results: await Promise.allSettled([first, second, third]) };
-}
-
-test('an instance that outgrew its limit and then crashed gets one replacement attempt per call', opts, async () => {
-  await withoutUnhandledRejections(async () => {
-    const crash = new WebAssembly.RuntimeError('unreachable');
-    const failure = new Error('no wasm just now');
-    let n = 0;
-    const { decode, log } = setup([(m) => { if (++n === 1) growTo(m, OVER); else throw crash; }], [null, failure]);
-    const results = await Promise.allSettled([decode(input(1)), decode(input(2))]); // both wait on the first instance
-    assert.equal(servedBy(results[0].value), 'i0');
-    assert.equal(results[1].reason, crash);
-    await assert.rejects(decode(input(3)), isThe(failure));
+    assert.equal(servedBy(await decode(input(2))), 'i0');
     assert.equal(log.loads, 2);
-    assert.equal(servedBy(await decode(input(4))), 'i1');
+    await settle();
+    for (let i = 0; i < 5; i++) { assert.equal(servedBy(await decode(input(3))), 'i0'); await settle(); }
+    assert.equal(log.loads, 2, 'within the interval: no new attempt');
+    advance(RETRY_MS - 1);
+    assert.equal(servedBy(await decode(input(4))), 'i0');
+    assert.equal(log.loads, 2);
+    advance(1);
+    assert.equal(servedBy(await decode(input(5))), 'i0');
+    assert.equal(log.loads, 3, 'the interval has passed: a second attempt, which also fails');
+    await settle();
+    assert.equal(servedBy(await decode(input(6))), 'i0');
     assert.equal(log.loads, 3);
-  });
-});
-
-test('a call that runs on the old instance after its replacement was started does not disturb the replacement', opts, async () => {
-  const { decode, log, made, results } = await straggler({ onThird: () => {} });
-  assert.deepEqual(results.map((r) => servedBy(r.value)), ['i0', 'i1', 'i0']);
-  assert.equal(servedBy(await decode(input(4))), 'i1');
-  assert.equal(servedBy(await decode(input(5))), 'i1');
-  assert.equal(log.loads, 2, 'the old instance being over its limit does not retire the new one');
-  assert.deepEqual(made.map((m) => m.calls.decode), [3, 3]);
-});
-
-test('a crash on the old instance after its replacement was started does not disturb the replacement', opts, async () => {
-  const crash = new WebAssembly.RuntimeError('unreachable');
-  const { decode, log, results } = await straggler({ onThird: () => { throw crash; } });
-  assert.equal(servedBy(results[0].value), 'i0');
-  assert.equal(servedBy(results[1].value), 'i1');
-  assert.equal(results[2].reason, crash);
-  assert.equal(servedBy(await decode(input(4))), 'i1');
-  assert.equal(log.loads, 2);
-});
-
-test('a crash on the old instance while its replacement is failing leaves nothing stale behind', opts, async () => {
-  await withoutUnhandledRejections(async () => {
-    const crash = new WebAssembly.RuntimeError('unreachable');
-    const { decode, log, results } = await straggler({ onThird: () => { throw crash; }, loads: [null, new Error('no wasm just now')] });
-    assert.equal(servedBy(results[0].value), 'i0');
-    assert.equal(servedBy(results[1].value), 'i1', 'the failed load fell back to an instance that had crashed, so the call loaded another');
-    assert.equal(results[2].reason, crash);
-    assert.equal(log.loads, 3);
-    assert.equal(servedBy(await decode(input(4))), 'i1');
-    assert.equal(servedBy(await decode(input(5))), 'i1');
-    assert.equal(log.loads, 3);
+    advance(RETRY_MS);
+    await expectReplacement(ctx, 'i0', 'i1');
+    assert.equal(log.loads, 4);
+    assert.equal(made[0].calls.decode, 11);
   });
 });
 
 // A stand-in for the browser glue: it starts a streaming compile synchronously inside the
-// factory call, as the real glue does, unless it is handed `instantiateWasm`.
+// factory call, as the real glue does, unless it is handed `instantiateWasm`. `plan` can
+// change how individual loads go.
 const EMPTY_WASM = new Uint8Array([0, 0x61, 0x73, 0x6d, 1, 0, 0, 0]);
-function browserLikeGlue({ streams = true, wasm = EMPTY_WASM } = {}) {
-  const log = { fetches: 0, hooked: [], options: [], made: [], hookImports: {} };
-  const imports = {};
-  const next = () => { const m = fakeModule(`i${log.made.length}`, (mod) => { if (mod.crashNext) { mod.crashNext = false; throw new WebAssembly.RuntimeError('unreachable'); } }); log.made.push(m); return m; };
+function browserLikeGlue(plan = {}) {
+  const log = { fetches: 0, hooked: [], options: [], made: [], hookImports: {}, responses: [], streamed: [] };
+  const imports = { marker: 'the glue\'s imports' };
+  const next = () => {
+    const m = fakeModule(`i${log.made.length}`, (mod) => { if (mod.crashNext) { mod.crashNext = false; throw crashError(); } });
+    log.made.push(m);
+    return m;
+  };
   const glue = (options) => {
-    log.options.push(options);
-    assert.ok(log.options.length <= INSTANCE_CAP, 'runaway instantiation');
+    const n = log.options.push(options) - 1;
+    if (n >= INSTANCE_CAP) return Promise.reject(new Error('runaway instantiation'));
+    if (plan.throwSync?.(n)) throw plan.throwSync(n);
     if (options.instantiateWasm) {
+      if (plan.rejectHook) return Promise.reject(plan.rejectHook);
       return new Promise((done) => {
-        options.instantiateWasm(log.hookImports, (instance, module) => { log.hooked.push({ instance, module }); done(next()); });
+        options.instantiateWasm(log.hookImports, (instance, module) => {
+          if (plan.receiveThrows) throw plan.receiveThrows;
+          log.hooked.push({ instance, module });
+          done(next());
+        });
       });
     }
     log.fetches++;
-    if (!streams) return Promise.resolve().then(next);
-    const response = new Response(wasm, { headers: { 'content-type': 'application/wasm' } });
-    return WebAssembly.instantiateStreaming(response, imports).then(next);
+    if (plan.rejectDefault?.(n)) return Promise.reject(plan.rejectDefault(n));
+    if (plan.streams && !plan.streams(n)) return Promise.resolve().then(next);
+    const response = new Response(plan.wasm ?? EMPTY_WASM, { headers: { 'content-type': 'application/wasm' } });
+    log.responses.push(response);
+    const streamed = WebAssembly.instantiateStreaming(response, imports);
+    log.streamed.push(streamed);
+    return streamed.then(next);
   };
-  return { glue, log };
+  return { glue, log, imports };
+}
+const crashAndReplace = async (decode, log, old, fresh) => {
+  log.made.at(-1).crashNext = true;
+  await assert.rejects(decode(input(100)), WebAssembly.RuntimeError);
+  assert.equal(log.made.at(-1).name, old);
+  assert.equal(servedBy(await decode(input(101))), fresh);
+};
+// Runs `body` with `wrapper` installed as WebAssembly.instantiateStreaming, as another
+// library might have done, and puts the native function back afterwards.
+async function withInstalled(makeWrapper, body) {
+  const native = WebAssembly.instantiateStreaming;
+  const wrapper = makeWrapper(native);
+  WebAssembly.instantiateStreaming = wrapper;
+  try { await body(wrapper, native); } finally { WebAssembly.instantiateStreaming = native; }
 }
 
 test('replacements reuse the module compiled for the first instance and do not fetch', opts, async () => {
@@ -504,12 +585,10 @@ test('replacements reuse the module compiled for the first instance and do not f
   assert.equal(servedBy(await pending), 'i0');
   assert.equal(log.fetches, 1);
 
-  log.made[0].crashNext = true;
-  await assert.rejects(decode(input(2)), WebAssembly.RuntimeError);
-  assert.equal(servedBy(await decode(input(3))), 'i1', 'replacement after a crash');
+  await crashAndReplace(decode, log, 'i0', 'i1');
   growTo(log.made[1], OVER);
   assert.equal(servedBy(await decode(input(4))), 'i1');
-  assert.equal(servedBy(await decode(input(5))), 'i2', 'replacement after outgrowing the limit');
+  await expectReplacement({ decode, log: { get loads() { return log.options.length; } } }, 'i1', 'i2');
 
   assert.equal(log.fetches, 1, 'only the first instance fetched');
   assert.equal(log.hooked.length, 2);
@@ -522,29 +601,125 @@ test('replacements reuse the module compiled for the first instance and do not f
   assert.equal(WebAssembly.instantiateStreaming, streaming);
 });
 
-test('a replacement that cannot be instantiated from the kept module rejects and the next call tries again', opts, async () => {
+test('the glue\'s streaming call reaches the function that was installed with the same receiver, arguments and promise, and that function stays installed', opts, async () => {
+  const seen = [], returned = [];
+  await withInstalled((native) => function installed(...args) {
+    seen.push({ self: this, args });
+    const result = native.apply(this, args);
+    returned.push(result);
+    return result;
+  }, async (installed) => {
+    const { glue, log, imports } = browserLikeGlue();
+    const decode = createDecoder(glue);
+    const pending = decode(input(1));
+    assert.equal(WebAssembly.instantiateStreaming, installed, 'the function found is the one put back, not the native one');
+    assert.equal(servedBy(await pending), 'i0');
+    assert.equal(seen.length, 1);
+    assert.equal(seen[0].self, WebAssembly);
+    assert.equal(seen[0].args.length, 2);
+    assert.equal(seen[0].args[0], log.responses[0]);
+    assert.equal(seen[0].args[1], imports);
+    assert.equal(log.streamed[0], returned[0], 'the glue gets the very promise the installed function returned');
+    await crashAndReplace(decode, log, 'i0', 'i1');
+    assert.equal(log.fetches, 1, 'the module was captured through the installed function');
+    assert.equal(seen.length, 1);
+    assert.equal(WebAssembly.instantiateStreaming, installed);
+  });
+});
+
+test('a captured value that is not a WebAssembly.Module is not kept', opts, async () => {
+  await withoutUnhandledRejections(async () => {
+    await withInstalled((native) => function installed(...args) {
+      return native.apply(this, args).then((made) => ({ instance: made.instance, module: { not: 'a module' } }));
+    }, async () => {
+      const { glue, log } = browserLikeGlue();
+      const decode = createDecoder(glue);
+      assert.equal(servedBy(await decode(input(1))), 'i0');
+      await crashAndReplace(decode, log, 'i0', 'i1');
+      await crashAndReplace(decode, log, 'i1', 'i2');
+      assert.equal(log.fetches, 3, 'every load went the default way');
+      assert.equal(log.hooked.length, 0);
+      assert.ok(log.options.every((o) => !('instantiateWasm' in o)), 'and no load tried the value that was not a module');
+    });
+  });
+});
+
+test('a streaming result with no usable shape is ignored without an unhandled rejection', opts, async () => {
+  await withoutUnhandledRejections(async () => {
+    await withInstalled(() => function installed() { return Promise.resolve(undefined); }, async () => {
+      const { glue, log } = browserLikeGlue();
+      const decode = createDecoder(glue);
+      assert.equal(servedBy(await decode(input(1))), 'i0');
+      await crashAndReplace(decode, log, 'i0', 'i1');
+      assert.equal(log.fetches, 2);
+    });
+  });
+});
+
+test('when the kept module cannot be instantiated it is dropped: that load and later ones go the default way', opts, async () => {
   await withoutUnhandledRejections(async () => {
     const { glue, log } = browserLikeGlue();
     const decode = createDecoder(glue);
     assert.equal(servedBy(await decode(input(1))), 'i0');
-    log.made[0].crashNext = true;
-    await assert.rejects(decode(input(2)), WebAssembly.RuntimeError);
-    log.hookImports = 7; // not an imports object: instantiation rejects
-    await assert.rejects(decode(input(3)), TypeError);
+    log.hookImports = 7; // not an imports object: instantiating the kept module rejects
+    await crashAndReplace(decode, log, 'i0', 'i1');
+    assert.equal(log.fetches, 2, 'the same call fell back to the default load');
     log.hookImports = {};
-    assert.equal(servedBy(await decode(input(4))), 'i1');
-    assert.equal(log.fetches, 1);
-    assert.equal(log.options.length, 3);
+    await crashAndReplace(decode, log, 'i1', 'i2');
+    assert.equal(log.fetches, 3, 'the kept module is not tried again');
+    assert.equal(log.hooked.length, 0);
+    assert.equal(log.options.filter((o) => 'instantiateWasm' in o).length, 1);
   });
 });
 
-test('without a captured module a replacement loads the way the first instance did', opts, async () => {
-  const { glue, log } = browserLikeGlue({ streams: false });
+test('a throw from the glue while it receives the instance falls back to the default load', opts, async () => {
+  await withoutUnhandledRejections(async () => {
+    const plan = {};
+    const { glue, log } = browserLikeGlue(plan);
+    const decode = createDecoder(glue);
+    assert.equal(servedBy(await decode(input(1))), 'i0');
+    plan.receiveThrows = new Error('receive threw');
+    await crashAndReplace(decode, log, 'i0', 'i1');
+    assert.equal(log.fetches, 2);
+  });
+});
+
+test('a glue rejection on the kept-module path falls back to the default load, and a failure of that reaches the caller', opts, async (t) => {
+  await withoutUnhandledRejections(async () => {
+    const advance = clock(t);
+    const plan = {};
+    const { glue, log } = browserLikeGlue(plan);
+    const decode = createDecoder(glue);
+    assert.equal(servedBy(await decode(input(1))), 'i0');
+    plan.rejectHook = new Error('glue rejected');
+    const offline = new Error('offline');
+    plan.rejectDefault = () => offline;
+    log.made[0].crashNext = true;
+    await assert.rejects(decode(input(2)), WebAssembly.RuntimeError);
+    await assert.rejects(decode(input(3)), isThe(offline), 'the call does not hang: it gets the default load\'s failure');
+    plan.rejectDefault = null;
+    advance(RETRY_MS);
+    assert.equal(servedBy(await decode(input(4))), 'i1');
+    assert.equal(log.fetches, 3);
+  });
+});
+
+test('the module is captured from whichever load first streams, not only from the first load', opts, async () => {
+  const { glue, log } = browserLikeGlue({ streams: (n) => n >= 1 });
   const decode = createDecoder(glue);
   assert.equal(servedBy(await decode(input(1))), 'i0');
-  log.made[0].crashNext = true;
-  await assert.rejects(decode(input(2)), WebAssembly.RuntimeError);
-  assert.equal(servedBy(await decode(input(3))), 'i1');
+  await crashAndReplace(decode, log, 'i0', 'i1');
+  assert.equal(log.fetches, 2, 'the first load did not stream, so the second loaded the default way');
+  await crashAndReplace(decode, log, 'i1', 'i2');
+  assert.equal(log.fetches, 2, 'the second load streamed, so the third reused its module');
+  assert.equal(log.hooked.length, 1);
+});
+
+test('without a captured module a replacement loads the way the first instance did', opts, async () => {
+  const { glue, log } = browserLikeGlue({ streams: () => false });
+  const decode = createDecoder(glue);
+  assert.equal(servedBy(await decode(input(1))), 'i0');
+  await crashAndReplace(decode, log, 'i0', 'i1');
   assert.equal(log.fetches, 2);
   assert.equal(log.hooked.length, 0);
   assert.ok(log.options.every((o) => typeof o.print === 'function' && !('instantiateWasm' in o)));
@@ -562,6 +737,16 @@ test('a failed streaming compile rejects as the glue rejects, restores the globa
   assert.equal(log.hooked.length, 0);
 });
 
+test('a glue that throws synchronously rejects the call and leaves the global as it was', opts, async () => {
+  const streaming = WebAssembly.instantiateStreaming;
+  const thrown = new Error('factory threw');
+  const { glue } = browserLikeGlue({ throwSync: () => thrown });
+  const decode = createDecoder(glue);
+  const pending = decode(input(1));
+  assert.equal(WebAssembly.instantiateStreaming, streaming);
+  await assert.rejects(pending, isThe(thrown));
+});
+
 test('a WebAssembly namespace that cannot be patched still loads', opts, async () => {
   const descriptor = Object.getOwnPropertyDescriptor(WebAssembly, 'instantiateStreaming');
   Object.defineProperty(WebAssembly, 'instantiateStreaming', { ...descriptor, writable: false });
@@ -569,9 +754,7 @@ test('a WebAssembly namespace that cannot be patched still loads', opts, async (
     const { glue, log } = browserLikeGlue();
     const decode = createDecoder(glue);
     assert.equal(servedBy(await decode(input(1))), 'i0');
-    log.made[0].crashNext = true;
-    await assert.rejects(decode(input(2)), WebAssembly.RuntimeError);
-    assert.equal(servedBy(await decode(input(3))), 'i1');
+    await crashAndReplace(decode, log, 'i0', 'i1');
     assert.equal(log.fetches, 2, 'no module was captured, so the replacement loaded the default way');
   } finally { Object.defineProperty(WebAssembly, 'instantiateStreaming', descriptor); }
 });
@@ -579,6 +762,9 @@ test('a WebAssembly namespace that cannot be patched still loads', opts, async (
 const realGlue = (instances) => async (options) => {
   assert.ok(instances.length < INSTANCE_CAP, 'runaway instantiation');
   const m = await createMunbox(options);
+  m.decodes = 0;
+  const realDecode = m._sit_decode;
+  m._sit_decode = (...a) => { m.decodes++; return realDecode(...a); };
   instances.push(m);
   return m;
 };
@@ -588,7 +774,7 @@ const digest = (entries) => {
   return h.digest('hex');
 };
 
-test('real decoder: repeated passes over the bundled archives keep memory bounded with identical output', {
+test('real decoder: repeated passes over the bundled archives use one instance at its initial size with identical output', {
   timeout: 120_000,
 }, async () => {
   const archives = readdirSync(resolve(root, 'themes')).sort()
@@ -602,48 +788,23 @@ test('real decoder: repeated passes over the bundled archives keep memory bounde
   for (const bytes of archives) reference.push(digest(await createDecoder(realGlue(fresh))(bytes)));
   const initial = fresh[0].HEAPU8.length;
   assert.ok(fresh.every((m) => m.HEAPU8.length === initial), 'no bundled archive grows a fresh instance');
-  const limit = 2 * initial;
 
-  // One instance reused without replacement passes the limit well inside PASSES passes, so
-  // a wrapper that kept its instance would fail below.
-  const PASSES = 12;
-  const raw = await createMunbox({ print: () => {} });
-  for (let pass = 0; pass < PASSES; pass++) {
-    for (const bytes of archives) {
-      const inPtr = raw._malloc(bytes.length);
-      raw.HEAPU8.set(bytes, inPtr);
-      const outPtr = raw._sit_decode(inPtr, bytes.length);
-      raw._free(inPtr);
-      assert.ok(outPtr);
-      raw._sit_free(outPtr);
-    }
-  }
-  assert.ok(raw.HEAPU8.length > 1.5 * limit, 'premise: an instance that is never replaced grows far past the limit');
-
+  const PASSES = 6;
   const instances = [];
   const decode = createDecoder(realGlue(instances));
-  let peak = 0;
   for (let pass = 0; pass < PASSES; pass++) {
-    for (const [i, bytes] of archives.entries()) {
-      const serving = instances.at(-1);
-      const countBefore = instances.length;
-      const over = serving !== undefined && serving.HEAPU8.length > limit;
-      assert.equal(digest(await decode(bytes)), reference[i], `pass ${pass} archive ${i}`);
-      if (over) assert.equal(instances.length, countBefore + 1, 'an instance over the limit is replaced before the next decode');
-      else if (serving) assert.equal(instances.length, countBefore, 'an instance within the limit is reused');
-      peak = Math.max(peak, instances.at(-1).HEAPU8.length);
-    }
+    for (const [i, bytes] of archives.entries()) assert.equal(digest(await decode(bytes)), reference[i], `pass ${pass} archive ${i}`);
   }
-  assert.ok(instances.length > 1, 'the passes were enough to force a replacement');
-  assert.ok(instances.length <= PASSES / 2, `replacements are occasional (${instances.length} instances)`);
-  assert.ok(peak <= 1.25 * limit, `peak ${peak} is within one growth step of the limit ${limit}`);
-  assert.ok(peak < raw.HEAPU8.length / 1.5, `peak ${peak} stays well below the unreplaced ${raw.HEAPU8.length}`);
+  await settle();
+  assert.equal(instances.length, 1, 'no replacement was needed');
+  assert.equal(instances[0].decodes, PASSES * archives.length);
+  assert.equal(instances[0].HEAPU8.length, initial, 'memory did not grow');
 
   // The shared public decoder gives the same output.
   for (const [i, bytes] of archives.entries()) assert.equal(digest(await decodeArchive(bytes)), reference[i]);
 });
 
-test('real decoder: a large input that grows a fresh instance does not replace it on every decode', {
+test('real decoder: a large input is decoded repeatedly on one instance, which is replaced once small inputs follow', {
   timeout: 120_000,
 }, async () => {
   const large = new Uint8Array(8 * 1024 * 1024); // not an archive: passes through as one data fork
@@ -654,11 +815,19 @@ test('real decoder: a large input that grows a fresh instance does not replace i
   const initial = (await createMunbox({ print: () => {} })).HEAPU8.length;
   assert.ok(instances[0].HEAPU8.length > 2 * initial, 'premise: this input takes a fresh instance past twice its initial size');
   for (let i = 0; i < 4; i++) assert.equal(digest(await decode(large)), first);
+  await settle();
   assert.equal(instances.length, 1, 'one instance served every large decode');
+
   const small = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
-  await decode(small);
-  assert.equal(instances.length, 1, 'the small decode ran on it and found it over the limit for a small input');
-  await decode(small);
-  assert.equal(instances.length, 2, 'so the next call replaced it');
-  assert.ok(instances[1].HEAPU8.length < instances[0].HEAPU8.length);
+  const smallDigest = digest(await decode(small)); // finds the instance over the limit for a small input
+  assert.equal(digest(await decode(small)), smallDigest); // starts the replacement, served by the old instance
+  assert.equal(instances[0].decodes, 7);
+  for (let i = 0; i < 400 && instances.length < 2; i++) await new Promise((r) => setTimeout(r, 5));
+  await settle();
+  assert.equal(instances.length, 2, 'the replacement loaded');
+  assert.equal(digest(await decode(small)), smallDigest);
+  assert.equal(instances[1].decodes, 1, 'and is in service');
+  assert.equal(instances[1].HEAPU8.length, initial);
+  await settle();
+  assert.equal(instances.length, 2);
 });

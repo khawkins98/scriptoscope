@@ -11,81 +11,116 @@ const moduleOptions = () => ({ print: () => {} });
 
 const readU32 = (h, o) => (h[o] | (h[o + 1] << 8) | (h[o + 2] << 16) | (h[o + 3] << 24)) >>> 0;
 
+// After a failed replacement load, how long calls go without attempting another.
+const RETRY_MS = 1000;
+
 // Builds a decodeArchive around one shared instance made by `glue` (the Emscripten factory).
 // The first call pays the instantiation cost. The instance is replaced in two cases.
 //
 // 1. A call into it threw (a runtime abort or a WebAssembly trap). Nothing inside it was
 //    unwound or freed and its heap may be damaged, so it is never called again. The caller
-//    gets that error unchanged and the next call loads a replacement.
-// 2. It outgrew its limit. The decoder does not return everything it allocates and WASM
-//    memory cannot shrink, so a reused instance only gets bigger. After a decode, an instance
-//    whose memory exceeds max(2 × its initial size, initial size + 3 × (input + output bytes
-//    of that decode)) is marked outgrown. The second term keeps one large archive from
-//    replacing the instance on every decode: decoding needs up to about 2 × (input + output)
-//    above the initial size. An outgrown instance is still healthy. It stays in service
-//    until the next call has loaded its replacement, and if that load fails the call uses
-//    the outgrown instance and a later call tries again.
+//    gets that error unchanged and the next call waits for a replacement.
+// 2. It outgrew its limit. WASM memory cannot shrink, so whatever one decode needed, or
+//    anything the decoder failed to return, stays with a reused instance. After a decode, an
+//    instance whose memory exceeds max(2 × its initial size, initial size + 3 × (input +
+//    output bytes of that decode)) is marked outgrown. The second term keeps one large
+//    archive from replacing the instance on every decode: decoding needs up to about
+//    2 × (input + output) above the initial size. An outgrown instance is still healthy. The
+//    next call starts loading its replacement and is served by the outgrown instance, as are
+//    later calls, until the replacement has loaded. If that load fails or never finishes,
+//    nothing is lost.
 //
-// Nothing is loaded ahead of need. A failed replacement is never kept. Only a failure of the
-// very first load is kept and returned to every later call, as it always was.
+// Nothing is loaded ahead of need. A failed replacement is never kept, but for RETRY_MS
+// after one no other is attempted: calls with no usable instance reject with that failure,
+// calls with an outgrown one are served by it. Only a failure of the very first load is
+// kept and returned to every later call, as it always was.
 //
 // Replacements do not fetch the .wasm again where that can be avoided. In a browser the glue
-// starts `WebAssembly.instantiateStreaming` synchronously inside the factory call, so `load`
-// swaps that function for the length of that one synchronous call (nothing else can run in
-// between) to keep the compiled `WebAssembly.Module` it resolves to; the call itself, its
-// request and its errors pass through untouched. Replacements instantiate that module
-// through the glue's `instantiateWasm` hook. Where no module was captured (Node, which
-// reads the file from disk, or a browser that fell back from streaming), a replacement
-// loads the way the first instance did.
+// starts `WebAssembly.instantiateStreaming` synchronously inside the factory call, so
+// `loadDefault` swaps that function for the length of that one synchronous call (nothing
+// else can run in between) to keep the compiled `WebAssembly.Module` it resolves to; the
+// call itself, its arguments, its promise and its errors pass through untouched, and the
+// function found there is put back. Replacements instantiate the kept module through the
+// glue's `instantiateWasm` hook. If that ever fails, the module is dropped, that load falls
+// back to the default way and no module is kept again. While no module is held (Node, which
+// reads the file from disk; a browser that fell back from streaming; a namespace that cannot
+// be assigned), every load is made the default way, swap included.
 //
 // The module runs a decode synchronously, so calls interleave only while waiting for an
 // instance. A call that waited on an instance another call has since crashed waits for the
 // current one instead; those calls share one replacement.
 function createDecoder(glue) {
-  let compiled; // WebAssembly.Module behind the first instance, when it could be captured
+  let compiled; // WebAssembly.Module behind an earlier instance, when one could be captured
+  let reuse = true; // false once a kept module failed to instantiate: none is kept again
   let current; // promise for the instance in service
   let outgrown; // the instance in service, once it has passed its limit
+  let renewing = false; // a replacement for the outgrown instance is loading
   let everLoaded = false;
+  let failedAt = -Infinity; // when the last replacement load failed (Date.now())
+  let lastFailure; // and what it failed with
   const dead = new WeakSet(); // instances a call crashed
   const initialSize = new WeakMap(); // instance → linear memory bytes when first used
 
-  function load() {
-    if (compiled) {
-      const module = compiled;
-      return new Promise((resolve, reject) => {
-        glue({ ...moduleOptions(), instantiateWasm(imports, receive) {
-          WebAssembly.instantiate(module, imports).then((made) => receive(made, module), reject);
-          return {};
-        } }).then(resolve, reject);
-      });
-    }
-    const streaming = WebAssembly.instantiateStreaming;
+  // The glue's own load. Never throws: a synchronous throw from the glue becomes a rejection.
+  function loadDefault() {
+    const found = WebAssembly.instantiateStreaming;
     let swapped = false;
-    if (typeof streaming === 'function') {
+    if (reuse && typeof found === 'function') {
       try {
         WebAssembly.instantiateStreaming = function (...args) {
-          const result = streaming.apply(this, args);
-          Promise.resolve(result).then((made) => { compiled = made?.module; }, () => {});
+          const result = found.apply(this, args);
+          Promise.resolve(result)
+            .then((made) => { if (made.module instanceof WebAssembly.Module) compiled = made.module; })
+            .catch(() => {});
           return result;
         };
         swapped = true;
       } catch { /* not writable here: every instance loads the default way */ }
     }
-    try { return glue(moduleOptions()); } finally { if (swapped) WebAssembly.instantiateStreaming = streaming; }
+    try { return glue(moduleOptions()); } catch (e) { return Promise.reject(e); } finally {
+      if (swapped) WebAssembly.instantiateStreaming = found;
+    }
   }
+
+  function loadFromModule(module) {
+    return new Promise((resolve, reject) => {
+      glue({ ...moduleOptions(), instantiateWasm(imports, receive) {
+        WebAssembly.instantiate(module, imports).then((made) => receive(made, module)).catch(reject);
+        return {};
+      } }).then(resolve, reject);
+    });
+  }
+
+  function load() {
+    if (!compiled) return loadDefault();
+    const module = compiled;
+    return loadFromModule(module).catch(() => {
+      compiled = undefined;
+      reuse = false;
+      return loadDefault();
+    });
+  }
+
+  const failed = (e) => { failedAt = Date.now(); lastFailure = e; };
+  const mayRetry = () => Date.now() - failedAt >= RETRY_MS;
 
   // The promise a call waits on for its instance.
   function instance() {
     if (!current) {
       if (!everLoaded) return (current = load()); // the first load: kept even if it fails
+      if (!mayRetry()) return Promise.reject(lastFailure);
       const replacement = current = load();
-      replacement.catch(() => { if (current === replacement) current = undefined; });
+      replacement.catch((e) => { failed(e); current = undefined; });
       return replacement;
     }
-    if (outgrown) {
+    if (outgrown && !renewing && mayRetry()) {
       const old = outgrown;
-      outgrown = undefined;
-      current = load().catch(() => old); // still healthy: serve with it and let a later call try again
+      renewing = true;
+      const replacement = load();
+      replacement.then(() => {
+        renewing = false;
+        if (outgrown === old) { outgrown = undefined; current = replacement; }
+      }, (e) => { renewing = false; failed(e); });
     }
     return current;
   }

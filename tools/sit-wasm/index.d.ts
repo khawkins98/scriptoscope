@@ -1,4 +1,9 @@
 // Type definitions for stuffit-wasm.
+//
+// Side effect to know about: to reuse the compiled WebAssembly module when it replaces its
+// decoder instance, the wrapper assigns `WebAssembly.instantiateStreaming` for the length of
+// one synchronous call each time it loads the decoder without a kept module, and puts back
+// the function it found. The wrapped call passes its receiver, arguments and promise through.
 
 export interface ArchiveEntry {
   /** Original filename; may carry a folder prefix, e.g. "masswerk 7 Le/masswerk 7 Le". */
@@ -22,16 +27,25 @@ export interface ArchiveEntry {
  * data fork. Runs in the browser and in Node. The WASM module instantiates on first call and
  * is shared by later calls.
  *
- * The shared instance is replaced in two cases. After a decode that crashes the decoder (a
- * runtime abort or trap), that call rejects with the crash's own error and the next call
- * instantiates a new instance. After a decode that leaves the instance's memory above its
- * limit, the next call instantiates a new one first, so that call starts on an instance at
- * its initial memory size; memory is not held at that size in between.
+ * The promise can reject:
+ * - with an `Error` whose message starts `decodeArchive: ` when the decoder reports an error.
+ *   That includes `decodeArchive: decoded output exceeds the 32 MiB limit`: the decoded forks
+ *   of one archive, with their names and headers, may total at most 32 MiB.
+ *   `decodeArchive: out of memory` means the input could not be copied into the decoder;
+ * - with the runtime's own error (usually a `WebAssembly.RuntimeError`) when a decode crashes
+ *   the decoder;
+ * - with the instantiation error when the decoder cannot be loaded.
+ *
+ * The shared instance is replaced in two cases. After a decode that crashes the decoder, the
+ * next call waits for a new instance. After a decode that leaves the instance's memory above
+ * its limit, the next call starts loading a new instance and calls are served by the old one
+ * until it has loaded; the new one starts at the initial memory size, which is not held in
+ * between.
  *
  * If the very first instantiation fails, that failure is kept and every later call rejects
- * with it. A failed replacement is not kept: after a crash the call that needed it rejects
- * with the instantiation error and the next call tries again; for an instance that was only
- * over its limit the call is served by that instance and a later call tries again.
+ * with it. A failed replacement is not kept, and none is attempted again for one second:
+ * after a crash, calls in that second reject with the same instantiation error; an instance
+ * that was only over its limit keeps serving.
  */
 export function decodeArchive(bytes: Uint8Array | ArrayBuffer): Promise<ArchiveEntry[]>;
 
