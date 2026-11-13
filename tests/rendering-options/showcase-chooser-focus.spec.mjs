@@ -28,37 +28,41 @@ const test = demoTest.extend({
 
 for (const mode of ['source', 'production']) {
   test(`${mode}: delayed bare chooser preserves later unrelated native focus`, async ({ page, demo, production }) => {
-    // Hold a scheme no part of the page has requested yet: the chooser and the page share
-    // decoded schemes, so choosing one that is already loaded makes no request to delay.
-    const requestedSlugs = new Set();
-    page.on('request', request => {
-      const slug = /\/themes\/([^/]+)\//.exec(new URL(request.url()).pathname)?.[1];
-      if (slug) requestedSlugs.add(slug);
+    // The chooser and the page share decoded schemes, so choosing one that is already loaded
+    // makes no request to delay. Every scheme request passes through this route from the
+    // start: it records the schemes let through while the page boots, then holds every later
+    // one. A corpus scheme never let through is therefore still unloaded, and stays pending
+    // whether the chooser's lazy icon load or the choice itself requests it first.
+    const slugOf = url => /\/themes\/([^/]+)\//.exec(new URL(url).pathname)?.[1];
+    let holding = false, release, wake = () => {};
+    const gate = new Promise(resolve => release = resolve);
+    const passed = new Set(), held = new Set();
+    await page.route('**/themes/*/**', async route => {
+      const slug = slugOf(route.request().url());
+      if (!holding) { passed.add(slug); return route.continue(); }
+      held.add(slug);
+      wake();
+      await gate;
+      await route.continue();
     });
+    const untilHeld = async slug => {
+      while (!held.has(slug)) await new Promise(resolve => { wake = resolve; });
+    };
     await page.goto(`${mode === 'source' ? demo : production}/showcase.html?theme=windows-95`);
     await expect(page.locator('#powers.scriptoscope-ready')).toBeVisible();
-    await page.waitForLoadState('networkidle');
+    holding = true;
     const slugs = await page.locator('[data-slug]').evaluateAll(tiles => [...new Set(tiles.map(tile => tile.dataset.slug))]);
-    const slug = slugs.find(candidate => !requestedSlugs.has(candidate));
-    expect(slug, 'a chooser scheme that has not been requested yet').toBeTruthy();
+    const slug = slugs.find(candidate => /^[\w-]+$/.test(candidate) && !passed.has(candidate));
+    expect(slug, 'a corpus chooser scheme that was not loaded while the page booted').toBeTruthy();
     const first = page.locator(`[data-slug="${slug}"]`).first();
     await page.getByRole('button', { name: /Switch to bare HTML/ }).click();
     await expect(page.locator('#powers [data-scriptoscope-window-host]')).toHaveCount(0);
     await expect(page.locator('#powers.scriptoscope-ready')).toHaveCount(0);
-
-    let release, started;
-    const requested = new Promise(resolve => started = resolve);
-    const gate = new Promise(resolve => release = resolve);
-    await page.route(`**/themes/${slug}/**`, async route => {
-      started();
-      await gate;
-      await route.continue();
-    });
     const unrelated = page.getByRole('link', { name: 'Skip to content', exact: true });
     try {
       await first.focus();
       await first.press('Enter');
-      await requested;
+      await untilHeld(slug);
       // This native link remains reachable outside the pending inert demo.
       await unrelated.focus();
       await expect(unrelated).toBeFocused();
