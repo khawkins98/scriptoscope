@@ -15,12 +15,25 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   task after the StuffIt unwrap, between chrome and icon conversion, and after
   conversion, so one long task becomes several shorter ones. The decoded theme
   is identical and the total work is unchanged; the load settles later because
-  other tasks can run at each boundary. Input bytes are copied when the option
-  is set. Boundaries use `scheduler.yield()` where available and a
-  `MessageChannel` message elsewhere. Without the option a load settles on the
-  same microtask tick as before and makes the same option reads, plus one read
-  of the new option. The landing page and the showcase opt in. See
+  it takes its turn with the page's other tasks at each boundary. Every
+  boundary is one `MessageChannel` message, which does not inherit the calling
+  task's priority or abort signal; an opted-in load rejects before decoding
+  where `MessageChannel` is missing. Any truthy value opts in. Input bytes,
+  `meta`, `source` and array id lists are taken when an opted-in load is
+  called. Without the option a load settles on the same microtask tick as
+  before and makes the same option reads, plus one read of the new option. The
+  landing page and the showcase opt in. See
   [shorter decode tasks](docs/runtime-api.md#shorter-decode-tasks-yieldbetweenstages).
+
+### Fixed
+
+- Theme picker: a tile whose scheme has no folder icon of its own now always
+  borrows the same one. It borrowed the icon of whichever tile happened to
+  resolve first, so the picture depended on decode timing and could differ
+  between page loads. The borrowed icon is now the first available in a fixed
+  order: the initially active theme, then the themes in picker order. Each
+  theme's icon is also looked up once and shared between its own tile and that
+  search (#662).
 
 ### Changed
 

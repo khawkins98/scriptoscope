@@ -61,8 +61,8 @@ export interface ThemeBootstrapOpts {
    *  cascade behavior. Typically passed as the same `themes` array as
    *  MountOptions.themes (the manifest). */
   themes?: readonly ThemeEntry[];
-  /** Opt-in: every load decodes in several shorter main-thread tasks instead of one
-   *  (see `ThemeLoadOptions.yieldBetweenStages`). Read once, when the resolver is created. */
+  /** Opt-in (any truthy value): every load decodes in several shorter main-thread tasks instead
+   *  of one (see `ThemeLoadOptions.yieldBetweenStages`). Read once, when the resolver is created. */
   yieldBetweenStages?: boolean;
 }
 

@@ -32,15 +32,16 @@ import { buildResourceRoles, parseCicnFilename, parsePpatFilename } from './clas
  * @property {object} [cinfEnvironment] Prepared explicit standalone push/bevel body cinf environment.
  * @property {(rgba: Uint8Array, w: number, h: number, path: string) => (string|Promise<string>)} [assetUrlFactory]
  *   Custom RGBA→URL encoder. Default: OffscreenCanvas PNG blob URL (browser only).
- * @property {boolean} [yieldBetweenStages] Opt-in: end the current task after the StuffIt
- *   unwrap, between chrome and icon conversion, and after conversion, so one decode is
- *   several shorter tasks. Same result; it settles later. Absent: timing is unchanged.
+ * @property {boolean} [yieldBetweenStages] Opt-in (any truthy value): end the current task
+ *   after the StuffIt unwrap, between chrome and icon conversion, and after conversion, so
+ *   one decode is several shorter tasks. Same result; it settles later. Needs
+ *   MessageChannel. Absent or falsy: timing is unchanged.
  */
 
-// A task boundary for `yieldBetweenStages`. `scheduler.yield()` resumes ahead of other
-// queued tasks; elsewhere a message port, which is not clamped or throttled like a timer.
+// A task boundary for `yieldBetweenStages`: one MessageChannel message, in every engine.
+// It queues as an ordinary task, so it does not inherit the calling task's priority or
+// abort signal as scheduler.yield() does, and is not clamped or throttled like a timer.
 function nextTask() {
-  if (typeof globalThis.scheduler?.yield === 'function') return globalThis.scheduler.yield();
   return new Promise(resolve => {
     const { port1, port2 } = new MessageChannel();
     port1.onmessage = () => { port1.close(); resolve(); };
@@ -69,6 +70,14 @@ async function decodeScheme(input, options) {
   assertCinfEnvironment(sliderLayoutEnvironment);
   displayRealizer(displayProfile);
   const yields = !!options.yieldBetweenStages;
+  if (yields && typeof MessageChannel !== 'function') {
+    throw new Error('loadKaleidoscopeScheme: yieldBetweenStages needs MessageChannel, which this environment does not provide.');
+  }
+  // The caller's code runs at each boundary, so a yielding load takes what its later
+  // stages use now. Otherwise these are read where they always were, from `options`.
+  const copy = list => Array.isArray(list) ? list.slice() : list;
+  const held = !yields ? options : { meta: options.meta, source: options.source, iconBlitCicnIds: copy(options.iconBlitCicnIds),
+    unmaskedIconIds: copy(options.unmaskedIconIds), engineCinfIds: copy(options.engineCinfIds) };
   // Snapshot caller-owned byte inputs synchronously, before any await. Every
   // digest and decoder receives this same private snapshot when opted in.
   // Yielding opts in too: the caller's code runs between the stages.
@@ -104,10 +113,10 @@ async function decodeScheme(input, options) {
   let converted;
   try {
     const convertOptions = {
-      meta: options.meta, source: options.source ?? 'resource-fork', displayProfile, cinfBinding, cicnTransferBinding,
-      ...(options.iconBlitCicnIds ? { iconBlitCicnIds: options.iconBlitCicnIds } : {}),
-      ...(options.unmaskedIconIds ? { unmaskedIconIds: options.unmaskedIconIds } : {}),
-      ...(options.engineCinfIds ? { engineCinfIds: options.engineCinfIds } : {}),
+      meta: held.meta, source: held.source ?? 'resource-fork', displayProfile, cinfBinding, cicnTransferBinding,
+      ...(held.iconBlitCicnIds ? { iconBlitCicnIds: held.iconBlitCicnIds } : {}),
+      ...(held.unmaskedIconIds ? { unmaskedIconIds: held.unmaskedIconIds } : {}),
+      ...(held.engineCinfIds ? { engineCinfIds: held.engineCinfIds } : {}),
       ...(evidence ? { resourceObserver: evidence.observer } : {}),
     };
     if (yields) {
