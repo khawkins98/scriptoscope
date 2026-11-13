@@ -53,6 +53,9 @@ export interface ThemeMeta {
 export interface ThemeLoadOptions {
   source?: string; meta?: ThemeMeta; provenance?: boolean; cicnTransfer?: CicnTransferOption;
   displayProfile?: DisplayProfile; cinfEnvironment?: PreparedCinfEnvironment; sliderLayoutEnvironment?: PreparedCinfEnvironment;
+  /** Opt-in (any truthy value): decode in several shorter main-thread tasks instead of one.
+   *  Same theme, settled later. Read after the archive and sidecar requests, like `provenance`. */
+  yieldBetweenStages?: boolean;
 }
 export function loadTheme(bundleUrl: string, opts: ThemeLoadOptions & { base?: LoadedTheme } = {}): Promise<LoadedTheme> {
   return loadBundle(bundleUrl, opts, false) as Promise<LoadedTheme>;
@@ -115,6 +118,7 @@ async function loadBundle(
     ...(opts.provenance ? { provenance: true } : {}),
     ...(displayProfile ? { displayProfile } : {}),
     ...(cicnTransfer ? { cicnTransfer } : {}),
+    ...(opts.yieldBetweenStages ? { yieldBetweenStages: true } : {}),
   });
 
   try { assertDisplayProfileChain(base ? themeView(base) : undefined, displayProfile); } catch (error) { loaded.dispose?.(); throw error; }

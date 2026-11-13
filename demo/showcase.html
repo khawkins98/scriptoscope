@@ -818,7 +818,7 @@
     document.addEventListener('focusin', (event) => {
       if (mountingPowers && event.target instanceof HTMLElement) mountFocus = event.target;
     }, appEvents);
-    const pickerResolver = createOwnedThemeResolver({ themeBaseUrl, themes: ALL_THEMES });
+    const pickerResolver = createOwnedThemeResolver({ themeBaseUrl, themes: ALL_THEMES, yieldBetweenStages: true });
     let pickers = [];
     const pickerNodes = new Set();
     let userInteracted = false;
@@ -854,6 +854,7 @@
         h = await mountShowcase({
           root: powersSection,
           themeBaseUrl,
+          yieldBetweenStages: true,
           pageThemeDefault: requestedRef,
           registeredThemes,
           themes: ALL_THEMES,

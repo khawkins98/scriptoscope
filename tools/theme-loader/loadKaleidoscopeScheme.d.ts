@@ -30,6 +30,11 @@ export interface LoadKaleidoscopeSchemeOptions {
   meta?: Record<string, unknown>;
   /** Source label for the manifest provenance (default 'resource-fork'). */
   source?: string;
+  /** Opt-in: end the current task between decode stages (after the StuffIt unwrap, between
+   * chrome and icon conversion, after conversion). Same result, settled later. Any truthy
+   * value opts in, as with `provenance` (`'false'`, `{}` and `[]` included). Needs
+   * `MessageChannel`; without it the load rejects before decoding. Absent or falsy: unchanged. */
+  yieldBetweenStages?: boolean;
   /** Encode RGBA → blob-URL assets (default: true in a browser w/ OffscreenCanvas). */
   encodeAssets?: boolean;
   /** Custom RGBA→URL encoder (default: OffscreenCanvas PNG blob URL). */

@@ -151,6 +151,83 @@ Picker `name`, `author`, and `year` are display labels. The loader fetches the c
 If your catalog already includes that complete sidecar, pass it as `ThemeEntry.meta`
 (or `loadTheme`’s `meta` option) to avoid the metadata request.
 
+### Shorter decode tasks: `yieldBetweenStages`
+
+Decoding one archive is a single main-thread task by default: the StuffIt unwrap,
+the chrome conversion, the icon conversion and whatever your code does with the
+result all run before the browser can handle input or paint. Pass
+`yieldBetweenStages: true` to end the task at three points instead: after the
+StuffIt unwrap (only for a `.sit`), between chrome and icon conversion, and after
+conversion.
+
+```ts
+const theme = await loadOwnedTheme('/themes/1984', { source: 'scheme.sit', yieldBetweenStages: true });
+// or once for every load a resolver makes:
+const resolver = createOwnedThemeResolver({ themeBaseUrl: '/themes', themes, yieldBetweenStages: true });
+```
+
+`loadTheme`, `loadOwnedTheme`, `loadKaleidoscopeScheme`, `loadOwnedKaleidoscopeScheme`,
+`createThemeResolver` and `createOwnedThemeResolver` accept it.
+
+**What it does**
+
+- The decoded theme is the same object graph as without the option, and every
+  other option, including `displayProfile`, `cicnTransfer`, `cinfEnvironment`,
+  `sliderLayoutEnvironment`, `provenance` and `assetUrlFactory`, works with it.
+- The work still runs on the main thread and takes the same total time. Only the
+  length of each task changes. Each stage is still one task: on a slow device the
+  StuffIt unwrap or the chrome conversion of a large scheme can exceed 50 ms by
+  itself.
+- Each boundary is one `MessageChannel` message, in every browser. The decode
+  continues when that message's task runs, so it takes its turn with whatever the
+  page already had queued; it does not jump ahead of it. Measured in Chromium,
+  Firefox and WebKit on an idle page, each boundary resumed within 0–9 ms and a
+  pending frame, timer or key event ran in most of them. On a page saturated with
+  back-to-back 8 ms tasks each boundary waited 8–57 ms, behind the one to six
+  tasks queued before it, and the load took 55–212 ms against 31–82 ms without
+  the option. So the load settles later, and later still on a busy page.
+- A boundary is an ordinary task. It does not inherit the priority or abort
+  signal of the task that started the load, so a load started from
+  `requestIdleCallback` or `scheduler.postTask(..., { priority: 'background' })`
+  is not held back behind normal-priority work, and aborting that task's signal
+  does not reject it. A message task is not clamped or throttled in background
+  tabs the way timers are. `scheduler.yield()` is not used.
+- A decode error from a later stage is reported after the tasks that ran at the
+  boundaries before it. Input and option validation errors are thrown before the
+  first boundary, as before.
+
+**What it reads, and when**
+
+- Any truthy value opts in, the same as `provenance`: `'false'`, `{}` and `[]`
+  turn it on. Pass a boolean.
+- `loadKaleidoscopeScheme` and `loadOwnedKaleidoscopeScheme` read it once, when
+  called. `loadTheme` and `loadOwnedTheme` read it after the archive and sidecar
+  requests have completed, next to `provenance`, so a value set on your options
+  object while those requests are pending is the one used. A resolver reads it
+  once, when it is created.
+- It needs `MessageChannel`. Where that is missing an opted-in load rejects with
+  `Error: loadKaleidoscopeScheme: yieldBetweenStages needs MessageChannel, which
+  this environment does not provide.` before any decoding (for `loadTheme` and
+  `loadOwnedTheme`, after their requests). Existing option validation errors
+  still come first. Loads without the option never touch `MessageChannel`.
+- Because your code now runs between the stages, an opted-in load takes these
+  when it is called, not later: a private copy of `Uint8Array` or `ArrayBuffer`
+  input bytes; `meta` and `source`; and copies of `iconBlitCicnIds`,
+  `unmaskedIconIds` and `engineCinfIds` when they are arrays. You may reuse the
+  buffer or change those lists and options straight away. Three things are not
+  copied: the contents of the `meta` object, which the chrome stage reads; an id
+  list that is not an array; and a `Blob`, which is read through its own
+  `arrayBuffer()`. Leave those unchanged until the load settles.
+  `provenance`, `encodeAssets` and `assetUrlFactory` are read as the load
+  proceeds, as they are without the option.
+- Without the option nothing changes: a load settles on the same microtask tick
+  and reads its options in the same order and at the same points, plus one read
+  of `yieldBetweenStages` after the existing option validation.
+
+The eager loaders (`loadTheme`, `createThemeResolver`) spend most of their time
+exporting every asset as a PNG after the decode. That already runs as many short
+tasks and is not changed by this option; use the owned loaders to avoid it.
+
 The `LoadedTheme` returned carries optional `dispose()` to revoke its blob URLs and evict its raster-cache entries; call it after its last consumer permanently unmounts.
 
 The released control facades include `composeScrollbar` / `composeSlider` with

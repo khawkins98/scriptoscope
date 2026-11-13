@@ -17,7 +17,7 @@
     },
     {
       "path": "src/loadTheme.ts",
-      "sha256": "3154407c9f01ec8966e0948deb89935496dad423c5822d28c1d610c0855d7b91"
+      "sha256": "b6985f09f42953e0b6743c31ea80502862a4f52748873633f3009ecef613d95e"
     },
     {
       "path": "src/resolveWindowType.ts",
@@ -81,7 +81,7 @@
     },
     {
       "path": "tools/theme-loader/convert.js",
-      "sha256": "e652e2c231c126b73e7606e547968617f9ec582dd1a9c9cf7020e758297c2050"
+      "sha256": "04ad93bb3a156f57ac3e8c4122c5c681bcec7b988658e122ccfd0720195dd51d"
     },
     {
       "path": "tools/theme-loader/decoders/cicn.js",
@@ -137,7 +137,7 @@
     },
     {
       "path": "tools/theme-loader/loadKaleidoscopeScheme.js",
-      "sha256": "d7a99684638736bfca3afe3ff9e2b7235e9e0addda091c597bdcfb3fb5a63fa2"
+      "sha256": "faf8e0ffcd0c2448e532567053e116bafba4ac798a1a283f94fbc5d2105d2b6d"
     },
     {
       "path": "tools/theme-loader/loadProvenance.js",

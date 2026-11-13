@@ -498,7 +498,11 @@ export function convertIcons(fork, { ids, displayProfile, unmaskedIconIds = [] }
 export function convertScheme(fork, { meta = {}, source = 'scheme.rsrc', resourceObserver, displayProfile, cinfBinding, cicnTransferBinding, iconBlitCicnIds, engineCinfIds, unmaskedIconIds } = {}) {
   const bytes = asBytes(fork); // parse once conceptually; chrome+icons each re-parse (cheap, KB)
   const chrome = convertChrome(bytes, { meta, source, resourceObserver, displayProfile, cinfBinding, cicnTransferBinding, iconBlitCicnIds, engineCinfIds });
-  const icons = convertIcons(bytes, { displayProfile, unmaskedIconIds });
+  return joinConversion(chrome, convertIcons(bytes, { displayProfile, unmaskedIconIds }));
+}
+
+/** convertScheme's result from its two halves, for a caller that runs them separately. */
+export function joinConversion(chrome, icons) {
   return {
     theme: chrome.theme,
     assets: [...chrome.assets, ...icons.assets],

@@ -13,14 +13,127 @@ Use [measured simplification](measured-simplification.md): identify code or work
 | [#495](https://github.com/khawkins98/scriptoscope/pull/495): prepared header pattern spans | Synthetic warm header calls improved by size; +23 production lines, +695 emitted JS bytes. |
 | [#496](https://github.com/khawkins98/scriptoscope/pull/496): prepared push pattern spans | Synthetic warm opaque-pattern calls took 36–84% less time; +59 production lines, +1,923 emitted JS bytes. Prototype hooks and cloned shared-storage aliases required fixes before landing. |
 | [#497](https://github.com/khawkins98/scriptoscope/pull/497): omit no-rect final push scan | 18 synthetic warm public workloads took 8–61% less time; +2 production lines, +38 emitted JS bytes. Narrow allocator-read timing change is documented in [push allocator compatibility](push-allocator-compatibility.md). |
+| [#663](https://github.com/khawkins98/scriptoscope/pull/663): StuffIt decoder requested alongside a named `.sit`; byte lookup tables for indexed `cicn`/`ppat` decode | **Decode.** Node 24, resource fork to raw theme without PNG encoding, all 18 themes, old and new interleaved, three 40-round runs: the paired new/old time ratio had medians 0.73, 0.67 and 0.65; fastest rounds fell from 652 to 371 ms, from 513 to 332 ms and from 262 to 174 ms (host load differed between runs). Themes with little indexed art did not change. Scope: genuine `Uint8Array` rasters only; other index containers, non-byte output, fractional sizes and short rasters keep the keyed path. Narrowing: the byte path copies each realized colour once per palette index, so a realizer that reuses or mutates its returned array, or returns a one-shot iterable, yields different pixels than before. **Prewarm.** Cold Chromium `loadTheme` with `source: 'scheme.sit'` under DevTools throttling saved 157–165 ms at 150 ms latency and 410–413 ms at 400 ms latency: about one request latency, because the decoder still shares a bandwidth-capped link with the archive. Scope: only a `source` whose path ends in `.sit`; the default cascade is unchanged and gains nothing. A named `.sit` that is missing or holds a raw fork still requests the decoder, and a WASM instantiation failure (two `console.error` lines, cached) can now occur at request time. **Limits.** All timing came from one heavily loaded host. Not measured: other browsers, real networks, a separately served `munbox.wasm`, PNG encoding, memory. |
 
 Performance ranges describe the measured fixtures and hosts, not whole applications, cold starts, all browsers, memory, or historical-program fidelity. Counts from different studies need their stated scopes; source-line savings and execution savings are separate scores. The #497 verifier remained runtime-source blind, but accidentally saw author timing summaries during measurement; its fixed harness and analysis were unchanged and all samples retained.
 
-## Pending, not landed
+## Decode long tasks: stage yielding chosen over a decode worker (#662)
 
-| Change | Evidence and limit |
-| --- | --- |
-| [#663](https://github.com/khawkins98/scriptoscope/pull/663) (open): StuffIt decoder requested alongside a named `.sit`; byte lookup tables for indexed `cicn`/`ppat` decode | **Decode.** Node 24, resource fork to raw theme without PNG encoding, all 18 themes, old and new interleaved, three 40-round runs: the paired new/old time ratio had medians 0.73, 0.67 and 0.65; fastest rounds fell from 652 to 371 ms, from 513 to 332 ms and from 262 to 174 ms (host load differed between runs). Themes with little indexed art did not change. Scope: genuine `Uint8Array` rasters only; other index containers, non-byte output, fractional sizes and short rasters keep the keyed path. Narrowing: the byte path copies each realized colour once per palette index, so a realizer that reuses or mutates its returned array, or returns a one-shot iterable, yields different pixels than before. **Prewarm.** Cold Chromium `loadTheme` with `source: 'scheme.sit'` under DevTools throttling saved 157–165 ms at 150 ms latency and 410–413 ms at 400 ms latency: about one request latency, because the decoder still shares a bandwidth-capped link with the archive. Scope: only a `source` whose path ends in `.sit`; the default cascade is unchanged and gains nothing. A named `.sit` that is missing or holds a raw fork still requests the decoder, and a WASM instantiation failure (two `console.error` lines, cached) can now occur at request time. **Limits.** All timing came from one heavily loaded host. Not measured: other browsers, real networks, a separately served `munbox.wasm`, PNG encoding, memory. |
+Baseline `e4250ef9` (after #663 and #664). Headless Chromium from Playwright 1.64 on
+one Apple-silicon Mac whose load average moved between 4 and 38 during the work;
+built demo served by `vite preview`; one fresh browser process per run; variants
+interleaved round by round. Ranges are min–max over the stated runs. DevTools CPU
+throttling slows the main thread but not workers.
+
+**What was measured first.** An owned decode plus the first render of its window is
+one task, because nothing between the archive response and the window paint crosses
+a task boundary. On the landing page (five owned themes) that is five long tasks
+during load. Unthrottled on a quiet host there were none over 50 ms in 5 of 5 runs;
+on a loaded host, 1–5 of 54–178 ms. At 4× CPU throttle: 3–6 tasks, the longest
+108–689 ms, total blocking time 189–207 ms (quiet) to 219–904 ms (loaded). A CPU
+profile of the landing load and one cached switch attributes main-thread time to: browser-internal work
+25–42%, window render and preparation 15–20%, StuffIt WASM 11–19%, chrome
+conversion 10–16%, icon conversion 5–9%, manifest and inspector build 2–3%,
+resource-fork parse 1%. Decode stages together are 29–49%. A theme switch on an
+idle page costs one decode task and two render tasks; the click itself paints
+within 16–56 ms because the work follows the archive response. Switching to a
+cached theme decodes nothing and still costs one task of 53–109 ms at 4×.
+
+Eager loads (`loadTheme`, `createThemeResolver`) are a different problem: five
+themes were ready in 0.6–1.5 s against 0.13–0.28 s owned, with the main thread busy
+throughout, but in many short tasks. Exporting every asset (240–870 per theme) as a PNG blob URL dominates: the
+export script is 25–28% of main-thread time and browser-internal work 44–45%,
+against about 16% for decode. A throwaway pure-JS uncompressed PNG encoder through
+`assetUrlFactory` was only 16–30% faster and made the blobs 4.7–7.1 times larger:
+the cost is per asset, not compression. The owned loaders avoid
+it by exporting on request. No eager change is proposed.
+
+**Candidates.** The draft decode worker (#665) and stage yielding were built and
+measured against the same baseline in the same sessions. Caching decoded themes
+across page loads was rejected without a prototype: it adds a second, versioned
+copy of data the original archive is authoritative for, cannot cover loads that
+pass function-bearing options, and saves at most the 4–42 ms a warm decode costs.
+A StuffIt rebuild was not attempted (no Emscripten toolchain on the host).
+
+| Landing page load, 12 runs per variant | Baseline | `yieldBetweenStages` | Decode worker (#665) |
+| --- | ---: | ---: | ---: |
+| Total blocking time, unthrottled | 0–119 ms | 0–62 ms | 0–43 ms |
+| Total blocking time, 4× | 166–525 ms | 4–277 ms | 0–75 ms |
+| Total blocking time, 4×, quieter session only (6 runs) | 166–379 ms | 4–58 ms | 2–48 ms |
+| Total blocking time, 6× | 420–813 ms | 93–485 ms | 19–74 ms |
+| Longest task, 4× | 104–331 ms | 52–183 ms | 0–103 ms |
+| Longest task, 6× | 165–267 ms | 76–153 ms | 69–98 ms |
+| Time to all five windows, 4× | 621–1110 ms | 615–1265 ms | 325–658 ms |
+
+All three columns come from the same two sessions, variants interleaved round by
+round, with host load average between 4 and 10. At 4× yielding had lower blocking
+time than the baseline in 12 of 12 paired rounds and a shorter longest task in 11
+of 12; at 6×, 12 of 12 for both. The worker was lower in 12 of 12 for all four.
+Unthrottled, neither differs from the baseline beyond noise. On a five-theme owned
+harness without the landing page's own work, 4×, 5 runs on a loaded host: baseline
+197–728 ms, yielding 9–395 ms, worker 13–104 ms.
+
+Each boundary is one `MessageChannel` message. An earlier build preferred
+`scheduler.yield()`; review showed that it inherits the calling task's priority
+and abort signal, so a load started from `requestIdleCallback` or a
+background-priority `postTask` stalled at its first boundary for as long as
+normal-priority work kept arriving (the whole 3 s busy period in the repro, in
+Chromium and Firefox), and aborting the caller's task signal rejected the load.
+With the message task the same repro completes in 198–210 ms in Chromium and
+102–133 ms in Firefox (132–152 ms and 93–116 ms without the option), and the
+abort case resolves in both. Every figure in this section was re-measured on the
+message-task build. Frame timing was checked in three engines, unthrottled: the
+longest gap between animation frames during one owned decode fell from 39–66 ms
+to 17–38 ms in Chromium, 40–67 ms to 19–32 ms in Firefox and 36–63 ms to 18–38 ms
+in WebKit, with total decode time unchanged.
+
+**Decision.** `yieldBetweenStages` is proposed; the worker stays a draft. Yielding
+removes most of the blocking the worker removes at 4× and roughly half to
+three-quarters at 6×, for +51 production lines (61 added, 10 removed, comments
+included) and +992 raw / +273 gzip bytes in the shared loader chunk, with no new
+file. The worker costs about +590 production lines (704 added, 117 removed),
++11,002 raw / +3,256 gzip bytes in the same chunk for every consumer, and a
+separate 191,998-byte (70,411 gzip) worker file for those who opt in.
+
+**What yielding does not do.** It does not reduce main-thread work: time to the
+last window is unchanged, where the worker roughly halves it under DevTools
+throttling. That halving is partly an artifact of the unthrottled worker; with
+equal cores (unthrottled) the time to all windows did not differ beyond noise
+(128–205 ms against 132–240 ms on the harness), though main-thread busy time fell
+from 138–221 ms to 59–112 ms. Each stage remains one task, so at 6× the StuffIt
+unwrap and chrome conversion of a large scheme still exceed 50 ms. A boundary
+takes its turn with the page's other tasks: on a page saturated with back-to-back
+8 ms tasks each boundary waited 8–57 ms and an opted-in decode took 55–212 ms
+against 31–82 ms without the option, across three engines. Render tasks are
+untouched by either approach.
+
+**Behavior.** Decoded output through the built entry was compared in Chromium,
+Firefox and WebKit for all 18 bundled themes in five modes (raw, raw with
+provenance, owned from bytes, owned from URL, eager): baseline against the
+candidate without the option, and against the candidate with it. 180 of 180 cases
+identical per engine, over canonical graphs with sorted keys, frozen state and a
+SHA-256 of every typed array, with the provenance load id, raster namespace counter
+and blob URLs masked. The comparator detected a flipped pixel bit, an added key and
+a frozen object in 54 of 54 sensitivity cases. Without the option, microtask tick
+counts to settlement match the baseline for five inputs, and option reads match
+apart from the one added read. A 48-case mutation run over the loader change (each
+boundary moved or removed, the input copy and option snapshot moved or dropped,
+each stage option dropped, the default path altered) is killed by the unit tests
+with no case surviving and none killed by a hang.
+
+**Picker fallback icon.** Opting the showcase in exposed an existing race in the
+theme picker: a tile whose scheme has no folder icon borrowed the icon of whichever
+tile resolved first. On the baseline the "Apple Platinum 2" tile showed two
+different icons across five loads in Chromium and in Firefox. The borrowed icon is
+now the first available in a fixed order, and was the same in 15 of 15 loads across
+the three engines.
+
+**Limits.** One host and Chromium only for blocking-time figures, bundled themes
+only, no real slow device. Not measured: Firefox or WebKit blocking time (neither
+exposes long tasks or CPU throttling to the harness), memory, interaction latency
+during a decode. The showcase page decodes the active theme twice and decodes again
+on the first switch to a theme whose picker tile was already decoded, because its
+picker and its page host use separate resolvers; that repeated work is unchanged.
 
 ## Rejected structural theories after #497
 

@@ -131,6 +131,12 @@ The URL uses Vite's `import.meta.env.BASE_URL` so it works at `/nested/` as well
 as `/`. In other build tools, supply your app's public asset base explicitly.
 `{ source: 'scheme.rsrc' }` avoids a speculative request for `scheme.sit`.
 
+A decode is one main-thread task by default. If your page loads themes while people
+can interact with it, add `yieldBetweenStages: true` to the load (or to
+`createOwnedThemeResolver`) to split each decode into several shorter tasks. The
+theme is identical and the total work is the same; see
+[shorter decode tasks](https://github.com/khawkins98/scriptoscope/blob/main/docs/runtime-api.md#shorter-decode-tasks-yieldbetweenstages).
+
 Restore dependents before disposing their owner:
 
 ```ts

@@ -61,6 +61,9 @@ export interface ThemeBootstrapOpts {
    *  cascade behavior. Typically passed as the same `themes` array as
    *  MountOptions.themes (the manifest). */
   themes?: readonly ThemeEntry[];
+  /** Opt-in (any truthy value): every load decodes in several shorter main-thread tasks instead
+   *  of one (see `ThemeLoadOptions.yieldBetweenStages`). Read once, when the resolver is created. */
+  yieldBetweenStages?: boolean;
 }
 
 export interface ThemeResolver<Theme extends ThemeInput = LoadedTheme> {
@@ -92,6 +95,7 @@ function createResolver<Theme extends ThemeInput>(opts: ThemeBootstrapOpts,
   load: (url: string, opts: ThemeLoadOptions & { base?: Theme }) => Promise<Theme>): ThemeResolver<Theme> {
   const displayProfile = opts.displayProfile;
   displayRealizer(displayProfile);
+  const yieldBetweenStages = !!opts.yieldBetweenStages;
   const themeBaseUrl = opts.themeBaseUrl ?? '/themes';
   const baseSlug = opts.baseSlug; // undefined = no base
   const baseUrl = baseSlug ? themeRefToUrl(baseSlug, themeBaseUrl) : null;
@@ -133,6 +137,7 @@ function createResolver<Theme extends ThemeInput>(opts: ThemeBootstrapOpts,
       if (displayProfile) loadOpts.displayProfile = displayProfile;
       if (hint?.source) loadOpts.source = hint.source;
       if (hint?.meta) loadOpts.meta = hint.meta;
+      if (yieldBetweenStages) loadOpts.yieldBetweenStages = true;
       const theme = await load(url, loadOpts);
       if (disposed) {
         if (!borrowed.has(theme)) theme.dispose?.();
