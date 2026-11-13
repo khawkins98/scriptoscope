@@ -54,7 +54,11 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   to a tile whose icon is already showing no longer downloads or decodes
   anything. Page-load blocking time and time to ready are not measurably
   different. A failed archive load is still retried on the next request, with
-  one request per attempt instead of two. Demo only.
+  one request per attempt instead of two; because the request is shared, one
+  failure now fails both the tile icon and the page mount that asked for that
+  scheme, so a failed first load of the active scheme leaves the page in bare
+  HTML until "Restore the chrome" is pressed. Schemes stay decoded until the
+  page is hidden. Demo only.
 - Demo pages declare the `Charcoal 12` face once. The landing, showcase,
   install and diagnostic pages declared it both inline and in `site-shell.css`,
   which made Firefox download the font twice. The hostile-CSS page no longer

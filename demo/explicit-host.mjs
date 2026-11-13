@@ -28,7 +28,8 @@ export async function mountExplicitPage(opts) {
   // `resolver`: an application-owned theme resolver to borrow, so a page that also loads
   // themes elsewhere (the showcase's picker strips) decodes each one once. The host loads and
   // registers through it but never disposes it: the application does, after disconnecting.
-  // The resolver's own options then apply; this call's themeBaseUrl/baseSlug/themes hints do not.
+  // The resolver's own options then apply; this call's themeBaseUrl/baseSlug/themes hints,
+  // displayProfile and yieldBetweenStages do not.
   const resolver = opts.resolver ?? createOwnedThemeResolver(opts);
   // Application-owned decoded themes are borrowed before the initial paint.
   for (const [ref, theme] of opts.registeredThemes ?? []) resolver.register(ref, theme);
