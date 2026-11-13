@@ -3,40 +3,87 @@
 // imported lazily, only when a .sit is actually dropped.
 import createMunbox from './dist/munbox.mjs';
 
-// The WASM module is instantiated ONCE and shared across all calls (the first call pays the
-// instantiation cost). Silence munbox's stdout debug chatter ("Detected format: …", "SIT5:
-// created file …") — it would spam the browser console. Real errors surface via sit_error(),
-// not stdout; stderr (genuine warnings) is left intact.
-let _modP;
-const mod = () => (_modP ??= createMunbox({ print: () => {} }));
+// One WASM instance is shared across calls (the first call pays the instantiation cost) and
+// is replaced when it can no longer be trusted or has grown; see createDecoder. Every
+// instance, replacements included, comes from this one factory call. It silences munbox's
+// stdout debug chatter ("Detected format: …", "SIT5: created file …"), which would spam the
+// browser console. Real errors surface via sit_error(), not stdout; stderr (genuine warnings)
+// is left intact.
+const createModule = () => createMunbox({ print: () => {} });
 
 const readU32 = (h, o) => (h[o] | (h[o + 1] << 8) | (h[o + 2] << 16) | (h[o + 3] << 24)) >>> 0;
+
+// Builds a decodeArchive around one shared instance obtained from `create`.
+//
+// The instance is retired, so the next call instantiates a fresh one, in two cases:
+// - A call into it threw (a runtime abort or a WebAssembly trap). Nothing inside it was
+//   unwound or freed and its heap may be damaged. The caller gets that error unchanged.
+// - Its linear memory grew during a decode. The decoder does not return everything it
+//   allocates and WASM memory cannot shrink, so a reused instance only gets bigger. Retiring
+//   on growth means every decode starts from the initial memory size. This is checked once a
+//   decode has finished, and the finished decode's result is still returned.
+// Nothing is started eagerly on retirement; a replacement exists only once a call needs it.
+//
+// The module runs a decode synchronously, so the only place calls interleave is the wait
+// for the instance. A call that waited on an instance another call has since retired waits
+// for the current one instead, and `instance()` caches, so those calls share one replacement.
+function createDecoder(create) {
+  let current; // promise for the instance new calls use; undefined after a retirement
+  const instance = () => (current ??= create());
+
+  return async function decodeArchive(bytes) {
+    let p = instance();
+    let m = await p;
+    while (p !== current) m = await (p = instance());
+    const u8 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+
+    const sizeBefore = m.HEAPU8.length;
+    let packed, failure;
+    let intact = false; // true when a throw came from copying in JS, not from the instance
+    try {
+      const inPtr = m._malloc(u8.length || 1);
+      if (!inPtr) failure = 'out of memory';
+      else {
+        // HEAPU8 is read fresh each time (it's reassigned on memory growth).
+        try { m.HEAPU8.set(u8, inPtr); } catch (e) { m._free(inPtr); intact = true; throw e; }
+        const outPtr = m._sit_decode(inPtr, u8.length);
+        m._free(inPtr);
+        if (!outPtr) failure = m.UTF8ToString(m._sit_error()) || 'decode failed';
+        else {
+          const total = readU32(m.HEAPU8, outPtr);
+          // Copy out of the WASM heap before freeing.
+          try { packed = m.HEAPU8.slice(outPtr, outPtr + total); } catch (e) { m._sit_free(outPtr); intact = true; throw e; }
+          m._sit_free(outPtr);
+        }
+      }
+    } catch (e) {
+      if (!intact || m.HEAPU8.length > sizeBefore) current = undefined;
+      throw e;
+    }
+    if (m.HEAPU8.length > sizeBefore) current = undefined;
+    if (failure) throw new Error(`decodeArchive: ${failure}`);
+    return parsePacked(packed);
+  };
+}
 
 /**
  * Decode a classic-Mac archive (StuffIt `.sit`, BinHex `.hqx`, MacBinary `.bin`, Compact
  * Pro `.cpt`) into its forks.
- * @param {Uint8Array|ArrayBuffer} bytes
- * @returns {Promise<Array<{ name: string, type: number, creator: number, forkType: 0|1, bytes: Uint8Array }>>}
+ * @type {(bytes: Uint8Array|ArrayBuffer) => Promise<Array<{ name: string, type: number, creator: number, forkType: 0|1, bytes: Uint8Array }>>}
  *   one entry per fork; `forkType` 0 = data fork, 1 = resource fork. `type`/`creator` are Mac
  *   OSType codes packed big-endian into a u32 (e.g. 'APPL' → 0x4150504C), NOT strings — decode
  *   with `String.fromCharCode((v>>24)&255, (v>>16)&255, (v>>8)&255, v&255)` if you need the text.
  *   A non-archive input passes through as a single data fork (forkType 0).
  */
-export async function decodeArchive(bytes) {
-  const m = await mod();
-  const u8 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+export const decodeArchive = createDecoder(createModule);
 
-  const inPtr = m._malloc(u8.length || 1);
-  m.HEAPU8.set(u8, inPtr); // HEAPU8 read fresh (it's reassigned on memory growth)
-  const outPtr = m._sit_decode(inPtr, u8.length);
-  m._free(inPtr);
-  if (!outPtr) throw new Error(`decodeArchive: ${m.UTF8ToString(m._sit_error()) || 'decode failed'}`);
-
-  const total = readU32(m.HEAPU8, outPtr);
-  const packed = m.HEAPU8.slice(outPtr, outPtr + total); // copy out of the WASM heap before freeing
-  m._sit_free(outPtr);
-  return parsePacked(packed);
-}
+/**
+ * Internal, for this package's own tests; not part of the supported API and may change or
+ * go away in any release. Returns a separate `decodeArchive` with its own shared instance,
+ * taken from `create` (same contract as the Emscripten factory: resolves to a module).
+ * @internal
+ */
+export const __createDecoderForTests = createDecoder;
 
 /**
  * Convenience for Kaleidoscope schemes: the largest non-icon resource fork

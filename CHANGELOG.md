@@ -34,6 +34,20 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   order: the initially active theme, then the themes in picker order. Each
   theme's icon is also looked up once and shared between its own tile and that
   search (#662).
+- StuffIt decoder: a decode that crashes the decoder no longer breaks later
+  decodes, and decoder memory is bounded across repeated decodes. The wrapper
+  shared one WebAssembly instance for the life of the page or process. A
+  runtime abort or trap left that instance holding everything the failed
+  decode had allocated, so later valid archives could fail, and its memory
+  grew with every archive decoded and could not shrink (about 6.8 MB for each
+  pass over the 13 bundled archives). The wrapper now drops the instance after
+  a crash, and after a decode that grew its memory, and instantiates a fresh
+  one for the next decode. The crashing call still rejects with the same
+  error. A failed input allocation is reported as `decodeArchive: out of
+  memory` instead of being written through, and the wrapper's buffers are
+  freed when copying data in or out fails. Results, ordinary error messages
+  and success-path timing are unchanged. `stuffit-wasm` gains an internal,
+  unsupported `__createDecoderForTests` export for its own tests (#662).
 
 ### Changed
 

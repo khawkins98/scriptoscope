@@ -19,9 +19,21 @@ export interface ArchiveEntry {
 /**
  * Decode a classic-Mac archive (StuffIt `.sit`, BinHex `.hqx`, MacBinary `.bin`, Compact Pro
  * `.cpt`) into its forks — one entry per fork. A non-archive input passes through as a single
- * data fork. Runs in the browser and in Node; the WASM module instantiates once on first call.
+ * data fork. Runs in the browser and in Node; the WASM module instantiates on first call and
+ * is shared by later calls. It is replaced by a fresh instance after a decode that crashes
+ * the decoder (that call still rejects with the crash's own error) or grows its memory.
  */
 export function decodeArchive(bytes: Uint8Array | ArrayBuffer): Promise<ArchiveEntry[]>;
+
+/**
+ * Internal, for this package's own tests; not part of the supported API and may change or
+ * go away in any release. Returns a separate `decodeArchive` with its own shared instance,
+ * taken from `create`.
+ * @internal
+ */
+export function __createDecoderForTests(
+  create: () => Promise<unknown>,
+): (bytes: Uint8Array | ArrayBuffer) => Promise<ArchiveEntry[]>;
 
 /**
  * Convenience for classic Mac files that keep their payload in the resource fork (e.g.

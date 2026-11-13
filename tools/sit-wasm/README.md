@@ -64,9 +64,38 @@ Serve a page beside the copied module, keeping its `dist/` directory in place:
 
 ### Locating the `.wasm`
 
-Keep `dist/munbox.wasm` beside `dist/munbox.mjs`; the wrapper instantiates it once
-on first use. A bundler may relocate these assets together. For a custom WASM
-location, change the Emscripten `locateFile` hook in `index.mjs`'s factory call.
+Keep `dist/munbox.wasm` beside `dist/munbox.mjs`; the wrapper instantiates it on
+first use and again whenever it replaces the instance (below). A bundler may
+relocate these assets together. For a custom WASM location, change the Emscripten
+`locateFile` hook in `index.mjs`'s factory call; every instance comes from that
+one call.
+
+### The shared instance and when it is replaced
+
+Calls share one decoder instance. The wrapper drops it, and the next call
+instantiates a fresh one, in two cases:
+
+- A decode ended in a runtime abort or a WebAssembly trap. The failed call
+  rejects with that error, unchanged. Nothing the decode allocated was released
+  and the instance's heap may be damaged, so it is not called again.
+- The instance's linear memory grew during a decode. The decoder does not return
+  everything it allocates and WebAssembly memory cannot shrink, so a reused
+  instance only gets bigger. The decode that grew it still returns its result.
+
+An ordinary decoder error (`decodeArchive: …`) keeps the instance. Every decode
+therefore starts on an instance at its initial memory size (337 pages); a single
+decode can still grow its own instance as far as that archive needs. None of the
+13 bundled archives grows a fresh instance, and decoding them in a loop replaces
+the instance about once every two passes. A dropped instance's memory is
+returned when the JavaScript engine collects it, not at the moment it is dropped.
+
+The replacement is created by the next decode, not ahead of it, so that decode
+also pays one instantiation, and a page that never decodes again holds no
+decoder at all. If an instantiation fails, that failure is kept and later calls
+reject with it, as before.
+
+`__createDecoderForTests` is exported for this package's own tests. It is not
+part of the supported API.
 
 ## Coverage
 
@@ -151,3 +180,4 @@ terms. The first-party wrapper has its own [MIT license](./LICENSE).
 | `dist/` | Committed generated ES module and WASM |
 | `munbox/` | Vendored subset, license and patch record |
 | `sit-wasm.test.mjs` | Archive/fork regression tests, included in repository `npm test` |
+| `instance-recovery.test.mjs` | Instance replacement and buffer-freeing tests, included in repository `npm test` |
