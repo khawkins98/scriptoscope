@@ -25,7 +25,12 @@ export async function mountExplicitPage(opts) {
   const root = opts.root instanceof Element ? opts.root : document.body;
   const mountingViewport=innerWidth;
   const events = new EventTarget();
-  const resolver = createOwnedThemeResolver(opts);
+  // `resolver`: an application-owned theme resolver to borrow, so a page that also loads
+  // themes elsewhere (the showcase's picker strips) decodes each one once. The host loads and
+  // registers through it but never disposes it: the application does, after disconnecting.
+  // The resolver's own options then apply; this call's themeBaseUrl/baseSlug/themes hints,
+  // displayProfile and yieldBetweenStages do not.
+  const resolver = opts.resolver ?? createOwnedThemeResolver(opts);
   // Application-owned decoded themes are borrowed before the initial paint.
   for (const [ref, theme] of opts.registeredThemes ?? []) resolver.register(ref, theme);
   // `hit`: the page-wide frame hit mode, 'region' (default) or 'box' (#597).
@@ -386,7 +391,7 @@ export async function mountExplicitPage(opts) {
       if(el.style.minHeight===original.ownedHeight)el.style.minHeight=original.height;
       if(el.style.position===original.ownedPosition)el.style.position=original.position;
     }
-    resolver.dispose();
+    if (!opts.resolver) resolver.dispose();
     root.classList.remove('scriptoscope-ready');
     root.removeAttribute('data-scriptoscope-loading');
     restoreInert();

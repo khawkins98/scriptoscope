@@ -43,6 +43,22 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   five. The time to the last window is unchanged. A failed load still returns
   the whole collage to its plain HTML panels with the retry control, and a
   retry now shows the loading progress again. Demo only.
+- The showcase fetches and decodes each scheme at most once per page (#662).
+  Its picker strips and its page host each had a theme resolver, so the active
+  scheme was decoded twice at load, a tile's scheme was decoded again on the
+  first switch to it, and every close and reopen, resize reflow and
+  auto-cycle step decoded again. They now share one resolver: the demo's
+  `mountExplicitPage` (`demo/explicit-host.mjs`) accepts an application-owned
+  `resolver`, which it loads and registers through and never disposes, and the
+  showcase disposes it on `pagehide` after disconnecting the host. Switching
+  to a tile whose icon is already showing no longer downloads or decodes
+  anything. Page-load blocking time and time to ready are not measurably
+  different. A failed archive load is still retried on the next request, with
+  one request per attempt instead of two; because the request is shared, one
+  failure now fails both the tile icon and the page mount that asked for that
+  scheme, so a failed first load of the active scheme leaves the page in bare
+  HTML until "Restore the chrome" is pressed. Schemes stay decoded until the
+  page is hidden. Demo only.
 - Demo pages declare the `Charcoal 12` face once. The landing, showcase,
   install and diagnostic pages declared it both inline and in `site-shell.css`,
   which made Firefox download the font twice. The hostile-CSS page no longer
