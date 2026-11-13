@@ -84,6 +84,26 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   mutates the array it returned, or returns a one-shot iterable, therefore
   yields different pixels. Prepared display profiles return a fresh array per
   call and are unaffected (#662).
+- The StuffIt decoder is rebuilt for size (`-Os`, Closure-minified glue) with the
+  same Emscripten 5.0.7 that produced the previous binary (#662). The lazy
+  decoder chunk in the library build goes from 105,021 to 90,387 bytes (44,767
+  to 40,371 gzip); standalone `munbox.wasm` from 69,806 to 60,461 bytes and
+  `munbox.mjs` from 13,264 to 5,460. Decoded forks and error messages are
+  identical on all 13 bundled archives and a 404-input corpus; no decode-time
+  change was measurable on a noisy host. WASM memory is unchanged: it still
+  starts at 337 pages (about 21 MB) and grows on demand. `build.sh` used to
+  pass `-sINITIAL_MEMORY=32MB`, but no shipped binary was ever built with it,
+  so the flag is removed rather than applied. Nothing changes through the
+  `stuffit-wasm` wrapper or the library. Code that imports
+  `tools/sit-wasm/dist/munbox.mjs` directly is affected by the new
+  `-sTEXTDECODER=2`: the glue throws at instantiation without a global
+  `TextDecoder`; `UTF8ToString` on a string of 16 bytes or fewer that is not
+  valid UTF-8 returns U+FFFD and drops a leading byte-order mark, where it
+  returned other code units; and `print` lines holding such bytes (high-bit
+  Mac filenames in decoder diagnostics) change the same way at any length.
+  The build is pinned to Emscripten 5.0.7 and reproduces byte for byte, and
+  `THIRD_PARTY_NOTICES` now cites the 5.0.7 licence files it was built with
+  (the text is the same apart from one trailing space).
 
 ## [0.10.0] — 2026-11-04
 

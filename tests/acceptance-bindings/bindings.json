@@ -41,11 +41,11 @@
     },
     {
       "path": "tools/sit-wasm/dist/munbox.mjs",
-      "sha256": "fe3a0cbde377511f6af37134eec5d28fe5375d18272dfd806f371f406ae92217"
+      "sha256": "e608bbfd021eaa62f3e98cfd21189dd572707f6b3d531e930a6e4e52dec33ae4"
     },
     {
       "path": "tools/sit-wasm/dist/munbox.wasm",
-      "sha256": "2c91a30904144a34277d54975d88c4a57baabd58466f579e3baef60bf0ced812"
+      "sha256": "6761067fdaad073911ebe19d2a30fd3c7c609fea2bce0e0155e325ad41e9db65"
     },
     {
       "path": "tools/sit-wasm/index.mjs",

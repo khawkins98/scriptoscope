@@ -86,22 +86,55 @@ decoded rather than discarding them, so a trailing over-run is harmless.
 
 ## Rebuild
 
-From this directory with a local [Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html):
+The committed `dist/` was built with **Emscripten 5.0.7**. From this directory with
+that release of the [Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html)
+active:
 
 ```sh
 source ~/emsdk/emsdk_env.sh
 ./build.sh
 ```
 
-Or use Docker:
+Or use the matching Docker image:
 
 ```sh
-docker run --rm -v "$(pwd):/src" -w /src emscripten/emsdk:latest bash build.sh
+docker run --rm -v "$(pwd):/src" -w /src emscripten/emsdk:5.0.7 bash build.sh
 ```
 
+Both routes reproduce the committed `munbox.mjs` and `munbox.wasm` byte for byte
+(checked on macOS arm64 with the native SDK and in the linux/arm64 image). Another
+Emscripten release produces different bytes, and `build.sh` warns when it sees one.
+The build runs the Closure Compiler that ships with the SDK.
+
 [build.sh](./build.sh) owns compiler inputs/flags. Preserve its 5 MB stack,
-32 MB initial/growable memory, filesystem-free ES-module factory and browser/Node
-support when changing the build; a too-small wasm32 stack can corrupt decoder memory.
+growable memory, filesystem-free ES-module factory and browser/Node support when
+changing the build; a too-small wasm32 stack can corrupt decoder memory. Memory
+starts at 337 pages (about 21 MB) and grows on demand. `build.sh` once passed
+`-sINITIAL_MEMORY=32MB`, but no shipped binary was ever built with it, so the flag
+was removed to keep the shipped behaviour.
+
+The glue is built with `-sTEXTDECODER=2`, so it decodes every string with the
+platform `TextDecoder`. Through `index.mjs` nothing changes: the wrapper already
+needed `TextDecoder`, and the only strings it reads from the glue are ASCII error
+messages. Code that imports `dist/munbox.mjs` directly sees three differences from
+builds before this flag:
+
+- instantiation throws `ReferenceError` where there is no global `TextDecoder`
+  (previously the glue fell back to its own decoder);
+- `UTF8ToString` on a string of 16 bytes or fewer that is not valid UTF-8 returns
+  U+FFFD replacement characters, and a leading byte-order mark is dropped, where
+  the old hand decoder returned other code units (longer strings already went
+  through `TextDecoder`);
+- lines passed to a `print` callback change the same way at any length, because
+  the old glue always hand-decoded them: a diagnostic line holding a high-bit Mac
+  filename now carries U+FFFD where it used to merge the byte with its neighbour
+  (23 of the 167 lines printed for the bundled archives differ).
+
+After a rebuild, refresh the `munbox.wasm` pin in
+`tests/control-availability/source-candidates.json` and regenerate
+`tests/acceptance-bindings/bindings.json`. The
+[experiment record](../../docs/runtime-optimization-experiments.md#stuffit-decoder-build-flags-size-optimized-build-chosen-662)
+has the measurements behind the current flags.
 
 ## What's vendored, and our patches
 
