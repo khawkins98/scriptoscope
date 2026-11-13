@@ -25,7 +25,7 @@
     "tests/control-availability/candidates.mjs": "de0e69bf0aad7a929efd946ce409391d1bfbeae4c6939a1707229a5aa5666999",
     "tests/control-availability/source.mjs": "e7fc0348277253839c1362748ce943fd306da7c303629a00f7348de8f668c372",
     "tools/sit-wasm/index.mjs": "5b46b6811d31ec97df18f59f2e6e7db55aca5be7eb8dcbf511c4ea43d5ee3e19",
-    "tools/sit-wasm/dist/munbox.wasm": "8bcaa0b8c0749bb03077f8608b1f1aa5f7992bc74293f1ec93ccd1f1cbfa21a9",
+    "tools/sit-wasm/dist/munbox.wasm": "6761067fdaad073911ebe19d2a30fd3c7c609fea2bce0e0155e325ad41e9db65",
     "tools/theme-loader/resource-fork.js": "d7c382d770c8bbd51924150629dc0707d3169d3ac4d22a3dd66ff40dcf3e9a42",
     "tools/theme-loader/decoders/cicn.js": "b78ae05509723a246d64d6f0b2b147c29c5b7fc7ed6c1214303942c43415bb73",
     "tools/theme-loader/kdef-color-samples.js": "84cee437c3fdfdae8c8efe7f7ed3f27ea14228a6446ad7a00936215fc6b06fb4",

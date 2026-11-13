@@ -45,7 +45,7 @@
     },
     {
       "path": "tools/sit-wasm/dist/munbox.wasm",
-      "sha256": "8bcaa0b8c0749bb03077f8608b1f1aa5f7992bc74293f1ec93ccd1f1cbfa21a9"
+      "sha256": "6761067fdaad073911ebe19d2a30fd3c7c609fea2bce0e0155e325ad41e9db65"
     },
     {
       "path": "tools/sit-wasm/index.mjs",
