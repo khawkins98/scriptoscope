@@ -107,8 +107,29 @@ Emscripten release produces different bytes, and `build.sh` warns when it sees o
 The build runs the Closure Compiler that ships with the SDK.
 
 [build.sh](./build.sh) owns compiler inputs/flags. Preserve its 5 MB stack,
-32 MB initial/growable memory, filesystem-free ES-module factory and browser/Node
-support when changing the build; a too-small wasm32 stack can corrupt decoder memory.
+growable memory, filesystem-free ES-module factory and browser/Node support when
+changing the build; a too-small wasm32 stack can corrupt decoder memory. Memory
+starts at 337 pages (about 21 MB) and grows on demand. `build.sh` once passed
+`-sINITIAL_MEMORY=32MB`, but no shipped binary was ever built with it, so the flag
+was removed to keep the shipped behaviour.
+
+The glue is built with `-sTEXTDECODER=2`, so it decodes every string with the
+platform `TextDecoder`. Through `index.mjs` nothing changes: the wrapper already
+needed `TextDecoder`, and the only strings it reads from the glue are ASCII error
+messages. Code that imports `dist/munbox.mjs` directly sees three differences from
+builds before this flag:
+
+- instantiation throws `ReferenceError` where there is no global `TextDecoder`
+  (previously the glue fell back to its own decoder);
+- `UTF8ToString` on a string of 16 bytes or fewer that is not valid UTF-8 returns
+  U+FFFD replacement characters, and a leading byte-order mark is dropped, where
+  the old hand decoder returned other code units (longer strings already went
+  through `TextDecoder`);
+- lines passed to a `print` callback change the same way at any length, because
+  the old glue always hand-decoded them: a diagnostic line holding a high-bit Mac
+  filename now carries U+FFFD where it used to merge the byte with its neighbour
+  (23 of the 167 lines printed for the bundled archives differ).
+
 After a rebuild, refresh the `munbox.wasm` pin in
 `tests/control-availability/source-candidates.json` and regenerate
 `tests/acceptance-bindings/bindings.json`. The

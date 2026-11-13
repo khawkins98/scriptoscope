@@ -26,6 +26,11 @@ fi
 # --closure 1: minifies the JS glue. Needs the Closure Compiler the SDK ships (and Java
 #   where it has no native build).
 # TEXTDECODER=2: the wrapper already requires TextDecoder, so drop the glue's fallback.
+#   Code that imports dist/munbox.mjs directly now needs a global TextDecoder too.
+# No -sINITIAL_MEMORY: this script used to pass 32MB, but no shipped binary was ever
+#   built with it. The flag was removed so memory keeps starting at Emscripten's default
+#   for these settings (337 pages, about 21 MB: 16 MB heap + the 5 MB stack + data) and
+#   growing on demand, exactly as the shipped decoder always has.
 mkdir -p dist
 emcc -Os --closure 1 \
   -I munbox/include -I munbox/lib \
@@ -39,7 +44,6 @@ emcc -Os --closure 1 \
   -sFILESYSTEM=0 \
   -sALLOW_MEMORY_GROWTH=1 \
   -sSTACK_SIZE=5MB \
-  -sINITIAL_MEMORY=32MB \
   -sTEXTDECODER=2 \
   -sEXPORTED_FUNCTIONS=_sit_decode,_sit_free,_sit_error,_malloc,_free \
   -sEXPORTED_RUNTIME_METHODS=HEAPU8,UTF8ToString

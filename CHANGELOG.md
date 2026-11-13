@@ -74,10 +74,20 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   to 40,371 gzip); standalone `munbox.wasm` from 69,806 to 60,461 bytes and
   `munbox.mjs` from 13,264 to 5,460. Decoded forks and error messages are
   identical on all 13 bundled archives and a 404-input corpus; no decode-time
-  change was measurable on a noisy host. One thing differs: the WASM memory
-  now starts at 32 MB, as `build.sh` has always specified, where the previous
-  committed binary started at 21 MB because it had been built without that
-  flag. The build is pinned to Emscripten 5.0.7 and reproduces byte for byte.
+  change was measurable on a noisy host. WASM memory is unchanged: it still
+  starts at 337 pages (about 21 MB) and grows on demand. `build.sh` used to
+  pass `-sINITIAL_MEMORY=32MB`, but no shipped binary was ever built with it,
+  so the flag is removed rather than applied. Nothing changes through the
+  `stuffit-wasm` wrapper or the library. Code that imports
+  `tools/sit-wasm/dist/munbox.mjs` directly is affected by the new
+  `-sTEXTDECODER=2`: the glue throws at instantiation without a global
+  `TextDecoder`; `UTF8ToString` on a string of 16 bytes or fewer that is not
+  valid UTF-8 returns U+FFFD and drops a leading byte-order mark, where it
+  returned other code units; and `print` lines holding such bytes (high-bit
+  Mac filenames in decoder diagnostics) change the same way at any length.
+  The build is pinned to Emscripten 5.0.7 and reproduces byte for byte, and
+  `THIRD_PARTY_NOTICES` now cites the 5.0.7 licence files it was built with
+  (the text is the same apart from one trailing space).
 
 ## [0.10.0] — 2026-11-04
 

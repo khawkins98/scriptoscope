@@ -140,7 +140,7 @@ picker and its page host use separate resolvers; that repeated work is unchanged
 Baseline `9dfe0a59`. Emscripten 5.0.7 (`263db4cf`, clang 23.0.0git, Binaryen
 `wasm-opt` 129) from a local SDK; Node 24.18; Chromium 156, Firefox 157 and WebKit
 27.2 from Playwright 1.64; one Apple M5 Mac whose load average moved between 4 and
-58 during the work. Sizes are bytes; gzip is Node zlib level 9 throughout.
+196 during the work. Sizes are bytes; gzip is Node zlib level 9 throughout.
 
 **Baseline identity.** The unchanged `build.sh` reproduces the committed
 `munbox.mjs` exactly and `munbox.wasm` except for two bytes in the memory section:
@@ -149,7 +149,13 @@ for 32 MB. Building without `-sINITIAL_MEMORY=32MB` reproduces the committed
 binary byte for byte, so it was built with this compiler before that flag was
 added. There is therefore no compiler-version effect to separate, and every
 comparison below has two references: the committed binary and the `-O2` build
-from `build.sh` as written (the control).
+from `build.sh` as it then stood (the control, 32 MB). All variants in the table
+were built and measured with the flag. The owner then chose to keep the shipped
+memory behavior, so the flag was removed from `build.sh` and the chosen build was
+rebuilt without it. That final binary differs from the measured `-Os` binary in the
+same two memory-section bytes and nothing else, declares the same 337 initial and
+32,768 maximum pages as the binary it replaces, and was put through the behavior,
+growth, reproducibility and timing checks again (below).
 
 **Thresholds, fixed before any variant was built.** A size win is a lazy decoder
 chunk at least 5% smaller in gzip than both references, with median warm and cold
@@ -177,7 +183,7 @@ so that layer is compiled but not exercised.
 | Variant (flags added to, or replacing `-O2` in, the control) | wasm raw / gzip | glue raw / gzip | Lazy chunk raw / gzip | Chunk gzip vs both references | Output identical |
 | --- | ---: | ---: | ---: | ---: | --- |
 | Committed binary | 69,806 / 29,648 | 13,264 / 4,437 | 105,021 / 44,767 | — | reference |
-| Control: `-O2`, `build.sh` unchanged | 69,806 / 29,647 | 13,264 / 4,437 | 105,021 / 44,767 | 0.0% | yes |
+| Control: `-O2`, `build.sh` as it stood (32 MB) | 69,806 / 29,647 | 13,264 / 4,437 | 105,021 / 44,767 | 0.0% | yes |
 | `-O3` | 71,161 / 30,736 | 12,908 / 4,383 | 106,500 / 45,537 | +1.7% | yes |
 | `-Os` | 60,461 / 27,491 | 12,622 / 4,338 | 92,006 / 40,864 | −8.7% | yes |
 | `-Oz` | 57,014 / 26,532 | 12,414 / 4,196 | 87,024 / 39,087 | −12.7% | yes |
@@ -192,7 +198,7 @@ so that layer is compiled but not exercised.
 | `-flto --closure 1` at each of the four levels | as the `-flto` rows | 6,115–6,743 / 2,941–3,263 | not built | — | yes |
 | `-sASSERTIONS=0` | as control | as control | as control | 0.0% | yes (already the default) |
 | `-sINCOMING_MODULE_JS_API=print` | as control | 11,700 / 4,061 | 103,716 / 44,347 | −0.9% | yes, but `locateFile` is ignored |
-| `-sTEXTDECODER=2` | as control | 12,866 / 4,277 | 104,464 / 44,592 | −0.4% | yes |
+| `-sTEXTDECODER=2` | as control | 12,866 / 4,277 | 104,464 / 44,592 | −0.4% | yes through the wrapper; direct glue use differs (below) |
 | `-sENVIRONMENT=web` | as control | 12,242 / 4,095 | not built | — | no: cannot start in Node |
 | `-sMALLOC=emmalloc` | 63,138 / 26,996 | as control | 96,129 / 41,538 | −7.2% | yes |
 | `wasm-opt -Oz`, `-O3`, `-Oz --converge` on the control | 69,089–69,581 / 29,579–29,658 | as control | 104,065 / 44,661 (`--converge`) | −0.2% | yes |
@@ -202,11 +208,13 @@ so that layer is compiled but not exercised.
 | `wasm-opt` passes on four of those | within 1.1% of their inputs | unchanged | 76,232 / 35,206 for the smallest | −21.4% | yes |
 | `-Oz --closure 1 -sTEXTDECODER=2`, API `print,locateFile` | as `-Oz` | 4,710 / 2,319 | 84,736 / 38,332 | −14.4% | yes |
 | `-Os --closure 1 -sTEXTDECODER=2`, API `print,locateFile` | as `-Os` | 4,600 / 2,285 | 89,157 / 39,888 | −10.9% | yes |
-| **Chosen: `-Os --closure 1 -sTEXTDECODER=2`** | 60,461 / 27,491 | 5,460 / 2,622 | 90,387 / 40,371 | −9.8% | yes |
+| `-Os --closure 1 -sTEXTDECODER=2` (32 MB, as measured) | 60,461 / 27,491 | 5,460 / 2,622 | 90,387 / 40,371 | −9.8% | yes |
+| **Shipped: the same without `-sINITIAL_MEMORY`** | 60,461 / 27,491 | 5,460 / 2,622 | 90,387 / 40,371 | −9.8% | yes |
 
 The other library chunks are unchanged apart from the hashed name of the decoder
-chunk they import. Brotli (quality 11) for the chosen chunk is 35,165 against
-38,962.
+chunk they import. Brotli (quality 11) for the shipped build is 23,954 (`munbox.wasm`,
+against 25,512), 2,384 (`munbox.mjs`, against 4,035) and 35,223 (lazy chunk,
+against 38,962).
 
 **Timing.** Warm is the fastest of 12 passes (8 in Chromium) over all 13 bundled
 archives after 3 (2) untimed passes; cold is the first `decodeArchive` call on a
@@ -225,25 +233,43 @@ of the control binary.
 | Chromium cold, finalists (16) | 8.2 / 12.7 / 21.9 | 8.7 / 11.4 / 18.8 | 8.2 / 13.0 / 23.2 | 9.0 / 12.6 / 15.1 ¹ | 10.2 / 13.4 / 22.9 |
 | Chromium 4× warm, finalists (12) | 336 / 365 / 670 | 340 / 415 / 607 | 341 / 403 / 555 | 352 / 381 / 570 ¹ | 359 / 436 / 560 |
 | Chromium 4× cold, finalists (12) | 33.0 / 55.6 / 71.7 | 33.0 / 51.3 / 85.8 | 30.3 / 46.3 / 72.8 | 31.1 / 44.5 / 73.9 ¹ | 31.0 / 40.1 / 90.4 |
-| Node warm, shipped bytes (16) | 171 / 183 / 200 | 174 / 182 / 199 | 172 / 183 / 215 | 173 / 182 / 205 | — |
-| Node cold, shipped bytes (16) | 15.0 / 19.3 / 32.5 | 15.3 / 19.3 / 31.2 | 16.2 / 18.0 / 26.9 | 15.1 / 17.5 / 25.9 | — |
-| Chromium warm, shipped bytes (14) | 165 / 215 / 245 | 194 / 226 / 244 | 175 / 214 / 244 | 174 / 222 / 245 | — |
-| Chromium cold, shipped bytes (14) | 17.3 / 21.4 / 32.3 | 17.3 / 21.6 / 24.5 | 16.4 / 21.3 / 23.5 | 17.3 / 21.7 / 22.7 | — |
-| Chromium 4× warm, shipped bytes (12) | 484 / 562 / 916 | 441 / 651 / 966 | 534 / 634 / 871 | 533 / 649 / 934 | — |
-| Chromium 4× cold, shipped bytes (12) | 45.7 / 62.6 / 99.1 | 46.7 / 60.1 / 103.2 | 46.3 / 60.8 / 104.4 | 47.9 / 65.7 / 108.5 | — |
+| Node warm, 32 MB build (16) | 171 / 183 / 200 | 174 / 182 / 199 | 172 / 183 / 215 | 173 / 182 / 205 | — |
+| Node cold, 32 MB build (16) | 15.0 / 19.3 / 32.5 | 15.3 / 19.3 / 31.2 | 16.2 / 18.0 / 26.9 | 15.1 / 17.5 / 25.9 | — |
+| Chromium warm, 32 MB build (14) | 165 / 215 / 245 | 194 / 226 / 244 | 175 / 214 / 244 | 174 / 222 / 245 | — |
+| Chromium cold, 32 MB build (14) | 17.3 / 21.4 / 32.3 | 17.3 / 21.6 / 24.5 | 16.4 / 21.3 / 23.5 | 17.3 / 21.7 / 22.7 | — |
+| Chromium 4× warm, 32 MB build (12) | 484 / 562 / 916 | 441 / 651 / 966 | 534 / 634 / 871 | 533 / 649 / 934 | — |
+| Chromium 4× cold, 32 MB build (12) | 45.7 / 62.6 / 99.1 | 46.7 / 60.1 / 103.2 | 46.3 / 60.8 / 104.4 | 47.9 / 65.7 / 108.5 | — |
 
 ¹ Measured on the `print,locateFile` build, which has the same `munbox.wasm` bytes
-as the chosen build and a slightly smaller glue. The “shipped bytes” session, run
-under load averages of 12 to 58, used the committed artefacts.
+as the 32 MB chosen build and a slightly smaller glue. The “32 MB build” session,
+run under load averages of 12 to 58, used the chosen flags with the memory flag.
+
+The shipped bytes (no memory flag) were then measured in one more session against
+the binary they replace, a second copy of that binary as the A/A, and the 32 MB
+`-O2` control. Load average was 49 to 196 throughout, which is why the Node
+figures are so wide:
+
+| Shipped bytes (samples per variant) | Previous binary | A/A copy of it | 32 MB `-O2` control | Shipped |
+| --- | ---: | ---: | ---: | ---: |
+| Node warm (16) | 197 / 354 / 1931 | 206 / 400 / 1602 | 196 / 403 / 2105 | 194 / 380 / 1793 |
+| Node cold (16) | 19.5 / 42.9 / 430.6 | 15.7 / 19.9 / 372.8 | 15.5 / 21.1 / 310.9 | 18.4 / 35.9 / 239.8 |
+| Chromium warm (14) | 175 / 228 / 234 | 171 / 221 / 237 | 164 / 214 / 240 | 180 / 219 / 242 |
+| Chromium cold (14) | 18.7 / 21.0 / 25.2 | 17.3 / 20.8 / 22.0 | 18.9 / 20.8 / 22.8 | 17.6 / 19.6 / 21.9 |
+| Chromium 4× warm (12) | 752 / 835 / 938 | 756 / 817 / 918 | 750 / 845 / 954 | 691 / 827 / 912 |
+| Chromium 4× cold (12) | 71.0 / 77.3 / 87.9 | 52.8 / 76.7 / 83.1 | 70.4 / 79.6 / 87.6 | 68.8 / 76.0 / 84.4 |
 
 Noise floor: the two copies of one binary differed in median by up to 8% within a
 finalist session and by up to 18% in an earlier 22-variant Node session (144
 against 118 ms), and in fastest sample by up to 14%. The chosen build's medians
-are within −8% to +6% of the control in every session, inside that floor. In the
-shipped-bytes session the per-round ratio to the control had a median of 0.99
-(Node), 0.94 (Chromium) and 0.98 (4×) for the chosen build against 1.01, 0.97 and
-0.98 for the A/A copy. No variant met the speed threshold; nothing was faster
-outside the floor.
+are within −8% to +6% of the control in the finalist and 32 MB sessions, inside
+that floor. In the 32 MB session the per-round ratio to the control had a median
+of 0.99 (Node), 0.94 (Chromium) and 0.98 (4×) for the chosen build against 1.01,
+0.97 and 0.98 for the A/A copy. In the shipped-bytes session the per-round ratio
+to the previous binary had a median of 0.96 (Node), 0.98 (Chromium) and 0.99 (4×)
+for the shipped build against 1.00, 0.99 and 0.98 for the A/A copy; Node cold
+start in that session cannot be read either way, since the two identical copies
+differ by a factor of two in median. No variant met the speed threshold; nothing
+was faster outside the floor.
 
 **Rejected on measurement.** `-Oz` saves about another 1,600–1,800 gzip bytes of
 chunk but was the one family that looked slower: medians +13% (Node), +18%
@@ -258,11 +284,23 @@ dlmalloc, and 494.8 MB against 286.3 MB after forty. `-O3` and `-flto` make the
 binary larger. Explicit `wasm-opt` passes change less than 1%, because `emcc`
 already runs Binaryen at these levels.
 
-**Rejected on contract.** Restricting the factory options to `print` drops the
-`locateFile` hook that the decoder README documents for a custom WASM location;
-allowing `print,locateFile` keeps it and saves a further 483 gzip bytes of chunk,
-but any other Emscripten option passed to `createMunbox()` by code importing the
-glue directly would be ignored, so it was left out. Removing container layers was
+**Direct use of the glue is treated as a contract.** `dist/munbox.mjs` is published
+beside the wrapper, so code may import it without `index.mjs`. Restricting the
+factory options to `print` drops the `locateFile` hook that the decoder README
+documents for a custom WASM location; allowing `print,locateFile` keeps it and
+saves a further 483 gzip bytes of chunk, but any other Emscripten option passed
+to `createMunbox()` would be silently ignored, so it was left out.
+`-sTEXTDECODER=2` also changes what a direct importer sees, and was accepted with
+that change documented in the decoder README and the changelog rather than
+described as neutral: the glue throws `ReferenceError` at instantiation where
+there is no global `TextDecoder`; `UTF8ToString` on a string of 16 bytes or fewer
+that is not valid UTF-8 returns U+FFFD and drops a leading byte-order mark, where
+the old hand decoder returned other code units (a lone `0x8E` between `A` and `B`
+gave `41 DDC8 DC00`, now `41 FFFD 42`); and `print` lines change the same way at
+any length, which alters 23 of the 167 diagnostic lines the bundled archives
+produce (high-bit Mac filenames). Through the wrapper none of this is observable:
+it already constructs a `TextDecoder`, discards `print` output, and reads only
+ASCII error messages. Removing container layers was
 measured on a scratch copy of the sources and not shipped: without BinHex,
 MacBinary and Compact Pro the control would be 50,908 / 22,071 (chunk 79,825 /
 33,931, −24.2%), and with `-Oz` 40,998 / 19,809 (chunk 65,668 / 29,815); singly,
@@ -274,24 +312,35 @@ README, types and package description promise all four formats and nested
 wrappers. Dropping the layers changed 109 of the 404 corpus results (a wrapped
 `.sit` comes back as one undecoded data fork).
 
-**Memory.** Linear memory after instantiation, after the largest archive
-(`crayon-os`, 515 KB) and after all 13 archives is 32.00 MB for the control and
-the chosen build, and 21.06 MB for the previously committed binary; after four
-passes it is 38.44 MB against 36.50 MB. The 11 MB difference at start is the
-`-sINITIAL_MEMORY=32MB` flag that the old artefact lacked, not the optimization
-level. Existing behavior, unchanged by any variant: the heap grows by roughly
+**Memory.** With the flag, linear memory after instantiation, after the largest
+archive (`crayon-os`, 515 KB) and after all 13 archives was 32.00 MB at every
+optimization level, against 21.06 MB for the previously committed binary. The
+shipped build, without the flag, matches the previous binary exactly: 21.06 MB at
+each of those points, 36.50 MB after four passes over the 13 archives, and the
+same size at every checkpoint up to forty passes (326.6 MB). Growth was checked
+for correctness against the previous binary: 156 repeated decodes through one
+instance while memory grew from 22,085,632 to 95,485,952 bytes gave the same
+packed output every time, and single calls that force growth (8, 24 and 48 MB
+inputs passed through as a data fork, and the same wrapped in MacBinary) returned
+the input bytes intact with identical heap sizes before and after in both
+binaries. Existing behavior, unchanged by any variant: the heap grows by roughly
 7 MB per pass over the 13 archives through one instance and does not come back.
 
-**Compatibility and reproducibility.** The chosen build was instantiated through
+**Compatibility and reproducibility.** The shipped build repeats the 404-input
+corpus with results identical to the previous binary. It was instantiated through
 the built `dist/scriptoscope.js` (`loadKaleidoscopeScheme` on a `.sit`) in
-Chromium, Firefox and WebKit: the same eight HTTP requests as the baseline, no
+Chromium, Firefox and WebKit: the same HTTP requests as the baseline, no
 console errors, and all 18 bundled themes decode to the same canonical digest
 (sorted keys, SHA-256 of each of 9,352 typed arrays, provenance load id masked) in
 each engine; with the mask removed two runs of one binary differ in 18 of 18. The
 wrapper still silences decoder stdout and `locateFile` is still honoured. A second
 build from a clean copy in a fresh shell, and a build in the
 `emscripten/emsdk:5.0.7` linux/arm64 image, both reproduce the committed bytes
-exactly. Neither glue file carries embedded licence text, before or after.
+exactly (`munbox.mjs` `e608bbfd…dec33ae4`, `munbox.wasm` `6761067f…41e9db65`).
+Neither glue file carries embedded licence text, before or after.
+`THIRD_PARTY_NOTICES` cited Emscripten's 4.0.9 licence files; it now cites and
+matches the 5.0.7 files exactly (the musl text was already identical and the
+Emscripten text differed by one trailing space).
 
 **Limits.** One loaded host; Chromium only for browser timing; no real slow
 device or network; transfer size stands in for download time. Differences under
