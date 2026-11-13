@@ -86,22 +86,34 @@ decoded rather than discarding them, so a trailing over-run is harmless.
 
 ## Rebuild
 
-From this directory with a local [Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html):
+The committed `dist/` was built with **Emscripten 5.0.7**. From this directory with
+that release of the [Emscripten SDK](https://emscripten.org/docs/getting_started/downloads.html)
+active:
 
 ```sh
 source ~/emsdk/emsdk_env.sh
 ./build.sh
 ```
 
-Or use Docker:
+Or use the matching Docker image:
 
 ```sh
-docker run --rm -v "$(pwd):/src" -w /src emscripten/emsdk:latest bash build.sh
+docker run --rm -v "$(pwd):/src" -w /src emscripten/emsdk:5.0.7 bash build.sh
 ```
+
+Both routes reproduce the committed `munbox.mjs` and `munbox.wasm` byte for byte
+(checked on macOS arm64 with the native SDK and in the linux/arm64 image). Another
+Emscripten release produces different bytes, and `build.sh` warns when it sees one.
+The build runs the Closure Compiler that ships with the SDK.
 
 [build.sh](./build.sh) owns compiler inputs/flags. Preserve its 5 MB stack,
 32 MB initial/growable memory, filesystem-free ES-module factory and browser/Node
 support when changing the build; a too-small wasm32 stack can corrupt decoder memory.
+After a rebuild, refresh the `munbox.wasm` pin in
+`tests/control-availability/source-candidates.json` and regenerate
+`tests/acceptance-bindings/bindings.json`. The
+[experiment record](../../docs/runtime-optimization-experiments.md#stuffit-decoder-build-flags-size-optimized-build-chosen-662)
+has the measurements behind the current flags.
 
 ## What's vendored, and our patches
 

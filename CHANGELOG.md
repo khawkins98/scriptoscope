@@ -68,6 +68,16 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   mutates the array it returned, or returns a one-shot iterable, therefore
   yields different pixels. Prepared display profiles return a fresh array per
   call and are unaffected (#662).
+- The StuffIt decoder is rebuilt for size (`-Os`, Closure-minified glue) with the
+  same Emscripten 5.0.7 that produced the previous binary (#662). The lazy
+  decoder chunk in the library build goes from 105,021 to 90,387 bytes (44,767
+  to 40,371 gzip); standalone `munbox.wasm` from 69,806 to 60,461 bytes and
+  `munbox.mjs` from 13,264 to 5,460. Decoded forks and error messages are
+  identical on all 13 bundled archives and a 404-input corpus; no decode-time
+  change was measurable on a noisy host. One thing differs: the WASM memory
+  now starts at 32 MB, as `build.sh` has always specified, where the previous
+  committed binary started at 21 MB because it had been built without that
+  flag. The build is pinned to Emscripten 5.0.7 and reproduces byte for byte.
 
 ## [0.10.0] — 2026-11-04
 
