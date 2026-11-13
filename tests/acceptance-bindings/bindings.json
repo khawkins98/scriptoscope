@@ -17,7 +17,7 @@
     },
     {
       "path": "src/loadTheme.ts",
-      "sha256": "6914ccf55cea71d78f2daca3c046e8da553ada33256f7b1a20376790548c3ca3"
+      "sha256": "b6985f09f42953e0b6743c31ea80502862a4f52748873633f3009ecef613d95e"
     },
     {
       "path": "src/resolveWindowType.ts",
@@ -137,7 +137,7 @@
     },
     {
       "path": "tools/theme-loader/loadKaleidoscopeScheme.js",
-      "sha256": "1cea9771a84dfc2cc0679d871930e05b117f09404829f2fe7e1e07f461b481f8"
+      "sha256": "faf8e0ffcd0c2448e532567053e116bafba4ac798a1a283f94fbc5d2105d2b6d"
     },
     {
       "path": "tools/theme-loader/loadProvenance.js",
