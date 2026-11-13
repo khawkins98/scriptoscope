@@ -390,7 +390,7 @@ found:;
     state->format_state.classic.folder_depth = 0;
 
     layer->internal_state = state;
-    layer->read = NULL;
+    layer->read = sit_layer_read; /* hardening: probing layers call read() unconditionally; NULL trapped */
     layer->close = sit_layer_close;
     layer->open = sit_layer_open;
     return layer;
@@ -462,7 +462,7 @@ found:;
     state->is_sit5 = true;
 
     layer->internal_state = state;
-    layer->read = NULL;
+    layer->read = sit_layer_read; /* hardening: see munbox_new_sit_layer */
     layer->close = sit_layer_close;
     layer->open = sit5_layer_open;
     return layer;
@@ -542,6 +542,8 @@ static int sit_read_next_entry(sit_layer_state_t *st) {
         if (name_len >= sizeof(filename)) {
             name_len = (uint8_t)(sizeof(filename) - 1);
         }
+        if ((size_t)(header - data) + 3 + name_len > st->archive_size)
+            return munbox_error("SIT: entry name out of range"); /* hardening: read past the archive */
         memcpy(filename, header + 3, name_len);
         filename[name_len] = '\0';
 
@@ -595,8 +597,12 @@ static int sit_read_next_entry(sit_layer_state_t *st) {
         uint8_t *comp_data = comp_rsrc + rsrc_comp_len;
         
         // Verify data doesn't exceed archive bounds
-        if ((size_t)(comp_data - data) + data_comp_len > st->archive_size) {
-            return -1; // Error: data fork out of range
+        /* hardening: on 32-bit targets (WebAssembly) the pointer/size_t sum wrapped, so huge lengths
+           passed this check; the cursor could then step BACKWARDS and re-read the same entry forever
+           (and forks could point outside the archive). Do the arithmetic in 64 bits. */
+        uint64_t forks_end = (uint64_t)(size_t)(header - data) + 112u + (uint64_t)rsrc_comp_len + (uint64_t)data_comp_len;
+        if (forks_end > (uint64_t)st->archive_size) {
+            return munbox_error("SIT: fork data out of range");
         }
 
         // Fill fork descriptors
@@ -803,6 +809,10 @@ static ssize_t sit_stream_fill(sit_stream_state_t *ss, uint8_t *dst, size_t cap,
                 n = ss->out_rem;
             if (n > cap - produced)
                 n = cap - produced;
+            /* hardening: a stored fork shorter than its declared length made no progress here (endless
+               loop). The fork cannot be completed, so report it rather than return a short fork. */
+            if (n == 0)
+                return munbox_error("SIT: stored fork ends before its declared length");
             memcpy(dst + produced, ss->src + ss->src_pos, n);
             ss->src_pos += n;
             ss->out_rem -= n;
@@ -1057,6 +1067,7 @@ static int sit_layer_open(munbox_layer_t *self, munbox_open_t what, munbox_file_
 // Returns: 1 = file entry read, 0 = end of entries, -1 = error
 // Populates the current file info and fork descriptors in the state
 static int sit5_read_next_entry(sit_layer_state_t *st) {
+  for (;;) { /* hardening: folder/marker entries used to recurse (unbounded stack use); loop instead */
     if (st->format_state.sit5.entries_remaining == 0 || st->format_state.sit5.current_cursor == 0 || st->format_state.sit5.current_cursor >= st->archive_size) {
         return 0; // end of entries
     }
@@ -1074,6 +1085,10 @@ static int sit5_read_next_entry(sit_layer_state_t *st) {
         return munbox_error("SIT5: unsupported entry version");
     
     uint16_t header1_len = LOAD_BE16(header1 + 6);
+    /* hardening: the CRC step below writes tmp[32..33] and the parser reads header1[0..47], so a
+       shorter header overflowed the heap copy; a zero length also never advanced the cursor. */
+    if (header1_len < 48)
+        return munbox_error("SIT5: header1 too short");
     if (offs + header1_len > st->archive_size)
         return munbox_error("SIT5: header1 length out of range");
     
@@ -1100,6 +1115,8 @@ static int sit5_read_next_entry(sit_layer_state_t *st) {
     // Extract name
     char namebuf[256];
     size_t cpylen = namelen < sizeof(namebuf) - 1 ? namelen : sizeof(namebuf) - 1;
+    if ((size_t)offs + 48 + cpylen > st->archive_size)
+        return munbox_error("SIT5: entry name out of range"); /* hardening */
     memcpy(namebuf, header1 + 48, cpylen);
     namebuf[cpylen] = '\0';
 
@@ -1140,7 +1157,7 @@ static int sit5_read_next_entry(sit_layer_state_t *st) {
             // Special folder marker - skip
             st->format_state.sit5.entries_remaining++;
             st->format_state.sit5.current_cursor = header_end;
-            return sit5_read_next_entry(st); // recursively try next entry
+            continue; // try next entry
         }
         
         // Regular folder - update directory stack
@@ -1174,13 +1191,13 @@ static int sit5_read_next_entry(sit_layer_state_t *st) {
         
         st->format_state.sit5.entries_remaining += numfiles;
         st->format_state.sit5.current_cursor = (uint32_t)(datastart_ptr - data);
-        return sit5_read_next_entry(st); // recursively try next entry
+        continue; // try next entry
     }
 
     // Handle special markers
     if (datalength == 0xffffffff) {
         st->format_state.sit5.current_cursor = header_end;
-        return sit5_read_next_entry(st); // recursively try next entry
+        continue; // try next entry
     }
 
     // Regular file entry
@@ -1207,10 +1224,12 @@ static int sit5_read_next_entry(sit_layer_state_t *st) {
     sit_join_path(full_filename, sizeof(full_filename), parent_path, namebuf);
 
     // Verify fork data is within archive bounds
-    uint8_t *comp_rsrc = datastart_ptr;
-    uint8_t *comp_data = datastart_ptr + (hasresource ? resourcecomplen : 0);
-    if ((size_t)(comp_data - data) + datacomplen > st->archive_size)
+    /* hardening: 64-bit arithmetic; the 32-bit sum wrapped on WebAssembly (see classic SIT). */
+    uint64_t data_start = (uint64_t)(size_t)(datastart_ptr - data) + (hasresource ? (uint64_t)resourcecomplen : 0u);
+    if (data_start + (uint64_t)datacomplen > (uint64_t)st->archive_size)
         return munbox_error("SIT5: data fork out of range");
+    uint8_t *comp_rsrc = datastart_ptr;
+    uint8_t *comp_data = data + (size_t)data_start;
 
     // Populate state with current file info
     memset(&st->cur_info, 0, sizeof(st->cur_info));
@@ -1241,6 +1260,7 @@ static int sit5_read_next_entry(sit_layer_state_t *st) {
 
     printf("SIT5: created file '%s'\n", full_filename);
     return 1; // Successfully read file entry
+  }
 }
 
 static int sit5_layer_open(munbox_layer_t *self, munbox_open_t what, munbox_file_info_t *info) {

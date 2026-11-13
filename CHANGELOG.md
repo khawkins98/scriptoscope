@@ -27,6 +27,26 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
 
 ### Fixed
 
+- A damaged or hostile StuffIt archive now fails with an error instead of
+  freezing or crashing the page (#662). Loading one through the theme loader, a
+  drop zone or `decodeArchive` could leave the decoder running forever, abort
+  it, or write outside its buffers, after which later archives on the same page
+  could fail too. The vendored decoder now checks the lengths, offsets and code
+  tables it reads from the archive, and the load rejects with a decode error or
+  returns the entries that decoded before the damage. Valid archives decode to
+  the same bytes as before; decoding the bundled archives costs about 12% more
+  CPU time
+  ([measurements](docs/runtime-optimization-experiments.md#stuffit-decoder-hardening-decode-time-cost-662)).
+  Some damaged archives that used to return a result now fail, or return fewer
+  or shorter entries, see the
+  [decoder README](tools/sit-wasm/README.md#malformed-input-and-limits).
+- The StuffIt decoder no longer keeps about 7 MB more memory after each pass
+  over the bundled archives (#662); the code tables it builds for each fork are
+  now freed, and repeated loads stay at the decoder's initial 21 MB.
+- One archive may decode to at most 32 MiB in total (#662). A few dozen bytes
+  could declare 4 GiB of output and grow the page's memory to the WebAssembly
+  maximum; such an archive now fails with `decoded output exceeds the 32 MiB
+  limit`. The largest bundled archive decodes to about 1.55 MiB.
 - Theme picker: a tile whose scheme has no folder icon of its own now always
   borrows the same one. It borrowed the icon of whichever tile happened to
   resolve first, so the picture depended on decode timing and could differ

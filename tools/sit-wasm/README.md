@@ -153,6 +153,52 @@ use `decodeArchive` if you need every entry. Note: munbox's SIT5 iterator over-r
 entry and returns an error instead of a clean end-of-archive — the shim keeps the entries it
 decoded rather than discarding them, so a trailing over-run is harmless.
 
+## Malformed input and limits
+
+For a damaged or hostile archive, `decodeArchive` either rejects with an `Error`
+whose message starts `decodeArchive: `, or resolves with the entries it could
+decode. The decoder used to hang, abort or write outside its buffers on some such
+inputs; [munbox/PATCHES.md](./munbox/PATCHES.md) lists the checks that now
+prevent that, and the next call on the shared instance decodes normally.
+
+- **A partial result is still a result.** When an entry cannot be opened after
+  earlier entries decoded, the call resolves with the earlier entries (the same
+  rule that tolerates munbox's SIT5 over-run, above). When a fork fails while
+  it is being read, the call rejects, and decoding now stops there: the
+  message is the first failure, where it used to be whichever error came last
+  after reading on through the rest of the archive.
+- **Messages.** Some decoder errors carry no text of their own and read
+  `decodeArchive: No error`.
+- **Output cap.** The decoded forks of one archive, with their names and headers,
+  may total at most 32 MiB (`SIT_MAX_OUTPUT_BYTES` in [shim.c](./shim.c)); beyond
+  that the call rejects with `decodeArchive: decoded output exceeds the 32 MiB
+  limit`. A fork's declared length comes from the archive, and a few dozen bytes
+  can declare 4 GiB. The largest bundled archive decodes to about 1.55 MiB.
+  Reaching the cap leaves the instance's memory at about 69 MiB, which
+  WebAssembly does not give back.
+- **Lengths are enforced.** A stored (uncompressed) StuffIt fork with fewer
+  bytes than its header declares is an error. A method 13 fork is decoded from
+  exactly its declared compressed bytes, so a fork whose header understates
+  them fails where it used to read on into the bytes that follow. A fork whose
+  declared position or length lies outside the archive is an error, including
+  lengths near 4 GiB that used to wrap a 32-bit sum and pass.
+- **Unchanged.** Other forks that end early keep munbox's behaviour: short or
+  empty where the layer reports end-of-data (Compact Pro with a rejected code
+  table, for one), an error where it reports one. Checksums are verified where
+  munbox verifies them, no more.
+- **Nesting.** At most 16 wrapper layers are unwrapped and 64 Compact Pro
+  directory levels walked.
+- **Memory.** Repeated decodes through the one instance do not grow its memory:
+  12 passes over the 13 bundled archives stay at the initial 21 MB. They used
+  to add about 7 MB a pass.
+
+The checks were exercised with 9,000 seeded corruptions, native
+AddressSanitizer/UndefinedBehaviorSanitizer builds and coverage-guided fuzzing;
+that is evidence, not proof, so keep treating archives from unknown sources as
+untrusted input. The
+[experiment record](../../docs/runtime-optimization-experiments.md#stuffit-decoder-hardening-decode-time-cost-662)
+has the decode-time cost.
+
 ## Rebuild
 
 The committed `dist/` was built with **Emscripten 5.0.7**. From this directory with
@@ -207,8 +253,9 @@ has the measurements behind the current flags.
 
 ## What's vendored, and our patches
 
-[munbox/PATCHES.md](./munbox/PATCHES.md) owns upstream provenance and the clang
-include/folder-count fixes; [munbox/LICENSE](./munbox/LICENSE) retains munbox's MIT
+[munbox/PATCHES.md](./munbox/PATCHES.md) owns upstream provenance and the local
+patches: the clang include and folder-count fixes, and the malformed-input
+checks; [munbox/LICENSE](./munbox/LICENSE) retains munbox's MIT
 terms. The first-party wrapper has its own [MIT license](./LICENSE).
 
 ## Layout
@@ -221,3 +268,4 @@ terms. The first-party wrapper has its own [MIT license](./LICENSE).
 | `munbox/` | Vendored subset, license and patch record |
 | `sit-wasm.test.mjs` | Archive/fork regression tests, included in repository `npm test` |
 | `instance-recovery.test.mjs` | Instance replacement, module reuse and buffer-freeing tests, included in repository `npm test` |
+| `sit-wasm.malformed.test.mjs` / `malformed-archives.fixture.mjs` | Malformed-input, output-cap and memory tests, and the small inputs they build in code |
