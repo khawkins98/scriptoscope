@@ -28,10 +28,20 @@ const test = demoTest.extend({
 
 for (const mode of ['source', 'production']) {
   test(`${mode}: delayed bare chooser preserves later unrelated native focus`, async ({ page, demo, production }) => {
+    // Hold a scheme no part of the page has requested yet: the chooser and the page share
+    // decoded schemes, so choosing one that is already loaded makes no request to delay.
+    const requestedSlugs = new Set();
+    page.on('request', request => {
+      const slug = /\/themes\/([^/]+)\//.exec(new URL(request.url()).pathname)?.[1];
+      if (slug) requestedSlugs.add(slug);
+    });
     await page.goto(`${mode === 'source' ? demo : production}/showcase.html?theme=windows-95`);
     await expect(page.locator('#powers.scriptoscope-ready')).toBeVisible();
-    const first = page.locator('[data-slug="1984"]');
-    await expect(first).toHaveAttribute('aria-busy', 'false');
+    await page.waitForLoadState('networkidle');
+    const slugs = await page.locator('[data-slug]').evaluateAll(tiles => [...new Set(tiles.map(tile => tile.dataset.slug))]);
+    const slug = slugs.find(candidate => !requestedSlugs.has(candidate));
+    expect(slug, 'a chooser scheme that has not been requested yet').toBeTruthy();
+    const first = page.locator(`[data-slug="${slug}"]`).first();
     await page.getByRole('button', { name: /Switch to bare HTML/ }).click();
     await expect(page.locator('#powers [data-scriptoscope-window-host]')).toHaveCount(0);
     await expect(page.locator('#powers.scriptoscope-ready')).toHaveCount(0);
@@ -39,7 +49,7 @@ for (const mode of ['source', 'production']) {
     let release, started;
     const requested = new Promise(resolve => started = resolve);
     const gate = new Promise(resolve => release = resolve);
-    await page.route('**/themes/1984/**', async route => {
+    await page.route(`**/themes/${slug}/**`, async route => {
       started();
       await gate;
       await route.continue();
@@ -54,8 +64,8 @@ for (const mode of ['source', 'production']) {
       await expect(unrelated).toBeFocused();
       release();
       await expect(page.locator('#powers.scriptoscope-ready')).toBeVisible();
-      await expect(page).toHaveURL(/theme=1984(?:&|$)/);
-      await expect(page.locator('#install-teaser')).toHaveAttribute('data-scriptoscope-theme', '1984');
+      await expect(page).toHaveURL(new RegExp(`theme=${slug}(?:&|$)`));
+      await expect(page.locator('#install-teaser')).toHaveAttribute('data-scriptoscope-theme', slug);
       await expect(first).toHaveAttribute('aria-selected', 'true');
       await expect(page.locator('#powers [data-scriptoscope-window-host]')).toHaveCount(8);
       await expect(unrelated).toBeFocused();
