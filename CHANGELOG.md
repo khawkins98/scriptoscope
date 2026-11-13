@@ -40,14 +40,23 @@ declarative front door, theme schema, and consumer-facing class names stabilize.
   runtime abort or trap left that instance holding everything the failed
   decode had allocated, so later valid archives could fail, and its memory
   grew with every archive decoded and could not shrink (about 6.8 MB for each
-  pass over the 13 bundled archives). The wrapper now drops the instance after
-  a crash, and after a decode that grew its memory, and instantiates a fresh
-  one for the next decode. The crashing call still rejects with the same
-  error. A failed input allocation is reported as `decodeArchive: out of
-  memory` instead of being written through, and the wrapper's buffers are
-  freed when copying data in or out fails. Results, ordinary error messages
-  and success-path timing are unchanged. `stuffit-wasm` gains an internal,
-  unsupported `__createDecoderForTests` export for its own tests (#662).
+  pass over the 13 bundled archives). The wrapper now replaces the instance
+  after a crash, and when its memory passes a limit (twice its initial size,
+  or more for a large input). The crashing call still rejects with the same
+  error. Memory returns to its initial size at the start of the decode that
+  follows a replacement; it is not held there: over 40 passes of the bundled
+  archives an instance peaks at 43.8 MB and is replaced 9 times, where it used
+  to reach 326.6 MB. A replacement costs the call that needs it one
+  instantiation. In browsers it reuses the module compiled for the first
+  instance and makes no network request; Node re-reads the file. A failed
+  replacement is not kept (the next call tries again); only a failure of the
+  very first instantiation is kept, as before. A failed input allocation is
+  reported as `decodeArchive: out of memory` instead of being written through,
+  and the wrapper's buffers are freed when copying data in or out fails.
+  Results, ordinary error messages and success-path timing are unchanged.
+  `tools/sit-wasm/index.mjs`, and so the lazy decoder chunk and the
+  `stuffit-wasm` package, gains a named export `__createDecoderForTests`. It is
+  internal and unsupported (#669).
 
 ### Changed
 

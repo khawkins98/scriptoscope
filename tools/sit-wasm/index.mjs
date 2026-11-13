@@ -3,64 +3,143 @@
 // imported lazily, only when a .sit is actually dropped.
 import createMunbox from './dist/munbox.mjs';
 
-// One WASM instance is shared across calls (the first call pays the instantiation cost) and
-// is replaced when it can no longer be trusted or has grown; see createDecoder. Every
-// instance, replacements included, comes from this one factory call. It silences munbox's
-// stdout debug chatter ("Detected format: …", "SIT5: created file …"), which would spam the
-// browser console. Real errors surface via sit_error(), not stdout; stderr (genuine warnings)
-// is left intact.
-const createModule = () => createMunbox({ print: () => {} });
+// Options for every instantiation of the decoder, first and replacement alike. `print`
+// silences munbox's stdout debug chatter ("Detected format: …", "SIT5: created file …"),
+// which would spam the browser console. Real errors surface via sit_error(), not stdout;
+// stderr (genuine warnings) is left intact. A custom Emscripten `locateFile` goes here.
+const moduleOptions = () => ({ print: () => {} });
 
 const readU32 = (h, o) => (h[o] | (h[o + 1] << 8) | (h[o + 2] << 16) | (h[o + 3] << 24)) >>> 0;
 
-// Builds a decodeArchive around one shared instance obtained from `create`.
+// Builds a decodeArchive around one shared instance made by `glue` (the Emscripten factory).
+// The first call pays the instantiation cost. The instance is replaced in two cases.
 //
-// The instance is retired, so the next call instantiates a fresh one, in two cases:
-// - A call into it threw (a runtime abort or a WebAssembly trap). Nothing inside it was
-//   unwound or freed and its heap may be damaged. The caller gets that error unchanged.
-// - Its linear memory grew during a decode. The decoder does not return everything it
-//   allocates and WASM memory cannot shrink, so a reused instance only gets bigger. Retiring
-//   on growth means every decode starts from the initial memory size. This is checked once a
-//   decode has finished, and the finished decode's result is still returned.
-// Nothing is started eagerly on retirement; a replacement exists only once a call needs it.
+// 1. A call into it threw (a runtime abort or a WebAssembly trap). Nothing inside it was
+//    unwound or freed and its heap may be damaged, so it is never called again. The caller
+//    gets that error unchanged and the next call loads a replacement.
+// 2. It outgrew its limit. The decoder does not return everything it allocates and WASM
+//    memory cannot shrink, so a reused instance only gets bigger. After a decode, an instance
+//    whose memory exceeds max(2 × its initial size, initial size + 3 × (input + output bytes
+//    of that decode)) is marked outgrown. The second term keeps one large archive from
+//    replacing the instance on every decode: decoding needs up to about 2 × (input + output)
+//    above the initial size. An outgrown instance is still healthy. It stays in service
+//    until the next call has loaded its replacement, and if that load fails the call uses
+//    the outgrown instance and a later call tries again.
 //
-// The module runs a decode synchronously, so the only place calls interleave is the wait
-// for the instance. A call that waited on an instance another call has since retired waits
-// for the current one instead, and `instance()` caches, so those calls share one replacement.
-function createDecoder(create) {
-  let current; // promise for the instance new calls use; undefined after a retirement
-  const instance = () => (current ??= create());
+// Nothing is loaded ahead of need. A failed replacement is never kept. Only a failure of the
+// very first load is kept and returned to every later call, as it always was.
+//
+// Replacements do not fetch the .wasm again where that can be avoided. In a browser the glue
+// starts `WebAssembly.instantiateStreaming` synchronously inside the factory call, so `load`
+// swaps that function for the length of that one synchronous call (nothing else can run in
+// between) to keep the compiled `WebAssembly.Module` it resolves to; the call itself, its
+// request and its errors pass through untouched. Replacements instantiate that module
+// through the glue's `instantiateWasm` hook. Where no module was captured (Node, which
+// reads the file from disk, or a browser that fell back from streaming), a replacement
+// loads the way the first instance did.
+//
+// The module runs a decode synchronously, so calls interleave only while waiting for an
+// instance. A call that waited on an instance another call has since crashed waits for the
+// current one instead; those calls share one replacement.
+function createDecoder(glue) {
+  let compiled; // WebAssembly.Module behind the first instance, when it could be captured
+  let current; // promise for the instance in service
+  let outgrown; // the instance in service, once it has passed its limit
+  let everLoaded = false;
+  const dead = new WeakSet(); // instances a call crashed
+  const initialSize = new WeakMap(); // instance → linear memory bytes when first used
+
+  function load() {
+    if (compiled) {
+      const module = compiled;
+      return new Promise((resolve, reject) => {
+        glue({ ...moduleOptions(), instantiateWasm(imports, receive) {
+          WebAssembly.instantiate(module, imports).then((made) => receive(made, module), reject);
+          return {};
+        } }).then(resolve, reject);
+      });
+    }
+    const streaming = WebAssembly.instantiateStreaming;
+    let swapped = false;
+    if (typeof streaming === 'function') {
+      try {
+        WebAssembly.instantiateStreaming = function (...args) {
+          const result = streaming.apply(this, args);
+          Promise.resolve(result).then((made) => { compiled = made?.module; }, () => {});
+          return result;
+        };
+        swapped = true;
+      } catch { /* not writable here: every instance loads the default way */ }
+    }
+    try { return glue(moduleOptions()); } finally { if (swapped) WebAssembly.instantiateStreaming = streaming; }
+  }
+
+  // The promise a call waits on for its instance.
+  function instance() {
+    if (!current) {
+      if (!everLoaded) return (current = load()); // the first load: kept even if it fails
+      const replacement = current = load();
+      replacement.catch(() => { if (current === replacement) current = undefined; });
+      return replacement;
+    }
+    if (outgrown) {
+      const old = outgrown;
+      outgrown = undefined;
+      current = load().catch(() => old); // still healthy: serve with it and let a later call try again
+    }
+    return current;
+  }
 
   return async function decodeArchive(bytes) {
     let p = instance();
     let m = await p;
-    while (p !== current) m = await (p = instance());
+    while (dead.has(m)) {
+      if (current === p) current = undefined;
+      m = await (p = instance());
+    }
+    everLoaded = true;
     const u8 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
 
-    const sizeBefore = m.HEAPU8.length;
+    let initial = initialSize.get(m);
+    if (initial === undefined) initialSize.set(m, initial = m.HEAPU8.length);
     let packed, failure;
-    let intact = false; // true when a throw came from copying in JS, not from the instance
+    let outLength = 0;
+    let intact = false; // true when a throw came from copying in JS and cleanup succeeded
+    const checkSize = () => {
+      const limit = Math.max(2 * initial, initial + 3 * (u8.length + outLength));
+      if (current === p && m.HEAPU8.length > limit) outgrown = m;
+    };
     try {
       const inPtr = m._malloc(u8.length || 1);
       if (!inPtr) failure = 'out of memory';
       else {
         // HEAPU8 is read fresh each time (it's reassigned on memory growth).
-        try { m.HEAPU8.set(u8, inPtr); } catch (e) { m._free(inPtr); intact = true; throw e; }
+        try { m.HEAPU8.set(u8, inPtr); } catch (e) {
+          try { m._free(inPtr); intact = true; } catch { /* the copy's error wins; the instance is dropped */ }
+          throw e;
+        }
         const outPtr = m._sit_decode(inPtr, u8.length);
         m._free(inPtr);
         if (!outPtr) failure = m.UTF8ToString(m._sit_error()) || 'decode failed';
         else {
-          const total = readU32(m.HEAPU8, outPtr);
+          outLength = readU32(m.HEAPU8, outPtr);
           // Copy out of the WASM heap before freeing.
-          try { packed = m.HEAPU8.slice(outPtr, outPtr + total); } catch (e) { m._sit_free(outPtr); intact = true; throw e; }
+          try { packed = m.HEAPU8.slice(outPtr, outPtr + outLength); } catch (e) {
+            try { m._sit_free(outPtr); intact = true; } catch { /* as above */ }
+            throw e;
+          }
           m._sit_free(outPtr);
         }
       }
     } catch (e) {
-      if (!intact || m.HEAPU8.length > sizeBefore) current = undefined;
+      if (intact) checkSize();
+      else {
+        dead.add(m); // the next call finds it dead and loads a replacement
+        if (outgrown === m) outgrown = undefined;
+      }
       throw e;
     }
-    if (m.HEAPU8.length > sizeBefore) current = undefined;
+    checkSize();
     if (failure) throw new Error(`decodeArchive: ${failure}`);
     return parsePacked(packed);
   };
@@ -75,12 +154,13 @@ function createDecoder(create) {
  *   with `String.fromCharCode((v>>24)&255, (v>>16)&255, (v>>8)&255, v&255)` if you need the text.
  *   A non-archive input passes through as a single data fork (forkType 0).
  */
-export const decodeArchive = createDecoder(createModule);
+export const decodeArchive = createDecoder(createMunbox);
 
 /**
  * Internal, for this package's own tests; not part of the supported API and may change or
  * go away in any release. Returns a separate `decodeArchive` with its own shared instance,
- * taken from `create` (same contract as the Emscripten factory: resolves to a module).
+ * made by `glue` (same contract as the Emscripten factory: takes the module options,
+ * resolves to a module).
  * @internal
  */
 export const __createDecoderForTests = createDecoder;

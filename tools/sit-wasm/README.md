@@ -64,38 +64,78 @@ Serve a page beside the copied module, keeping its `dist/` directory in place:
 
 ### Locating the `.wasm`
 
-Keep `dist/munbox.wasm` beside `dist/munbox.mjs`; the wrapper instantiates it on
-first use and again whenever it replaces the instance (below). A bundler may
-relocate these assets together. For a custom WASM location, change the Emscripten
-`locateFile` hook in `index.mjs`'s factory call; every instance comes from that
-one call.
+Keep `dist/munbox.wasm` beside `dist/munbox.mjs`; the wrapper loads it on first
+use. A bundler may relocate these assets together. For a custom WASM location, add
+the Emscripten `locateFile` hook to `moduleOptions` in `index.mjs`; every
+instantiation uses those options.
 
 ### The shared instance and when it is replaced
 
-Calls share one decoder instance. The wrapper drops it, and the next call
-instantiates a fresh one, in two cases:
+Calls share one decoder instance. It is replaced in two cases:
 
-- A decode ended in a runtime abort or a WebAssembly trap. The failed call
+- **A decode crashed it** (a runtime abort or a WebAssembly trap). The failed call
   rejects with that error, unchanged. Nothing the decode allocated was released
-  and the instance's heap may be damaged, so it is not called again.
-- The instance's linear memory grew during a decode. The decoder does not return
-  everything it allocates and WebAssembly memory cannot shrink, so a reused
-  instance only gets bigger. The decode that grew it still returns its result.
+  and the instance's heap may be damaged, so it is never called again. The next
+  call loads a replacement.
+- **It outgrew its memory limit.** The decoder does not return everything it
+  allocates and WebAssembly memory cannot shrink, so a reused instance only gets
+  bigger. After each decode the wrapper compares the instance's linear memory with
+  `max(2 × initial, initial + 3 × (input bytes + output bytes))`, where `initial`
+  is the instance's size when new (337 pages, 21.1 MB). Above that, the instance
+  is still healthy: the decode that took it there returns its result, and the
+  next call loads a replacement before decoding. The second term is there so that
+  one large input does not cause a replacement on every decode (an input of about
+  4 MB or more grows even a new instance; decoding needs up to about
+  2 × (input + output) above the initial size).
 
-An ordinary decoder error (`decodeArchive: …`) keeps the instance. Every decode
-therefore starts on an instance at its initial memory size (337 pages); a single
-decode can still grow its own instance as far as that archive needs. None of the
-13 bundled archives grows a fresh instance, and decoding them in a loop replaces
-the instance about once every two passes. A dropped instance's memory is
-returned when the JavaScript engine collects it, not at the moment it is dropped.
+An ordinary decoder error (`decodeArchive: …`) is neither case and keeps the
+instance.
 
-The replacement is created by the next decode, not ahead of it, so that decode
-also pays one instantiation, and a page that never decodes again holds no
-decoder at all. If an instantiation fails, that failure is kept and later calls
-reject with it, as before.
+What this bounds: an instance found over its limit after one decode is replaced
+before the next call decodes, and the replacement starts at the initial size.
+Memory is not held at the initial size between replacements. Calls that were
+already waiting on the old instance when it passed the limit are still served by
+it. Decoding the 13 bundled archives in a loop, an instance grows
+from 337 to at most 701 pages (43.8 MB) and is replaced about every four passes
+(10 instances in 40 passes); without replacement it reached 326.6 MB over the
+same 40 passes. A single decode can take memory as far as that archive needs. A
+replaced instance's memory is returned when the JavaScript engine collects it.
 
-`__createDecoderForTests` is exported for this package's own tests. It is not
-part of the supported API.
+What a replacement costs: nothing is loaded ahead of need, so the call that needs
+the replacement waits for one instantiation.
+
+- In a browser where the first instance was compiled by streaming (the normal
+  case), the wrapper keeps that compiled `WebAssembly.Module` and instantiates
+  replacements from it. They make no network request and do not depend on the
+  network.
+- In Node a replacement reads and compiles `munbox.wasm` from disk again. Measured
+  medians on one host ranged from 0.3 ms to 5.6 ms depending on load, against 2.5
+  to 20 ms to decode one bundled archive on a quiet host.
+- In a browser that could not stream the first compile (for example a server that
+  sends `.wasm` with the wrong MIME type), no module is kept and each replacement
+  requests the file again, twice, as the first load did.
+
+When instantiation fails:
+
+- **The very first instantiation.** The failure is kept for the life of the page
+  or process and every later call rejects with it, as before. The Emscripten
+  runtime also logs it with `console.error`.
+- **A replacement after a crash.** The calls waiting on it reject with the
+  instantiation error. It is not kept; the next call tries again.
+- **A replacement for an instance over its limit.** The call is served by that
+  instance, which is still healthy, and each later call tries again while the
+  instance stays over its limit.
+
+To keep the compiled module the wrapper replaces `WebAssembly.instantiateStreaming`
+for the length of the one synchronous factory call that starts the first load,
+then restores it. The call, its request and its errors pass through unchanged. If
+the property cannot be assigned, nothing is kept and replacements load like the
+first instance.
+
+`__createDecoderForTests` is a named export of `index.mjs`, and so of this
+package and of any bundle chunk built from it. It is internal: it builds a
+separate decoder over a caller-supplied factory for this package's tests, and is
+not part of the supported API.
 
 ## Coverage
 
@@ -180,4 +220,4 @@ terms. The first-party wrapper has its own [MIT license](./LICENSE).
 | `dist/` | Committed generated ES module and WASM |
 | `munbox/` | Vendored subset, license and patch record |
 | `sit-wasm.test.mjs` | Archive/fork regression tests, included in repository `npm test` |
-| `instance-recovery.test.mjs` | Instance replacement and buffer-freeing tests, included in repository `npm test` |
+| `instance-recovery.test.mjs` | Instance replacement, module reuse and buffer-freeing tests, included in repository `npm test` |

@@ -19,20 +19,31 @@ export interface ArchiveEntry {
 /**
  * Decode a classic-Mac archive (StuffIt `.sit`, BinHex `.hqx`, MacBinary `.bin`, Compact Pro
  * `.cpt`) into its forks — one entry per fork. A non-archive input passes through as a single
- * data fork. Runs in the browser and in Node; the WASM module instantiates on first call and
- * is shared by later calls. It is replaced by a fresh instance after a decode that crashes
- * the decoder (that call still rejects with the crash's own error) or grows its memory.
+ * data fork. Runs in the browser and in Node. The WASM module instantiates on first call and
+ * is shared by later calls.
+ *
+ * The shared instance is replaced in two cases. After a decode that crashes the decoder (a
+ * runtime abort or trap), that call rejects with the crash's own error and the next call
+ * instantiates a new instance. After a decode that leaves the instance's memory above its
+ * limit, the next call instantiates a new one first, so that call starts on an instance at
+ * its initial memory size; memory is not held at that size in between.
+ *
+ * If the very first instantiation fails, that failure is kept and every later call rejects
+ * with it. A failed replacement is not kept: after a crash the call that needed it rejects
+ * with the instantiation error and the next call tries again; for an instance that was only
+ * over its limit the call is served by that instance and a later call tries again.
  */
 export function decodeArchive(bytes: Uint8Array | ArrayBuffer): Promise<ArchiveEntry[]>;
 
 /**
  * Internal, for this package's own tests; not part of the supported API and may change or
- * go away in any release. Returns a separate `decodeArchive` with its own shared instance,
- * taken from `create`.
+ * go away in any release. Builds a separate `decodeArchive` with its own shared instance,
+ * made by `glue` (called like the Emscripten factory: with the module options, resolving
+ * to a module). It is a named export of this package and of any bundle chunk built from it.
  * @internal
  */
 export function __createDecoderForTests(
-  create: () => Promise<unknown>,
+  glue: (options: Record<string, unknown>) => Promise<unknown>,
 ): (bytes: Uint8Array | ArrayBuffer) => Promise<ArchiveEntry[]>;
 
 /**
