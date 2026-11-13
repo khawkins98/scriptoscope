@@ -818,7 +818,11 @@
     document.addEventListener('focusin', (event) => {
       if (mountingPowers && event.target instanceof HTMLElement) mountFocus = event.target;
     }, appEvents);
-    const pickerResolver = createOwnedThemeResolver({ themeBaseUrl, themes: ALL_THEMES, yieldBetweenStages: true });
+    // One resolver for the picker strips and every mount of the page host, so each scheme is
+    // fetched and decoded at most once per page. The host borrows it (`resolver` below) and
+    // registers dropped themes in it; only the pagehide handler disposes it, after the host
+    // and the strips that render its themes are gone.
+    const themeResolver = createOwnedThemeResolver({ themeBaseUrl, themes: ALL_THEMES, yieldBetweenStages: true });
     let pickers = [];
     const pickerNodes = new Set();
     let userInteracted = false;
@@ -853,8 +857,7 @@
       try {
         h = await mountShowcase({
           root: powersSection,
-          themeBaseUrl,
-          yieldBetweenStages: true,
+          resolver: themeResolver,
           pageThemeDefault: requestedRef,
           registeredThemes,
           themes: ALL_THEMES,
@@ -1023,9 +1026,9 @@
       for (const p of pickers) p?.teardown();
       for (const node of pickerNodes) node.remove();
       pickerNodes.clear();
-      pickerResolver.dispose();
       dropPulse();
       clearTimeout(resizeTimer); dropZone?.detach(); closeModal(); unmountPowers();
+      themeResolver.dispose();
       for (const theme of ownedDroppedThemes) theme.dispose();
       ownedDroppedThemes.clear(); registeredThemes.clear();
     }, appEvents);
@@ -1072,7 +1075,7 @@
       const promotions = strips.map(([el, themes]) => {
         const before = new Set(el.childNodes);
         const promotion = promoteThemePicker(el, themes, {
-          loadTheme: slug => pickerResolver.load(slug), switchTheme, initialSlug: activeRef,
+          loadTheme: slug => themeResolver.load(slug), switchTheme, initialSlug: activeRef,
         });
         for (const node of el.childNodes) if (!before.has(node)) pickerNodes.add(node);
         return promotion;
